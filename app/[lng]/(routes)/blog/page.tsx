@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RiArrowDropLeftFill, RiArrowDropRightFill } from "react-icons/ri";
-import { stripHtml } from "@/utils/html";
+import { stripHtml } from "@/utils/common";
 
 import { Amplify } from "aws-amplify";
 Amplify.configure(outputs);

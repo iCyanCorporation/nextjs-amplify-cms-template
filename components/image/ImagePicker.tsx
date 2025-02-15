@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageItem, ImagePickerProps } from './types';
+import { getS3PublicUrl } from '@/utils/common';
 
 export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
     const [images, setImages] = useState<ImageItem[]>([]);
@@ -21,10 +22,9 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
             setLoading(true);
             const response = await list({ path: 'public/images/' });
             const imageItems = await Promise.all(response.items.map(async (item) => {
-                const urlResult = await getUrl({ path: item.path });
                 return {
                     key: item.path,
-                    url: urlResult.url.toString(),
+                    url: getS3PublicUrl(item.path),
                     lastModified: item.lastModified ? new Date(item.lastModified).toISOString() : new Date().toISOString(),
                     size: item.size ?? 0
                 };
@@ -55,7 +55,7 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
                     <Loader2 className='animate-spin' />
                 </div>
             ) : (
-                <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+                <div className='grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-4'>
                     {images.map((image) => (
                         <Card
                             key={image.key}

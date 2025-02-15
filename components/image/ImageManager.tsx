@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { list, remove, copy, getUrl } from 'aws-amplify/storage';
+import { list, remove, copy, getUrl, uploadData } from 'aws-amplify/storage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Loader2, Trash2, FolderOutput } from 'lucide-react';
+import { Loader2, Trash2, FolderOutput, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileUploader } from '@aws-amplify/ui-react-storage';
 import { ImageItem, ImageManagerProps } from './types';
+import { getS3PublicUrl } from '@/utils/common';
 
 export function ImageManager({ path = 'public/images/', onRefresh }: ImageManagerProps) {
     const [images, setImages] = useState<ImageItem[]>([]);
     const [loading, setLoading] = useState(false);
+    const [file, setFile] = useState<File | undefined>();
 
     useEffect(() => {
         listImages();
@@ -21,7 +23,7 @@ export function ImageManager({ path = 'public/images/', onRefresh }: ImageManage
     async function listImages() {
         try {
             setLoading(true);
-            const response = await list({ path });
+            const response = await list({ path, options: { listAll: true } });
             const imageItems = await Promise.all(response.items.map(async (item) => {
                 const urlResult = await getUrl({ path: item.path });
                 return {
@@ -69,6 +71,42 @@ export function ImageManager({ path = 'public/images/', onRefresh }: ImageManage
         }
     }
 
+    async function copyToClipboard(text: string) {
+        try {
+            if (navigator?.clipboard) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // Fallback for browsers that don't support clipboard API
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            toast.success('Image URL copied to clipboard');
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            toast.error('Failed to copy to clipboard');
+        }
+    }
+
+    const handleChange = (event: any) => {
+        setFile(event.target.files?.[0]);
+    };
+
+    const handleClick = () => {
+        if (!file) {
+            return;
+        }
+        uploadData({
+            path: `${path}${file.name}`,
+            data: file,
+        });
+    };
+
     return (
         <div className='space-y-4'>
             <div className='flex gap-4 items-center'>
@@ -80,12 +118,14 @@ export function ImageManager({ path = 'public/images/', onRefresh }: ImageManage
                         <DialogHeader>
                             <DialogTitle>Upload Image</DialogTitle>
                         </DialogHeader>
-                        <FileUploader
+                        {/* <FileUploader
                             acceptedFileTypes={['image/*']}
                             path={path}
                             maxFileCount={1}
                             isResumable
-                        />
+                        /> */}
+                        <input type="file" onChange={handleChange} />
+                        <button onClick={handleClick}>Upload</button>
                     </DialogContent>
                 </Dialog>
                 <Button onClick={() => listImages()}>Refresh</Button>
@@ -123,6 +163,12 @@ export function ImageManager({ path = 'public/images/', onRefresh }: ImageManage
                                             }}
                                         >
                                             <FolderOutput className='h-4 w-4' />
+                                        </Button>
+                                        <Button
+                                            variant='default'
+                                            size='icon'
+                                            onClick={() => copyToClipboard(`${getS3PublicUrl(image.key)}`)}>
+                                            <Copy className='w-4 h-4' />
                                         </Button>
                                     </div>
                                 </div>

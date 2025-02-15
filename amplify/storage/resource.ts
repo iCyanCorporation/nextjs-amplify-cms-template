@@ -13,6 +13,10 @@ export const storage = defineStorage({
     'public/*': [
       allow.authenticated.to(['read', 'write', 'delete']),
       allow.guest.to(['read'])
+    ],
+    'public/images/*': [
+      allow.authenticated.to(['read', 'write', 'delete']),
+      allow.guest.to(['read'])
     ]
   })
 });

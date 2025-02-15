@@ -8,7 +8,7 @@ import type { Schema } from "@/amplify/data/resource";
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
-import { stripHtml } from "@/utils/html";
+import { stripHtml } from "@/utils/common";
 import { useRouter } from "next/navigation";
 
 Amplify.configure(outputs);
