@@ -31,3 +31,27 @@ export const mainNavigation: NavigationItem[] = [
   //   description: "Get in touch with us",
   // },
 ];
+
+
+export const soicalMediaLinks = {
+  github: {
+    name: "Github",
+    href: "https://github.com/",
+    description: "Visit our Facebook page",
+  },
+  twitter: {
+    name: "xTwitter",
+    href: "https://twitter.com/",
+    description: "Follow us on Twitter",
+  },
+  linkedin: {
+    name: "LinkedIn",
+    href: "https://www.linkedin.com/in/",
+    description: "Connect with us on LinkedIn",
+  },
+  email: {
+    name: "Email",
+    href: "info@example.com",
+    description: "Send us an email",
+  },
+}

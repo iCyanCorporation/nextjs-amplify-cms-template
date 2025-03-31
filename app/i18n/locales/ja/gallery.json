@@ -1,0 +1,54 @@
+{
+    "title": "Gallery | iCyan Studio",
+    "description": "個人プロジェクトの一覧を表示するウェブサイト。技術と経験を展開するための様々なプロジェクトを紹介しています。",
+    "projects": {
+        "no1": {
+            "title": "Wowomap",
+            "description": "Next.jsとTailwind CSSで構築されたモダンなポートフォリオウェブサイト。レスポンシブデザインとスムーズなアニメーションを特徴としています。"
+        },
+        "no2": {
+            "title": "Goalbook",
+            "description": "習慣形成と目標達成をサポートするアプリケーション。ルーティンの構築、進捗管理、個人目標の達成をサポートします。"
+        },
+        "no3": {
+            "title": "Memolog",
+            "description": "新しい言語を学習する際の単語やフレーズを記録するためのアプリ。テスト機能を使用して、ユーザーの単語やフレーズの記憶をサポートします。"
+        },
+        "no4": {
+            "title": "Next-mailbox app",
+            "description": "Windows、macOS、Linuxに対応したクロスプラットフォームのデスクトップメール管理アプリケーション。OpenAI APIを統合してAI機能を実現。"
+        },
+        "no5": {
+            "title": "Scam-check app",
+            "description": "会話履歴から詐欺の可能性をチェックできるアプリケーション。カスタムAIを使用して会話を分析し、詐欺の可能性をスコアで表示します。"
+        },
+        "no6": {
+            "title": "Nextjs-amplify cms",
+            "description": "Next.jsとAWS Amplifyで構築された、公開ウェブサイト、ブログシステム、管理ダッシュボードを備えたフルスタックのウェブアプリケーションテンプレート。"
+        },
+        "no7": {
+            "title": "Openmap",
+            "description": "地図データのテストと可視化のために設計されたウェブアプリケーション。地理データを含むCSVファイルをアップロードし、情報を地図上でインタラクティブに表示できます。"
+        },
+        "no8": {
+            "title": "Chat app",
+            "description": "GPT APIをベースに、自然な会話体験を提供。APIキーを使用して、OpenAI GPTの異なるモデルバージョンを選択可能。会話の精度を調整したい場合は、トークン数調整機能も利用できます。"
+        },
+        "no9": {
+            "title": "Google trends Visualize web app",
+            "description": "Google Trends APIをベースに、任意のキーワードで検索してトレンドデータを取得できます。データは折れ線グラフで可視化され、CSVファイルとしてダウンロードすることも可能です。"
+        },
+        "no10": {
+            "title": "Translate and note web app",
+            "description": "翻訳とメモのウェブアプリ"
+        }
+    },
+    "gallery": {
+        "title": "プロジェクト",
+        "description": "最近の作品とサイドプロジェクトのコレクション",
+        "filterByTags": "タグで絞り込む",
+        "searchTags": "タグを検索...",
+        "clearAll": "すべてクリア",
+        "viewProject": "プロジェクトを見る"
+    }
+}

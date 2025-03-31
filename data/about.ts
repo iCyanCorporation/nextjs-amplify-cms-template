@@ -1,131 +1,171 @@
-import { Github, Linkedin, Mail, CalendarDays } from "lucide-react";
-
-export interface Profile {
-  name: string;
-  title: string;
-  location: string;
-  image: string;
-  bio: string;
-  socialLinks: {
-    name: string;
-    href: string;
-    icon: any;  // We'll keep this as any since we can't serialize component types
-  }[];
-}
-
-export interface WorkExperience {
-  company: string;
-  position: string;
-  period: string;
-  achievements: string[];
-}
-
-export interface Education {
-  institution: string;
-  degree: string;
-  period: string;
-  description: string;
-}
-
-export interface Skills {
-  [key: string]: string[] | undefined;
-}
-
-export interface AboutData {
-  profile: Profile;
-  workExperience: WorkExperience[];
-  education: Education[];
-  skills: Skills;
-}
+import { AboutData } from "@/types/about";
+import { soicalMediaLinks } from "@/config/navigation";
 
 export const aboutData: AboutData = {
   profile: {
-    name: "John Doe",
-    title: "Software Engineer",
-    location: "Asia/Tokyo",
-    image: "/images/profile-image.jpg",
-    bio: "John is a Tokyo-based design engineer with a passion for transforming complex challenges into simple, elegant design solutions. His work spans digital interfaces, interactive experiences, and the convergence of design and technology.",
+    name: 'profile.name',
+    title: 'profile.title',
+    location: "Asia/Taiwan",
+    image: "/images/my-profile.jpg",
+    bio: 'profile.bio',
     socialLinks: [
       {
-        name: "GitHub",
-        href: "https://github.com",
-        icon: Github
+        name: "social.github",
+        href: soicalMediaLinks.github.href,
+        icon: "github"
       },
       {
-        name: "LinkedIn",
-        href: "https://linkedin.com",
-        icon: Linkedin
+        name: "social.linkedin",
+        href: soicalMediaLinks.linkedin.href,
+        icon: "linkedin"
       },
       {
-        name: "Email",
-        href: "mailto:john@example.com",
-        icon: Mail
+        name: "social.email",
+        href: "mailto:" + soicalMediaLinks.email.href,
+        icon: "mail"
       }
-    ]
+    ],
+    schedule: {
+      isActive: false,
+      status: "free"
+    }
+
   },
   workExperience: [
     {
-      company: "COMPANY NAME",
-      position: "Senior Design Engineer",
-      period: "2022 - Present",
+      company: "workExperience.company1.name",
+      position: "workExperience.company1.position",
+      period: "2023 - Present",
       achievements: [
-        "Redesigned the UI/UX for the platform, resulting in a 20% increase in user engagement and 30% faster load times.",
-        "Spearheaded the integration of AI tools into design workflows, enabling designers to iterate 50% faster."
+        "workExperience.company1.achievements.no1",
+        "workExperience.company1.achievements.no2",
+        "workExperience.company1.achievements.no3"
       ]
     },
     {
-      company: "COMPANY NAME",
-      position: "Senior Design Engineer",
-      period: "2022 - Present",
+      company: "workExperience.company8.name",
+      position: "workExperience.company8.position",
+      period: "2023 - Present",
       achievements: [
-        "Redesigned the UI/UX for the platform, resulting in a 20% increase in user engagement and 30% faster load times.",
-        "Spearheaded the integration of AI tools into design workflows, enabling designers to iterate 50% faster."
+        "workExperience.company8.achievements.no1",
+        "workExperience.company8.achievements.no2",
+        "workExperience.company8.achievements.no3"
       ]
     },
     {
-      company: "COMPANY NAME",
-      position: "Senior Design Engineer",
-      period: "2022 - Present",
+      company: "workExperience.company2.name",
+      position: "workExperience.company2.position",
+      period: "2024 - 2024",
       achievements: [
-        "Redesigned the UI/UX for the platform, resulting in a 20% increase in user engagement and 30% faster load times.",
-        "Spearheaded the integration of AI tools into design workflows, enabling designers to iterate 50% faster."
+        "workExperience.company2.achievements.no1",
+        "workExperience.company2.achievements.no2"
+      ]
+    },
+    {
+      company: "workExperience.company3.name",
+      position: "workExperience.company3.position",
+      period: "2020 - 2023",
+      achievements: [
+        "workExperience.company3.achievements.no1",
+        "workExperience.company3.achievements.no2",
+        "workExperience.company3.achievements.no3"
+      ]
+    },
+    {
+      company: "workExperience.company4.name",
+      position: "workExperience.company4.position",
+      period: "2019 - 2020",
+      achievements: [
+        "workExperience.company4.achievements.no1"
+      ]
+    },
+    {
+      company: "workExperience.company5.name",
+      position: "workExperience.company5.position",
+      period: "2018 - 2019",
+      achievements: [
+        "workExperience.company5.achievements.no1",
+        "workExperience.company5.achievements.no2"
+      ]
+    }
+  ],
+  sideProjects: [
+    {
+      company: "workExperience.company6.name",
+      position: "workExperience.company6.position",
+      period: "2023 - 2024",
+      achievements: [
+        "workExperience.company6.achievements.no1",
+        "workExperience.company6.achievements.no2"
+      ]
+    },
+    {
+      company: "workExperience.company9.name",
+      position: "workExperience.company9.position",
+      period: "2024 - 2024",
+      achievements: [
+        "workExperience.company9.achievements.no1",
+        "workExperience.company9.achievements.no2"
+      ]
+    },
+    
+    {
+      company: "workExperience.company7.name",
+      position: "workExperience.company7.position",
+      period: "2019 - 2020",
+      achievements: [
+        "workExperience.company7.achievements.no1",
+        "workExperience.company7.achievements.no2",
+        "workExperience.company7.achievements.no3"
       ]
     }
   ],
   education: [
     {
-      institution: "University Name",
-      degree: "Bachelor of Computer Science",
-      period: "2018 - 2022",
-      description: "Graduated with honors, specializing in Human-Computer Interaction"
+      institution: "education.no1.institution",
+      degree: "education.no1.degree",
+      period: "2017 - 2018",
+      description: "education.no1.description"
     },
     {
-      institution: "University Name",
-      degree: "Bachelor of Computer Science",
-      period: "2018 - 2022",
-      description: "Graduated with honors, specializing in Human-Computer Interaction"
+      institution: "education.no2.institution",
+      degree: "education.no2.degree",
+      period: "2008 - 2012",
+      description: "education.no2.description"
+    }
+  ],
+  otherExperience: [
+    {
+      title: "otherExperience.no1.title",
+      period: "2015 - 2017",
+      description: "otherExperience.no1.description"
     }
   ],
   skills: {
     design: [
-      "UI/UX Design",
-      "Logo Design",
-      "Prototyping"
+      "skills.uiDesign",
+      "skills.logoDesign",
+      "skills.prototyping"
     ],
     development: [
-      "React.js",
-      "TypeScript",
-      "Node.js",
-      "Tailwind CSS"
+      "skills.nextjs",
+      "skills.typescript",
+      "skills.python",
+      "skills.tailwind"
     ],
     languages: [
-      "English (Intermediate)",
-      "Japanese (Fluent)"
+      "skills.english",
+      "skills.japanese",
+      "skills.chinese"
     ],
     tools: [
-      "Figma",
-      "Adobe Creative Suite",
-      "Prototyping"
+      "skills.figma",
+      "skills.gimp",
+      "skills.git",
+      "skills.github",
+      "skills.docker",
+      "skills.aws",
+      "skills.gcp"
     ]
   }
 };

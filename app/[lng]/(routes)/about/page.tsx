@@ -15,6 +15,29 @@ interface NavigationItem {
   description?: string;
 }
 
+// Add interface for social links
+interface SocialLink {
+  name: string;
+  href: string;
+  icon: React.ComponentType<LucideProps>;
+}
+
+// Add interface for work experience
+interface WorkExperience {
+  company: string;
+  position: string;
+  period: string;
+  achievements: string[];
+}
+
+// Add interface for education
+interface Education {
+  institution: string;
+  degree: string;
+  period: string;
+  description: string;
+}
+
 const pageNavigation: NavigationItem[] = [
   {
     name: "WORK",
@@ -87,7 +110,7 @@ export default function Page() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {aboutData.profile.socialLinks.map((link) => {
+                  {aboutData.profile.socialLinks.map((link: SocialLink) => {
                     const Icon = link.icon;
                     return (
                       <a
@@ -120,24 +143,24 @@ export default function Page() {
           <div id="work" className="w-full">
             <h2 className="text-3xl font-bold mb-6 dark:text-white">Work Experience</h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
-              {aboutData.workExperience.map((work, index) => (
+                {aboutData.workExperience.map((work: WorkExperience, index: number) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-xl font-bold dark:text-white">{work.company}</h3>
-                      <p className="text-primary dark:text-blue-400">{work.position}</p>
-                    </div>
-                    <span className="text-primary-foreground dark:text-gray-400">
-                      {work.period}
-                    </span>
+                  <div>
+                    <h3 className="text-xl font-bold dark:text-white">{work.company}</h3>
+                    <p className="text-primary dark:text-blue-400">{work.position}</p>
+                  </div>
+                  <span className="text-primary-foreground dark:text-gray-400">
+                    {work.period}
+                  </span>
                   </div>
                   <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
-                    {work.achievements.map((achievement, i) => (
-                      <li key={i}>{achievement}</li>
-                    ))}
+                  {work.achievements.map((achievement: string, i: number) => (
+                    <li key={i}>{achievement}</li>
+                  ))}
                   </ul>
                 </div>
-              ))}
+                ))}
             </div>
           </div>
 
@@ -145,7 +168,7 @@ export default function Page() {
           <div id="studies" className="w-full">
             <h2 className="text-3xl font-bold mb-6 dark:text-white">Studies</h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
-              {aboutData.education.map((edu, index) => (
+              {aboutData.education.map((edu: Education, index: number) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -171,11 +194,11 @@ export default function Page() {
                       {key}
                     </h3>
                     <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
-                      {aboutData.skills[
+                        {aboutData.skills[
                         key as keyof typeof aboutData.skills
-                      ]?.map((skill, index) => (
+                        ]?.map((skill: string, index: number) => (
                         <li key={index}>{skill}</li>
-                      ))}
+                        ))}
                     </ul>
                   </div>
                 );

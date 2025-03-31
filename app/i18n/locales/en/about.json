@@ -1,0 +1,142 @@
+{
+    "title": "About Me | iCyan Studio",
+    "description": "About my experience, skills, and projects.",
+    "profile": {
+        "name": "Toyofumi",
+        "title": "Software Engineer",
+        "bio": "A passionate technologist with extensive software engineering experience, specializing in full-stack development and cloud solutions. Focused on creating efficient, scalable applications while maintaining high security standards. Experienced in leading technical projects and implementing innovative solutions across various domains."
+    },
+    "work experience": "Key Projects",
+    "side projects": "Side Projects",
+    "studies": "Studies",
+    "technicalSkills": "Technical Skills",
+    "schedule a call": "Schedule a Call",
+    "design": "Design",
+    "development": "Development",
+    "languages": "Languages",
+    "tools": "Tools",
+    "workExperience": {
+        "company1": {
+            "name": "AI-Enhanced Search Platform",
+            "position": "Lead Engineer",
+            "achievements": {
+                "no1": "Architected and developed a map-based search service with AI integration",
+                "no2": "Implemented secure payment processing and cloud infrastructure",
+                "no3": "Developed AI integration systems using leading cloud providers"
+            }
+        },
+        "company2": {
+            "name": "Mobile Security Solution",
+            "position": "Software Engineer",
+            "achievements": {
+                "no1": "Developed security-focused mobile application",
+                "no2": "Managed app deployment and testing processes"
+            }
+        },
+        "company3": {
+            "name": "Weather Forecast System",
+            "position": "System Engineer",
+            "achievements": {
+                "no1": "Developed and maintained a weather information service",
+                "no2": "Designed and operated a new generation of information for port weather, wave height, wind direction and speed",
+                "no3": "Automated reporting with Python and VBA, built backends with NodeJS, maintained systems with Javascript and Perl"
+            }
+        },
+        "company4": {
+            "name": "AWS Migration for Retail Industry",
+            "position": "System Engineer",
+            "achievements": {
+                "no1": "Migrated the brokerage platform to AWS infrastructure, creating system test specifications with DynamoDB, Lambda, S3, and Step Functions"
+            }
+        },
+        "company5": {
+            "name": "In-house Core System Migration",
+            "position": "System Engineer",
+            "achievements": {
+                "no1": "Upgraded the OS and database of the inventory and attendance management system",
+                "no2": "Created and implemented regression test specifications with .NET, Oracle DB, and VMware"
+            }
+        },
+        "company6": {
+            "name": "Cross-platform App development - Goalbook",
+            "position": "Software Engineer",
+            "achievements": {
+                "no1": "Developed a goal-tracking app to help users set, track, and achieve personal and professional goals.",
+                "no2": "Built with Flutter for a seamless experience across iOS and Android"
+            }
+        },
+        "company7": {
+            "name": "IOS App development - Memolog",
+            "position": "Software Engineer",
+            "achievements": {
+                "no1": "Designed and developed a note-taking app with a focus on minimalism and efficiency",
+                "no2": "Optimized UI/UX using SwiftUI, ensuring a smooth and intuitive user experience",
+                "no3": "Deployed to the App Store, maintaining regular updates and improvements"
+            }
+        },
+        "company8": {
+            "name": "Business and Corporate Website development",
+            "position": "Software Engineer",
+            "achievements": {
+                "no1": "Completed three separate corporate website development projects through business outsourcing",
+                "no2": "Handled backend API integrations and database management on AWS Amplify",
+                "no3": "Built a cart with e-commerce and WordPress"
+            }
+        },
+        "company9": {
+            "name": "Desktop Application development - Next-mailbox",
+            "position": "Software Engineer",
+            "achievements": {
+                "no1": "Developed a cross-platform desktop email management application using Electron for Windows, macOS, and Linux",
+                "no2": "Integrated AI features using the OpenAI API to summarize incoming emails and suggest contextually relevant replies, improving productivity and communication efficiency"
+            }
+        }
+    },
+    "education": {
+        "no1": {
+            "institution": "International University",
+            "degree": "Japanese Language Studies",
+            "description": "Intensive Japanese language and cultural studies program"
+        },
+        "no2": {
+            "institution": "Technical University",
+            "degree": "Bachelor of Computer Science",
+            "description": "Study on computer fundamentals, algorithm and data structures"
+        }
+    },
+    "otherExperience": {
+        "no1": {
+            "title": "International work experience",
+            "description": "Professional experience in multiple countries including Australia and Japan"
+        }
+    },
+    "skills": {
+        "uiDesign": "UI/UX Design",
+        "logoDesign": "Logo Design",
+        "prototyping": "Prototyping",
+        "react": "React.js",
+        "nextjs": "Next.js",
+        "Python": "Python",
+        "typescript": "TypeScript",
+        "nodejs": "Node.js",
+        "tailwind": "Tailwind CSS",
+        "english": "English (Business)",
+        "japanese": "Japanese (Fluent)",
+        "chinese": "Chinese (Native)",
+        "figma": "Figma",
+        "gimp": "GIMP",
+        "adobe": "Adobe Creative Suite",
+        "vscode": "Visual Studio Code",
+        "git": "Git",
+        "github": "GitHub",
+        "aws": "AWS",
+        "azure": "Azure",
+        "gcp": "Google Cloud Platform",
+        "docker": "Docker"
+    },
+    "social": {
+        "github": "GitHub",
+        "linkedin": "LinkedIn",
+        "email": "Email"
+    }
+}

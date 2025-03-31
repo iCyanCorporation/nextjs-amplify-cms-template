@@ -13,6 +13,24 @@ import { useRouter } from "next/navigation";
 
 Amplify.configure(outputs);
 
+// Add interface for selection items
+interface SelectionItem {
+  id?: string;  // Making id optional to match the actual data structure
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  imgUrl?: string;
+  // Add any other properties that the item might have
+}
+
+// Define interface for gallery items
+interface GalleryItem {
+  id?: string;
+  title: string;
+  imgUrl?: string;
+}
+
 export default function PaginationContent() {
   const router = useRouter();
   const [latestBlogs, setLatestBlogs] = useState<Array<Schema["Blog"]["type"]>>([]);
@@ -94,9 +112,9 @@ export default function PaginationContent() {
             <div className="absolute -bottom-2 left-0 w-1/2 h-1 bg-black dark:bg-white transform origin-left transition-all duration-300 ease-out hover:w-full"></div>
           </h2>
           <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {homepageData.selection.items.map((item, index) => (
+            {homepageData.selection.items.map((item, index: number) => (
               <div
-                key={item.id}
+                key={item.title || index}
                 className={`group relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-1 transition-all duration-300 hover:scale-[1.02] break-inside-avoid ${(index+1) % 3 === 0 ? "min-h-[500px]" : "min-h-[350px]"} min-h-[200px]`}
                 style={{
                   backgroundImage: `url(${item.imgUrl})`,
@@ -126,24 +144,24 @@ export default function PaginationContent() {
               <span className="block w-20 h-1 bg-black dark:bg-white mx-auto mt-4 rounded-full"></span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
-              {homepageData.gallery.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="group relative aspect-[4/3] rounded-xl overflow-hidden transform perspective-1000 hover:rotate-y-12 transition-all duration-500 bg-white dark:bg-gray-800"
-                  style={{
-                    backgroundImage: `url(${item.imgUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 dark:from-purple-400/10 dark:to-blue-400/10"></div>
-                  <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <h3 className="text-white text-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      {item.title}
-                    </h3>
+                {homepageData.gallery.items.map((item: GalleryItem) => (
+                  <div
+                    key={item.id}
+                    className="group relative aspect-[4/3] rounded-xl overflow-hidden transform perspective-1000 hover:rotate-y-12 transition-all duration-500 bg-white dark:bg-gray-800"
+                    style={{
+                      backgroundImage: `url(${item.imgUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 dark:from-purple-400/10 dark:to-blue-400/10"></div>
+                    <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <h3 className="text-white text-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {item.title}
+                      </h3>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </section>
