@@ -3,12 +3,12 @@
 import React from "react";
 import { Authenticator, ThemeProvider } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
-
+import "../../globals.css";
 import { Amplify } from "aws-amplify";
-Amplify.configure(outputs);
 import outputs from "@/amplify_outputs.json";
+import Sidebar from "@/components/Sidebar";
 
-import Link from "next/link";
+Amplify.configure(outputs);
 
 const theme = {
   name: 'custom-theme',
@@ -100,13 +100,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="container h-screen w-full flex">
-      <div className="p-2"><Link href="/admin">Admin</Link></div>
-      <div className="w-full">
-        <ThemeProvider theme={theme}>
-          <Authenticator>{children}</Authenticator>
-        </ThemeProvider>
-      </div>
+    <div className="ml-20 lg:ml-64 min-h-screen bg-gray-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ThemeProvider theme={theme}>
+        <Authenticator className="m-auto h-screen p-2" hideSignUp>
+          <Sidebar />
+          <div className="py-6">
+            {children}
+          </div>
+        </Authenticator>
+      </ThemeProvider>
     </div>
   );
 }

@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { list, getUrl } from 'aws-amplify/storage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageItem, ImagePickerProps } from './types';
-import { getS3PublicUrl } from '@/utils/common';
+import { getS3PublicUrl } from '@/lib/common';
 
 export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
     const [images, setImages] = useState<ImageItem[]>([]);
@@ -20,7 +20,7 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
     async function listImages() {
         try {
             setLoading(true);
-            const response = await list({ path: 'public/images/' });
+            const response = await list({ path: 'public/images/', options: { listAll: true } });
             const imageItems = await Promise.all(response.items.map(async (item) => {
                 return {
                     key: item.path,
@@ -44,10 +44,12 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
     }
 
     return (
-        <div className='space-y-4'>
+        <div className='space-y-4 w-full '>
             <div className='flex justify-between items-center'>
                 <h2 className='text-lg font-semibold'>Select an Image</h2>
-                <Button onClick={() => listImages()}>Refresh</Button>
+                <Button className='rounded-full hover:opacity-80' variant='destructive' onClick={() => listImages()}>
+                    <RefreshCw className='h-4 w-4' />
+                </Button>
             </div>
 
             {loading ? (
@@ -55,7 +57,7 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
                     <Loader2 className='animate-spin' />
                 </div>
             ) : (
-                <div className='grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-4'>
+                <div className='p-4 w-full max-h-[80vh] overflow-y-auto grid grid-cols-2 md:grid-cols-6 lg:grid-cols-8 gap-4'>
                     {images.map((image) => (
                         <Card
                             key={image.key}
@@ -67,10 +69,10 @@ export function ImagePicker({ onSelect, onClose }: ImagePickerProps) {
                                     <img
                                         src={image.url}
                                         alt={image.key}
-                                        className='object-cover w-full h-full rounded'
+                                        className='object-cover w-full h-full rounded  aspect-square'
                                     />
                                 </div>
-                                <div className='mt-2 text-sm truncate'>{image.key}</div>
+                                {/* <div className='mt-2 text-sm truncate'>{image.key}</div> */}
                             </CardContent>
                         </Card>
                     ))}

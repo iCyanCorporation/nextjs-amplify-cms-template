@@ -1,24 +1,28 @@
+import { cn } from "@/lib/utils";
+
 interface LoadingSpinnerProps {
+  className?: string;
   text?: string;
-  size?: "sm" | "md" | "lg";
 }
 
-export function LoadingSpinner({ text = "Loading...", size = "md" }: LoadingSpinnerProps) {
-  const sizeClasses = {
-    sm: "w-16 h-16",
-    md: "w-24 h-24",
-    lg: "w-32 h-32",
-  };
-
+export const LoadingSpinner = ({ className, text }: LoadingSpinnerProps) => {
   return (
-    <div className="flex flex-col items-center justify-center h-64 gap-4">
-      <div className={`relative ${sizeClasses[size]}`}>
-        <div className="absolute inset-0 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-primary dark:border-blue-500 rounded-full animate-spin duration-1000 border-t-transparent"></div>
-      </div>
-      {text && (
-        <p className="text-gray-500 dark:text-gray-400 animate-pulse">{text}</p>
-      )}
+    <div className="flex flex-col items-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cn("animate-spin", className)}
+      >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+      </svg>
+      {text && <p>{text}</p>}
     </div>
   );
 }

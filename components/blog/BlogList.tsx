@@ -1,122 +1,103 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { generateClient } from "aws-amplify/data";
+import { useState, useEffect } from "react";
 import type { Schema } from "@/amplify/data/resource";
-import type { Blog } from '@/types/blog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useRouter } from 'next/navigation';
+import { BlogCard } from "@/components/blog/BlogCard";
+import { BlogPagination } from "@/components/blog/BlogPagination";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { EmptyState } from "@/components/ui/empty-state";
+import { stripHtml } from "@/lib/common";
+import type { Blog } from "@/types/blog";
 
-const client = generateClient<Schema>();
-
-export default function BlogList() {
-  const router = useRouter();
-  const [blogs, setBlogs] = useState<Blog[]>([]);
+export function BlogList() {
+  const [blogs, setBlogs] = useState<Array<Schema["Blog"]["type"]>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [blogsPerPage, setBlogsPerPage] = useState(6);
+
+  async function getBlogs() {
+    try {
+      const response = await fetch(`/api/blogs/list`, {
+        cache: 'no-cache'
+      });
+      if (!response.ok) throw new Error('Failed to fetch blogs');
+      return response.json();
+    } catch (error) {
+      console.error('Error loading blogs:', error);
+      return [];
+    }
+  }
 
   useEffect(() => {
-    loadBlogs();
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width >= 1024) setBlogsPerPage(9);
+      else if (width >= 768) setBlogsPerPage(8);
+      else setBlogsPerPage(6);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  async function loadBlogs() {
-    try {
+  useEffect(() => {
+    const handleGetBlogs = async () => {
       setIsLoading(true);
-      const { data } = await client.models.Blog.list();
-      const validBlogs = data.filter(
-        (blog): blog is Blog =>
-          blog !== null &&
-          typeof blog.id === "string" &&
-          (typeof blog.title === "string" || blog.title === null) &&
-          (typeof blog.content === "string" || blog.content === null) &&
-          (typeof blog.category === "string" || blog.category === null) &&
-          (blog.owner === null || typeof blog.owner === "string") &&
-          (blog.tags === null ||
-            (Array.isArray(blog.tags) && blog.tags.every(tag => typeof tag === "string" || tag === null))) &&
-          (typeof blog.createdAt === "string" || blog.createdAt === null) &&
-          (typeof blog.updatedAt === "string" || blog.updatedAt === null)
-      );
-      const cleanedBlogs: Blog[] = validBlogs.map(blog => ({
-        ...blog,
-        tags: blog.tags ? blog.tags.filter((tag): tag is string => tag !== null) : blog.tags,
-      }));
-      setBlogs(cleanedBlogs);
-    } catch (error) {
-      console.error("Error loading blogs:", error);
-    } finally {
+      const data = await getBlogs();
+      console.log(data);
+
+      // sort data by createdAt
+      data.sort((a: Blog, b: Blog) => {
+        if (a.createdAt && b.createdAt) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return 0;
+      });
+      setBlogs(data);
       setIsLoading(false);
-    }
-  }
+    };
 
-  function startEdit(blog: Blog) {
-    router.push(`/admin/blog/${blog.id}`);
-  }
+    handleGetBlogs();
+  }, []);
 
-  async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this blog post?')) {
-      return;
-    }
+  const indexOfLastBlog = currentPage * blogsPerPage;
+  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
+  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(blogs.length / blogsPerPage);
 
-    try {
-      setIsLoading(true);
-      await client.models.Blog.delete({ id });
-      await loadBlogs();
-    } catch (error) {
-      console.error("Error deleting blog:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  if (isLoading) return <LoadingSpinner className="w-10 h-10" text="Loading..." />;
+  if (error) return <ErrorMessage message={error} />;
+  if (blogs.length === 0) return <EmptyState message="No blogs found" icon="box" />;
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Blog Posts</h1>
-        <Button onClick={() => router.push('/admin/blog/new')}>Create New Blog Post</Button>
+    <div className="mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+        {currentBlogs.map((blog) => (
+          <BlogCard
+            key={blog.id}
+            post={{
+              id: blog.id,
+              title: blog.title ?? "",
+              imgUrl: blog.imgUrl ?? "",
+              content: stripHtml(blog.content ?? ""),
+              category: blog.category ?? "other",
+              owner: blog.owner ?? "",
+              createdAt: blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "",
+              updatedAt: blog.updatedAt ? new Date(blog.updatedAt).toLocaleDateString() : "",
+              tags: blog.tags ?? [],
+            }}
+          />
+        ))}
       </div>
-      {isLoading && <LoadingSpinner />}
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2">Title</th>
-            <th className="py-2">Category</th>
-            <th className="py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {blogs.map((blog) => (
-            <tr key={blog.id} className="border-b">
-              <td className="py-2">{blog.title}</td>
-              <td className="py-2">
-                {blog.category && (
-                  <Badge variant="secondary" className="capitalize">
-                    {blog.category}
-                  </Badge>
-                )}
-              </td>
-              <td className="py-2 space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => startEdit(blog)}
-                  disabled={isLoading}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(blog.id)}
-                  disabled={isLoading}
-                >
-                  Delete
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <BlogPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { mainNavigation } from "@/config/navigation";
+import { soicalMediaLinks } from "@/config/navigation";
+import { convertEmail2SafeHtml } from "@/lib/common";
 
 export default function Footer() {
   return (
@@ -35,8 +37,12 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2">
-              <li className="text-gray-600">hello@example.com</li>
-              <li className="text-gray-600">Tokyo, Japan</li>
+              <li className="text-gray-600 flex items-center gap-2">
+                <div className="flex gap-2" dangerouslySetInnerHTML={{ __html: convertEmail2SafeHtml(soicalMediaLinks.email.href || "") ?? "" }} />
+
+              </li>
+              {/* Company Name */}
+              {/* <li className="text-gray-600">Tokyo, Japan</li> */}
             </ul>
           </div>
         </div>
@@ -44,13 +50,15 @@ export default function Footer() {
         {/* Social Links & Copyright */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex space-x-6 mb-4 md:mb-0">
-            <a href="#" className="text-gray-600 hover:text-gray-900">
+            {/* xTwitter */}
+            {/* <a href={soicalMediaLinks.twitter.href} className="text-gray-600 hover:text-gray-900">
               <span className="sr-only">Twitter</span>
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
               </svg>
-            </a>
-            <a href="#" className="text-gray-600 hover:text-gray-900">
+            </a> */}
+            {/* Github */}
+            <a href={soicalMediaLinks.github.href} className="text-gray-600 hover:text-gray-900">
               <span className="sr-only">GitHub</span>
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -60,7 +68,8 @@ export default function Footer() {
                 />
               </svg>
             </a>
-            <a href="#" className="text-gray-600 hover:text-gray-900">
+            {/* Linkedin */}
+            <a href={soicalMediaLinks.linkedin.href} className="text-gray-600 hover:text-gray-900">
               <span className="sr-only">LinkedIn</span>
               <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                 <path
@@ -72,7 +81,7 @@ export default function Footer() {
             </a>
           </div>
           <div className="text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} Portfolio. All rights reserved.
+            &copy; 2025-{new Date().getFullYear()} All rights reserved.
           </div>
         </div>
       </div>

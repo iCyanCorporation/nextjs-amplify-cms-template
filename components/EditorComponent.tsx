@@ -18,7 +18,6 @@ interface EditFormProps {
 export default function EditForm({ content, onChange }: EditFormProps) {
   const editorRef = useRef<TiptapEditorRef>(null);
   const [editorContent, setEditorContent] = useState<string>(content || '');
-  const [isLoading, setIsLoading] = useState(true);
   const { control, reset, watch } = useForm<PostForm>({
     defaultValues: {
       content: content
@@ -27,11 +26,10 @@ export default function EditForm({ content, onChange }: EditFormProps) {
   });
 
   useEffect(() => {
-    // console.log("content:::", content);
-    if (!content) return;
-    reset({ content });
-    setEditorContent(content);
-    setIsLoading(false);
+    if (content && content !== "") {
+      reset({ content });
+      setEditorContent(content);
+    }
   }, [content]);
 
   useEffect(() => {
@@ -46,7 +44,6 @@ export default function EditForm({ content, onChange }: EditFormProps) {
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  if (isLoading) return;
   return (
     <div className="relative w-full h-full editor-container">
       <Controller
