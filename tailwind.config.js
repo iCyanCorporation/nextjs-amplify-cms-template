@@ -8,6 +8,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translate(-25%, -25%) rotate(0deg)' },
+          '25%': { transform: 'translate(25%, 25%) rotate(90deg)' },
+          '50%': { transform: 'translate(25%, -25%) rotate(180deg)' },
+          '75%': { transform: 'translate(-25%, 25%) rotate(270deg)' },
+        },
+      },
+      animation: {
+        'float': 'float 20s ease-in-out infinite',
+        'float-delay-2': 'float 20s ease-in-out infinite -5s',
+        'float-delay-4': 'float 20s ease-in-out infinite -10s',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -101,12 +114,19 @@ module.exports = {
             "border-radius": "60% 40% 30% 70%/60% 30% 70% 40%",
           },
         },
+        float: {
+          "0%, 100%": { transform: "translate(-25%, -25%) rotate(0deg)" },
+          "25%": { transform: "translate(25%, 25%) rotate(90deg)" },
+          "50%": { transform: "translate(25%, -25%) rotate(180deg)" },
+          "75%": { transform: "translate(-25%, 25%) rotate(270deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "gradient-flow": "gradient-flow 15s ease infinite",
         "morph-blob": "morph-blob 15s ease-in-out infinite",
+        float: "float 20s ease-in-out infinite",
       },
     },
   },

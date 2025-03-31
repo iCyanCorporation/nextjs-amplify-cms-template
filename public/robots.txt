@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/*
+Disallow: /admin/*
+Disallow: /_next/*
+Disallow: /*.json$
+Disallow: /*.xml$
+
+# Host
+Host: https://www.icyanstudio.net
+
+# Sitemaps
+Sitemap: https://www.icyanstudio.net/sitemap.xml

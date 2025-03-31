@@ -1,43 +1,24 @@
 {
-    "title": "Gallery | iCyan Studio",
+    "title": "Gallery | My Projects",
     "description": "A collection of my personal projects showcasing my skills and experience.",
     "projects": {
         "no1": {
-            "title": "Wowomap",
-            "description": "A modern portfolio website built with Next.js and Tailwind CSS. Features responsive design and smooth animations."
+            "title": "Project 1",
+            "description": "A brief description of Project 1, highlighting its features and technologies used."
         },
         "no2": {
-            "title": "Goalbook",
-            "description": "This is a habit formation and goal achievement app designed to help users build routines, track progress, and achieve personal goals. "
+            "title": "Project 2",
+            "description": "A brief description of Project 2, highlighting its features and technologies used."
         },
         "no3": {
-            "title": "Memolog",
-            "description": "This is a app for users to record vocabulary and phrases when they learn a new language. The app will help users to remember the words and phrases by using the test feature."
+            "title": "Project 3",
+            "description": "A brief description of Project 3, highlighting its features and technologies used."
         },
         "no4": {
-            "title": "Next-mailbox app",
-            "description": "A cross-platform desktop email management application built with Electron for Windows, macOS, and Linux. Integrated with LLM for AI features."
-        },
-        "no5": {
-            "title": "Scam-check app",
-            "description": "An application that allows users to check their conversation history for potential scams. The app uses the Custom AI to analyze the conversation and provide a score indicating the likelihood of a scam."
-        },
-        "no6": {
-            "title": "Nextjs-amplify cms",
-            "description": "A full-stack web application template built with Next.js and AWS Amplify, featuring a public website, blog system, and admin dashboard."
-        },
-        "no7": {
-            "title": "Openmap",
-            "description": "A web application designed for testing and visualizing map data. Users can upload CSV files containing geographical data and view the information interactively on a map"
-        },
-        "no8": {
-            "title": "Chat app",
-            "description": "Base on the GPT API, delivering a natural chat experience. With your API key, you can choose different model version from openai gpt! If you want to adjust the accuracy of the conversation, a token count adjustment feature is also available for your own."
-        },
-        "no9": {
-            "title": "Google trends Visualize web app",
-            "description": "Base on google trends API, you can search for any keyword and get the trend data. The data will be visualized in a line chart, and you can download the data as a CSV file."
+            "title": "Project 4",
+            "description": "A brief description of Project 4, highlighting its features and technologies used."
         }
+        
     },
     "gallery": {
         "title": "Projects",

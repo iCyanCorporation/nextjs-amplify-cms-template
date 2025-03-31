@@ -1,23 +1,20 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnimatedBackground from "@/components/AnimatedBackground";
-import { ThemeProvider } from "next-themes";
-import { Metadata } from "next";
+import { ThemeProvider } from "@/components/theme-provider"
 
-export const metadata: Metadata = {
-  title: "Home",
-  description: "A Next.js starter template with Tailwind CSS, TypeScript, and Amplify.",
-};
-
-export default function ContentLayout({
+type Params = Promise<{ lng: string }>;
+export default async function ContentLayout({
   children,
-  lng,
+  params,
 }: {
   children: React.ReactNode;
-  lng: string;
+  params: Params;
 }) {
+  const { lng } = await params;
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem
+      disableTransitionOnChange>
       <div className="relative min-h-screen w-full">
         <AnimatedBackground />
         <div className="relative z-10 m-auto">

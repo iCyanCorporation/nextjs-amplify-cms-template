@@ -1,10 +1,10 @@
 {
-    "title": "About Me | iCyan Studio",
+    "title": "About Me | Your Company",
     "description": "About my experience, skills, and projects.",
     "profile": {
-        "name": "Toyofumi",
-        "title": "Software Engineer",
-        "bio": "A passionate technologist with extensive software engineering experience, specializing in full-stack development and cloud solutions. Focused on creating efficient, scalable applications while maintaining high security standards. Experienced in leading technical projects and implementing innovative solutions across various domains."
+        "name": "Your Name",
+        "title": "Your Position",
+        "bio": "A brief description about yourself, your expertise, and what you're passionate about. Share your specializations and what makes you unique in your field. This section helps visitors understand your background and professional focus."
     },
     "work experience": "Key Projects",
     "side projects": "Side Projects",
@@ -17,97 +17,97 @@
     "tools": "Tools",
     "workExperience": {
         "company1": {
-            "name": "AI-Enhanced Search Platform",
-            "position": "Lead Engineer",
+            "name": "Project Title 1",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Architected and developed a map-based search service with AI integration",
-                "no2": "Implemented secure payment processing and cloud infrastructure",
-                "no3": "Developed AI integration systems using leading cloud providers"
+                "no1": "Key achievement or responsibility from this project",
+                "no2": "Another important contribution you made",
+                "no3": "Technologies or methodologies you implemented"
             }
         },
         "company2": {
-            "name": "Mobile Security Solution",
-            "position": "Software Engineer",
+            "name": "Project Title 2",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Developed security-focused mobile application",
-                "no2": "Managed app deployment and testing processes"
+                "no1": "Primary responsibility or achievement",
+                "no2": "Secondary contribution or technical implementation"
             }
         },
         "company3": {
-            "name": "Weather Forecast System",
-            "position": "System Engineer",
+            "name": "Project Title 3",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Developed and maintained a weather information service",
-                "no2": "Designed and operated a new generation of information for port weather, wave height, wind direction and speed",
-                "no3": "Automated reporting with Python and VBA, built backends with NodeJS, maintained systems with Javascript and Perl"
+                "no1": "Main project description or responsibility",
+                "no2": "Specific feature or system you designed",
+                "no3": "Technologies used (e.g., Python, JavaScript, Cloud services)"
             }
         },
         "company4": {
-            "name": "AWS Migration for Retail Industry",
-            "position": "System Engineer",
+            "name": "Project Title 4",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Migrated the brokerage platform to AWS infrastructure, creating system test specifications with DynamoDB, Lambda, S3, and Step Functions"
+                "no1": "Description of migration or implementation work"
             }
         },
         "company5": {
-            "name": "In-house Core System Migration",
-            "position": "System Engineer",
+            "name": "Project Title 5",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Upgraded the OS and database of the inventory and attendance management system",
-                "no2": "Created and implemented regression test specifications with .NET, Oracle DB, and VMware"
+                "no1": "System upgrade or maintenance description",
+                "no2": "Testing or implementation details"
             }
         },
         "company6": {
-            "name": "Cross-platform App development - Goalbook",
-            "position": "Software Engineer",
+            "name": "Project Title 6",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Developed a goal-tracking app to help users set, track, and achieve personal and professional goals.",
-                "no2": "Built with Flutter for a seamless experience across iOS and Android"
+                "no1": "Main feature or purpose of the project",
+                "no2": "Technologies used and platforms targeted"
             }
         },
         "company7": {
-            "name": "IOS App development - Memolog",
-            "position": "Software Engineer",
+            "name": "Project Title 7",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Designed and developed a note-taking app with a focus on minimalism and efficiency",
-                "no2": "Optimized UI/UX using SwiftUI, ensuring a smooth and intuitive user experience",
-                "no3": "Deployed to the App Store, maintaining regular updates and improvements"
+                "no1": "Project concept and main features",
+                "no2": "Frontend framework or technology highlights",
+                "no3": "Deployment or maintenance achievements"
             }
         },
         "company8": {
-            "name": "Business and Corporate Website development",
-            "position": "Software Engineer",
+            "name": "Project Title 8",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Completed three separate corporate website development projects through business outsourcing",
-                "no2": "Handled backend API integrations and database management on AWS Amplify",
-                "no3": "Built a cart with e-commerce and WordPress"
+                "no1": "Scope of the project and client type",
+                "no2": "Backend integrations or technical details",
+                "no3": "Additional functionalities implemented"
             }
         },
         "company9": {
-            "name": "Desktop Application development - Next-mailbox",
-            "position": "Software Engineer",
+            "name": "Project Title 9",
+            "position": "Your Role",
             "achievements": {
-                "no1": "Developed a cross-platform desktop email management application using Electron for Windows, macOS, and Linux",
-                "no2": "Integrated AI features using the OpenAI API to summarize incoming emails and suggest contextually relevant replies, improving productivity and communication efficiency"
+                "no1": "Application type and platform coverage",
+                "no2": "Advanced features or integrations implemented"
             }
         }
     },
     "education": {
         "no1": {
-            "institution": "International University",
-            "degree": "Japanese Language Studies",
-            "description": "Intensive Japanese language and cultural studies program"
+            "institution": "University Name",
+            "degree": "Your Degree or Program",
+            "description": "Brief description of your studies or specialization"
         },
         "no2": {
-            "institution": "Technical University",
-            "degree": "Bachelor of Computer Science",
-            "description": "Study on computer fundamentals, algorithm and data structures"
+            "institution": "Another Institution",
+            "degree": "Degree Title",
+            "description": "Focus areas or key subjects studied"
         }
     },
     "otherExperience": {
         "no1": {
-            "title": "International work experience",
-            "description": "Professional experience in multiple countries including Australia and Japan"
+            "title": "Additional Experience",
+            "description": "Brief description of other relevant experience"
         }
     },
     "skills": {
@@ -120,19 +120,19 @@
         "typescript": "TypeScript",
         "nodejs": "Node.js",
         "tailwind": "Tailwind CSS",
-        "english": "English (Business)",
-        "japanese": "Japanese (Fluent)",
-        "chinese": "Chinese (Native)",
-        "figma": "Figma",
-        "gimp": "GIMP",
-        "adobe": "Adobe Creative Suite",
-        "vscode": "Visual Studio Code",
-        "git": "Git",
-        "github": "GitHub",
-        "aws": "AWS",
-        "azure": "Azure",
-        "gcp": "Google Cloud Platform",
-        "docker": "Docker"
+        "english": "Language 1 (Level)",
+        "japanese": "Language 2 (Level)",
+        "chinese": "Language 3 (Level)",
+        "figma": "Design Tool 1",
+        "gimp": "Design Tool 2",
+        "adobe": "Design Tool 3",
+        "vscode": "Development Tool 1",
+        "git": "Version Control 1",
+        "github": "Platform 1",
+        "aws": "Cloud Platform 1",
+        "azure": "Cloud Platform 2",
+        "gcp": "Cloud Platform 3",
+        "docker": "Container Platform"
     },
     "social": {
         "github": "GitHub",

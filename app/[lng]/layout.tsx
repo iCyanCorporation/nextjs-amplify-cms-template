@@ -1,11 +1,17 @@
+import "../globals.css";
+
+import { Amplify } from "aws-amplify";
+import outputs from "@/amplify_outputs.json";
+Amplify.configure(outputs, { ssr: true });
+
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
-import { ScrollToTop } from "@/components/ScrollToTop";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 
+import { ScrollToTop } from "@/components/ScrollToTop";
 const inter = Inter({ subsets: ["latin"] });
-type Params = Promise<{ lng: string }>
 
+type Params = Promise<{ lng: string }>;
 export default async function RootLayout({
   children,
   params,
@@ -13,18 +19,21 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Params;
 }) {
-
   const { lng } = await params;
-  
+
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
       <body className={`${inter.className} bg-white`}>
-        {children}
-        <ScrollToTop />
+        <main>
+          {children}
+          <ScrollToTop />
+        </main>
       </body>
       {/* Google tags */}
-      {/* <GoogleTagManager gtmId="GTM-xxxx" />
-      <GoogleAnalytics gaId="G-xxxx" /> */}
+      <GoogleTagManager gtmId="GTM-xxx" />
+      <GoogleAnalytics gaId="G-xxx" />
     </html>
+
+
   );
 }

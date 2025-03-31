@@ -5,8 +5,8 @@ export const aboutData: AboutData = {
   profile: {
     name: 'profile.name',
     title: 'profile.title',
-    location: "Asia/Taiwan",
-    image: "/images/my-profile.jpg",
+    location: "Asia/Country",
+    image: "/images/profile-image.jpg",
     bio: 'profile.bio',
     socialLinks: [
       {
@@ -52,42 +52,7 @@ export const aboutData: AboutData = {
         "workExperience.company8.achievements.no3"
       ]
     },
-    {
-      company: "workExperience.company2.name",
-      position: "workExperience.company2.position",
-      period: "2024 - 2024",
-      achievements: [
-        "workExperience.company2.achievements.no1",
-        "workExperience.company2.achievements.no2"
-      ]
-    },
-    {
-      company: "workExperience.company3.name",
-      position: "workExperience.company3.position",
-      period: "2020 - 2023",
-      achievements: [
-        "workExperience.company3.achievements.no1",
-        "workExperience.company3.achievements.no2",
-        "workExperience.company3.achievements.no3"
-      ]
-    },
-    {
-      company: "workExperience.company4.name",
-      position: "workExperience.company4.position",
-      period: "2019 - 2020",
-      achievements: [
-        "workExperience.company4.achievements.no1"
-      ]
-    },
-    {
-      company: "workExperience.company5.name",
-      position: "workExperience.company5.position",
-      period: "2018 - 2019",
-      achievements: [
-        "workExperience.company5.achievements.no1",
-        "workExperience.company5.achievements.no2"
-      ]
-    }
+    
   ],
   sideProjects: [
     {
@@ -99,26 +64,6 @@ export const aboutData: AboutData = {
         "workExperience.company6.achievements.no2"
       ]
     },
-    {
-      company: "workExperience.company9.name",
-      position: "workExperience.company9.position",
-      period: "2024 - 2024",
-      achievements: [
-        "workExperience.company9.achievements.no1",
-        "workExperience.company9.achievements.no2"
-      ]
-    },
-    
-    {
-      company: "workExperience.company7.name",
-      position: "workExperience.company7.position",
-      period: "2019 - 2020",
-      achievements: [
-        "workExperience.company7.achievements.no1",
-        "workExperience.company7.achievements.no2",
-        "workExperience.company7.achievements.no3"
-      ]
-    }
   ],
   education: [
     {
@@ -143,29 +88,19 @@ export const aboutData: AboutData = {
   ],
   skills: {
     design: [
-      "skills.uiDesign",
-      "skills.logoDesign",
       "skills.prototyping"
     ],
     development: [
       "skills.nextjs",
       "skills.typescript",
-      "skills.python",
-      "skills.tailwind"
     ],
     languages: [
       "skills.english",
       "skills.japanese",
-      "skills.chinese"
     ],
     tools: [
       "skills.figma",
-      "skills.gimp",
-      "skills.git",
       "skills.github",
-      "skills.docker",
-      "skills.aws",
-      "skills.gcp"
     ]
   }
 };

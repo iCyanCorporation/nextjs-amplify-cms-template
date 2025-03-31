@@ -1,12 +1,12 @@
 {
   "title": "iCyan Studio",
-  "description": "Welcome to the iCyan studio. This is a personal website and portfolio to showcase my work, skills, and experience. I am a software engineer with a strong passion for building projects and websites with AI. If you have any questions or would like to work together, feel free to get in touch.",
+  "description": "Welcome to the Shiba. A software engineer specializing in full-stack development",
   "intro": {
     "title": {
       "part1": "Software Engineer",
       "part2": "Software Engineer with Full-stack development"
     },
-    "description": "Hi, I'm Toyofumi, a software engineer with a strong passion for building projects and websites with AI. I enjoy turning ideas into functional and user-friendly applications.",
+    "description": "Hi, I'm Shiba, a software engineer specializing in full-stack development. I build responsive design websites using HTML5/CSS, JavaScript, React, and Next.js. I excel at automating repetitive tasks and optimizing processes using AI-driven tools.",
     "aboutButton": "About me"
   },
   "selection": {
@@ -19,32 +19,14 @@
       "2": {
         "title": "Automation",
         "description": "Expert in leveraging AI-Driven tools to automate repetitive tasks and streamline processes"
-      },
-      "3": {
-        "title": "Mobile Development",
-        "description": "Skilled in developing apps for both Android and iOS devices"
-      },
-      "4": {
-        "title": "Database Management",
-        "description": "Competent in managing databases using SQL (NoSQL, SQLite) and optimizing their performance"
-      },
-      "5": {
-        "title": "Cloud & DevOps",
-        "description": "Proficient in deploying applications on cloud platforms like AWS (Amplify), GCP, and implementing CI/CD pipelines"
-      },
-      "6": {
-        "title": "Testing & Code Version Control",
-        "description": "Git/Github for version control"
       }
     }
   },
   "gallery": {
     "title": "Gallery",
     "items": {
-      "1": { "title": "Map-based search SaaS - wowomap" },
-      "2": { "title": "Life planner app - goalbook" },
-      "3": { "title": "Business and corporate websites" },
-      "4": { "title": "Language-learning app - Memolog" }
+      "1": { "title": "AI Driver Tool" },
+      "2": { "title": "Portfolio" }
     }
   },
   "blog": {

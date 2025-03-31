@@ -1,4 +1,4 @@
-import { stripHtml } from '../../utils/common';
+import { stripHtml } from '../../lib/common';
 
 describe('stripHtml', () => {
   it('should strip HTML tags', () => {

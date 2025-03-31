@@ -38,8 +38,9 @@ export default function Footer() {
             <h3 className="font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2">
               <li className="text-gray-600 flex items-center gap-2">
-                <div className="flex gap-2" dangerouslySetInnerHTML={{ __html: convertEmail2SafeHtml(soicalMediaLinks.email.href || "") ?? "" }} />
-
+                {soicalMediaLinks.email && (
+                  <div className="flex gap-2" dangerouslySetInnerHTML={{ __html: convertEmail2SafeHtml(soicalMediaLinks.email.href || "") ?? "" }} />
+                )}
               </li>
               {/* Company Name */}
               {/* <li className="text-gray-600">Tokyo, Japan</li> */}
