@@ -30,8 +30,8 @@ export default async function RootLayout({
         </main>
       </body>
       {/* Google tags */}
-      <GoogleTagManager gtmId="GTM-xxx" />
-      <GoogleAnalytics gaId="G-xxx" />
+      {/* <GoogleTagManager gtmId="GTM-xxx" />
+      <GoogleAnalytics gaId="G-xxx" /> */}
     </html>
 
 
