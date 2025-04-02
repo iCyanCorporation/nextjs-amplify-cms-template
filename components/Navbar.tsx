@@ -2,7 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { RiDashboardLine, RiMenu2Line } from "react-icons/ri";
+import {
+  RiDashboardLine,
+  RiMenu2Line,
+  RiShoppingBag2Line,
+} from "react-icons/ri";
+import { Cart } from "@/components/ui/cart";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -12,8 +17,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="flex items-center text-xl font-bold text-gray-800"
             >
               Toyofumi
@@ -21,7 +26,14 @@ export default function Navbar() {
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden sm:flex sm:items-center">
+          <div className="hidden sm:flex sm:items-center gap-4">
+            <Link
+              href="/shop"
+              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <RiShoppingBag2Line className="w-5 h-5 mr-2" />
+              Shop
+            </Link>
             <Link
               href="/admin"
               className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
@@ -29,6 +41,7 @@ export default function Navbar() {
               <RiDashboardLine className="w-5 h-5 mr-2" />
               Dashboard
             </Link>
+            <Cart />
           </div>
 
           {/* Mobile menu button */}
@@ -44,14 +57,23 @@ export default function Navbar() {
       </div>
 
       {/* Mobile menu */}
-      <div className={`sm:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
-        <div className="pt-2 pb-3 space-y-1">
+      <div className={`sm:hidden ${isMobileMenuOpen ? "block" : "hidden"}`}>
+        <div className="pt-2 pb-3 space-y-3 px-4">
+          <Link
+            href="/shop"
+            className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+          >
+            Shop
+          </Link>
           <Link
             href="/admin"
             className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
           >
             Dashboard
           </Link>
+          <div className="flex items-center">
+            <Cart />
+          </div>
         </div>
       </div>
     </nav>

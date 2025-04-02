@@ -7,6 +7,7 @@ Amplify.configure(outputs, { ssr: true });
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
+import { Toaster } from "@/components/ui/toaster";
 
 import { ScrollToTop } from "@/components/ScrollToTop";
 const inter = Inter({ subsets: ["latin"] });
@@ -27,13 +28,12 @@ export default async function RootLayout({
         <main>
           {children}
           <ScrollToTop />
+          <Toaster />
         </main>
       </body>
       {/* Google tags */}
       {/* <GoogleTagManager gtmId="GTM-xxx" />
       <GoogleAnalytics gaId="G-xxx" /> */}
     </html>
-
-
   );
 }

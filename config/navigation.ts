@@ -16,6 +16,11 @@ export const mainNavigation: NavigationItem[] = [
     description: "Learn more about us",
   },
   {
+    name: "Shop",
+    href: "/shop",
+    description: "Explore our products",
+  },
+  {
     name: "Gallery",
     href: "/gallery",
     description: "View our work gallery",
@@ -31,7 +36,6 @@ export const mainNavigation: NavigationItem[] = [
   //   description: "Get in touch with us",
   // },
 ];
-
 
 export const soicalMediaLinks = {
   github: {
@@ -54,4 +58,4 @@ export const soicalMediaLinks = {
     href: "info@example.com",
     description: "Send us an email",
   },
-}
+};
