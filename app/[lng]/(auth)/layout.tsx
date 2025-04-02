@@ -11,34 +11,34 @@ import Sidebar from "@/components/Sidebar";
 Amplify.configure(outputs);
 
 const theme = {
-  name: 'custom-theme',
+  name: "custom-theme",
   tokens: {
     colors: {
       background: {
         primary: {
-          value: '#ffffff',
+          value: "#ffffff",
         },
         secondary: {
-          value: '#f3f4f6',
+          value: "#f3f4f6",
         },
       },
       font: {
         primary: {
-          value: '#111111',
+          value: "#111111",
         },
         interactive: {
-          value: '#333333',
+          value: "#333333",
         },
       },
       brand: {
         primary: {
-          10: '#e6f1fe',
-          20: '#cce3fd',
-          40: '#99c7fb',
-          60: '#66aaf9',
-          80: '#338ef7',
-          90: '#1a81f6',
-          100: '#0073f5',
+          10: "#e6f1fe",
+          20: "#cce3fd",
+          40: "#99c7fb",
+          60: "#66aaf9",
+          80: "#338ef7",
+          90: "#1a81f6",
+          100: "#0073f5",
         },
       },
     },
@@ -46,49 +46,49 @@ const theme = {
       tabs: {
         item: {
           _focus: {
-            color: { value: '#000000' },
+            color: { value: "#000000" },
           },
           _hover: {
-            color: { value: '#000000' },
+            color: { value: "#000000" },
           },
           _active: {
-            color: { value: '#000000' },
+            color: { value: "#000000" },
           },
         },
       },
       button: {
         primary: {
           backgroundColor: {
-            value: '#000000',
+            value: "#000000",
           },
           color: {
-            value: '#000000'
+            value: "#000000",
           },
           _hover: {
             backgroundColor: {
-              value: '{colors.brand.primary.80}',
+              value: "{colors.brand.primary.80}",
             },
             color: {
-              value: '#777777'
-            }
+              value: "#777777",
+            },
           },
           _active: {
             backgroundColor: {
-              value: '{colors.brand.primary.90}',
+              value: "{colors.brand.primary.90}",
             },
             color: {
-              value: '#ffffff'
-            }
+              value: "#ffffff",
+            },
           },
         },
       },
       fieldcontrol: {
         _focus: {
-          borderColor: { value: '{colors.brand.primary.100}' },
+          borderColor: { value: "{colors.brand.primary.100}" },
         },
       },
       text: {
-        color: { value: '#000000' },
+        color: { value: "#000000" },
       },
     },
   },
@@ -100,13 +100,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="ml-20 lg:ml-64 min-h-screen bg-gray-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="ml-20 lg:ml-64 min-h-screen bg-gray-white max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
       <ThemeProvider theme={theme}>
-        <Authenticator className="m-auto h-screen p-2" hideSignUp>
+        <Authenticator className="m-auto h-screen p-2">
           <Sidebar />
-          <div className="py-6">
-            {children}
-          </div>
+          <div className="py-6">{children}</div>
         </Authenticator>
       </ThemeProvider>
     </div>

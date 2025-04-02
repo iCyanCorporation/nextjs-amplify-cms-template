@@ -21,20 +21,6 @@ export default function CheckoutSuccessPage() {
           process it shortly. A confirmation email has been sent with your order
           details.
         </p>
-
-        <div className="space-y-4">
-          <Button onClick={() => router.push("/")} className="w-full">
-            Continue Shopping
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => router.push("/account/orders")}
-            className="w-full"
-          >
-            View Orders
-          </Button>
-        </div>
       </div>
     </div>
   );

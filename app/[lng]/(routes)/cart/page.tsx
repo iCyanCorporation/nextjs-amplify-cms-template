@@ -29,9 +29,14 @@ export default function CartPage() {
       if (!item) return;
 
       if (action === "increase") {
-        cart.addItem(item);
+        // Add a single copy of the item to increase quantity by one
+        const itemToAdd = { ...item, quantity: 1 };
+        cart.addItem(itemToAdd);
       } else if (action === "decrease" && item.quantity > 1) {
-        cart.updateQuantity(id, item.quantity - 1); // Decrease quantity by one
+        // To decrease, remove the item and add it back with reduced quantity
+        cart.removeItem(id);
+        const updatedItem = { ...item, quantity: item.quantity - 1 };
+        cart.addItem(updatedItem);
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
