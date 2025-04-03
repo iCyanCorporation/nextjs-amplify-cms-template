@@ -33,6 +33,7 @@ const schema = a
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),
+      orderProducts: a.hasMany("OrderProduct", "productId"),
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     }),
