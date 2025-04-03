@@ -19,6 +19,7 @@ const schema = a
       name: a.string().required(),
       description: a.string(),
       products: a.hasMany("Product", "productTypeId"),
+      attributes: a.string().array(), // Store type-specific attribute definitions
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     }),
@@ -29,7 +30,11 @@ const schema = a
       price: a.float().required(),
       stock: a.integer().required(),
       imgUrl: a.string(),
+      images: a.string().array(), // Store multiple images
       isActive: a.boolean().default(true),
+      discountPrice: a.float(), // Add discount price
+      attributes: a.string(), // JSON stringified attributes/specs
+      customAttributes: a.string(), // JSON stringified custom attributes
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),
@@ -41,8 +46,15 @@ const schema = a
     ProductVariant: a.model({
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
+      name: a.string(), // Variant name
+      sku: a.string(), // Stock keeping unit
+      price: a.float(), // Variant-specific price
+      stock: a.integer(), // Variant-specific stock
       color: a.string(),
+      size: a.string(), // Common variant attribute
+      attributes: a.string(), // JSON stringified variant attributes
       images: a.string().array(),
+      isActive: a.boolean().default(true),
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     }),

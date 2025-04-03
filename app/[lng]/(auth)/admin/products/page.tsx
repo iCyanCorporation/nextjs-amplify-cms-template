@@ -34,11 +34,13 @@ import {
   SearchIcon,
   FilterIcon,
   ChevronDownIcon,
+  RefreshCwIcon,
 } from "lucide-react";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [deleteModal, setDeleteModal] = useState(false);
@@ -63,7 +65,13 @@ export default function ProductsPage() {
       console.error("Failed to fetch products:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadProducts();
   };
 
   const handleDeleteClick = (productId: string) => {
@@ -112,12 +120,25 @@ export default function ProductsPage() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Products</h1>
-        <Link href="/admin/products/new">
-          <Button className="flex items-center gap-1">
-            <PlusIcon className="h-4 w-4" />
-            Add Product
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="flex items-center gap-1"
+          >
+            <RefreshCwIcon
+              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
           </Button>
-        </Link>
+          <Link href="/admin/products/new">
+            <Button className="flex items-center gap-1">
+              <PlusIcon className="h-4 w-4" />
+              Add Product
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
