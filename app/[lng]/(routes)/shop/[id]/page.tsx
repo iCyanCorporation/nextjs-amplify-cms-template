@@ -7,15 +7,8 @@ import ProductImageCarousel from "@/components/product/ProductImageCarousel";
 
 import Link from "next/link";
 
-// Fix type definition for params
-interface PageProps {
-  params: {
-    id: string;
-    lng: string;
-  };
-}
-
-export default async function Page({ params }: PageProps) {
+type Params = Promise<{ id: string; lng: string }>;
+export default async function Page({ params }: { params: Params }) {
   const { id: productId, lng } = await params;
   const product = products.find((p) => p.id === productId);
 

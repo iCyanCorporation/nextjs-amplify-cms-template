@@ -22,7 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 // Mock order data
-const mockOrders = [
+const mockOrders: Order[] = [
   {
     id: "ord-1001",
     customer: "John Doe",
