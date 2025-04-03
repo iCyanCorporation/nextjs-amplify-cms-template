@@ -144,7 +144,7 @@ export default function ProductsPage() {
                 {productTypes.map((type) => (
                   <DropdownMenuItem
                     key={type}
-                    onClick={() => setFilterType(type)}
+                    onClick={() => type && setFilterType(type)}
                   >
                     {type === "all" ? "All Types" : type}
                   </DropdownMenuItem>

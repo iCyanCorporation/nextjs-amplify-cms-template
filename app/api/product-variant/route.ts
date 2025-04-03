@@ -8,15 +8,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    const productID = searchParams.get("productID");
 
+    // get specific variant for a product
     if (id) {
       const { data } = await client.models.ProductVariant.get({ id });
       return NextResponse.json(data);
     }
 
-    const filter = productID ? { productID: { eq: productID } } : undefined;
-    const { data } = await client.models.ProductVariant.list({ filter });
+    // get all variants for a product
+    const { data } = await client.models.ProductVariant.list();
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
