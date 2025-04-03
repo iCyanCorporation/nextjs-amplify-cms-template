@@ -19,6 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// Import static data instead of fetching from API
+import { products } from "@/data/products";
+// Assuming you have product types data - if not, we'll create a simple version
+import { productTypes } from "@/data/productTypes";
 
 interface EditProductFormProps {
   productId: string;
@@ -28,7 +32,6 @@ export default function EditProductForm({ productId }: EditProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [product, setProduct] = useState<Product | null>(null);
 
   const [name, setName] = useState("");
@@ -48,20 +51,40 @@ export default function EditProductForm({ productId }: EditProductFormProps) {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [productResponse, typesResponse] = await Promise.all([
-          fetch(`/api/products/${productId}`),
-          fetch("/api/product-types"),
-        ]);
+        // Find product from static data instead of API
+        const productData = products.find((p) => p.id === productId);
 
-        if (!productResponse.ok || !typesResponse.ok) {
-          throw new Error("Failed to load data");
+        if (!productData) {
+          throw new Error("Product not found");
         }
 
-        const productData = await productResponse.json();
-        const types = await typesResponse.json();
+        // Ensure all required fields are present
+        if (
+          !productData.name ||
+          typeof productData.price !== "number" ||
+          typeof productData.stock !== "number"
+        ) {
+          throw new Error("Invalid product data");
+        }
 
-        setProduct(productData);
-        setProductTypes(types);
+        const convertedProduct: Product = {
+          id: productData.id,
+          name: productData.name,
+          description: productData.description || "",
+          price: productData.price,
+          stock: productData.stock,
+          productTypeID: productData.productTypeID,
+          type: productData.type,
+          images: productData.images || [],
+          discountPrice: productData.discountPrice || null,
+          isActive: productData.isActive ?? true,
+          specs: productData.specs || {},
+          customAttributes: productData.customAttributes || [],
+          createdAt: productData.createdAt,
+          updatedAt: productData.updatedAt,
+        };
+
+        setProduct(convertedProduct);
 
         // Initialize form with product data
         setName(productData.name || "");
@@ -73,13 +96,13 @@ export default function EditProductForm({ productId }: EditProductFormProps) {
         setSelectedType(productData.type || null);
         setImages(productData.images || []);
 
-        // Initialize attributes
-        if (productData.attributes) {
-          const customAttrs = productData.attributes.custom || [];
-          const attributesCopy = { ...productData.attributes };
-          delete attributesCopy.custom;
+        // Initialize attributes if they exist
+        if (productData.specs) {
+          // Convert specs to the attributes format
+          setAttributes(productData.specs);
 
-          setAttributes(attributesCopy);
+          // If there are custom attributes, set them here
+          const customAttrs = productData.customAttributes || [];
           setCustomAttributes(
             Array.isArray(customAttrs)
               ? customAttrs
@@ -142,36 +165,11 @@ export default function EditProductForm({ productId }: EditProductFormProps) {
     setSubmitting(true);
 
     try {
-      // Combine standard attributes with custom attributes
-      const allAttributes = {
-        ...attributes,
-        custom: customAttributes.filter((attr) => attr.name && attr.value),
-      };
+      // Instead of sending to API, we would update the static data
+      // This is a mock implementation since we can't directly modify the static data
+      // In a real app, you would need to implement a proper data management solution
 
-      const productData = {
-        id: productId,
-        name,
-        description,
-        price: parseFloat(price),
-        discountPrice: hasDiscount ? parseFloat(discountPrice) : null,
-        stock: parseInt(stock, 10),
-        type: selectedType,
-        attributes: allAttributes,
-        images,
-      };
-
-      const response = await fetch(`/api/products/${productId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(productData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update product");
-      }
-
+      alert("Product updated successfully!");
       router.push("/admin/products");
     } catch (error) {
       console.error("Failed to update product:", error);

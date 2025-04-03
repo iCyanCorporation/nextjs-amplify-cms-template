@@ -21,81 +21,51 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
-// Mock order data
-const mockOrders: Order[] = [
-  {
-    id: "ord-1001",
-    customer: "John Doe",
-    email: "john@example.com",
-    date: "2023-07-15",
-    total: 124.99,
-    status: "Completed",
-    items: 3,
-  },
-  {
-    id: "ord-1002",
-    customer: "Jane Smith",
-    email: "jane@example.com",
-    date: "2023-07-14",
-    total: 89.95,
-    status: "Processing",
-    items: 2,
-  },
-  {
-    id: "ord-1003",
-    customer: "Robert Johnson",
-    email: "robert@example.com",
-    date: "2023-07-13",
-    total: 249.99,
-    status: "Shipped",
-    items: 1,
-  },
-  {
-    id: "ord-1004",
-    customer: "Emily Williams",
-    email: "emily@example.com",
-    date: "2023-07-12",
-    total: 75.5,
-    status: "Pending",
-    items: 4,
-  },
-  {
-    id: "ord-1005",
-    customer: "Michael Brown",
-    email: "michael@example.com",
-    date: "2023-07-11",
-    total: 199.99,
-    status: "Canceled",
-    items: 1,
-  },
-];
-
-type OrderStatus =
-  | "Completed"
-  | "Processing"
-  | "Shipped"
-  | "Pending"
-  | "Canceled";
-
+// Updated Order interface to match API structure
 interface Order {
   id: string;
-  customer: string;
-  email: string;
-  date: string;
-  total: number;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
   status: OrderStatus;
-  items: number;
+  totalAmount: number;
+  shippingAddress?: string;
+  paymentInfo?: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// Update status types to match database values
+type OrderStatus =
+  | "pending"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 const statusVariantMap: Record<
   OrderStatus,
   "default" | "success" | "warning" | "secondary" | "destructive"
 > = {
-  Completed: "success",
-  Processing: "default",
-  Shipped: "warning",
-  Pending: "secondary",
-  Canceled: "destructive",
+  pending: "secondary",
+  processing: "default",
+  shipped: "warning",
+  delivered: "success",
+  cancelled: "destructive",
+};
+
+// Function to fetch orders from the API
+const fetchOrders = async (): Promise<Order[]> => {
+  try {
+    const response = await fetch("/api/orders/list");
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return [];
+  }
 };
 
 export default function OrdersPage() {
@@ -105,18 +75,26 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setOrders(mockOrders);
-      setLoading(false);
-    }, 800);
+    const loadOrders = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error("Failed to load orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
   }, []);
 
   const filteredOrders = orders.filter(
     (order) =>
-      (order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (statusFilter === "all" || order.status === statusFilter)
   );
 
@@ -149,20 +127,20 @@ export default function OrdersPage() {
                 <DropdownMenuItem onClick={() => setStatusFilter("all")}>
                   All
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("Completed")}>
-                  Completed
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("Processing")}>
-                  Processing
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("Shipped")}>
-                  Shipped
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("Pending")}>
+                <DropdownMenuItem onClick={() => setStatusFilter("pending")}>
                   Pending
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("Canceled")}>
-                  Canceled
+                <DropdownMenuItem onClick={() => setStatusFilter("processing")}>
+                  Processing
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("shipped")}>
+                  Shipped
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("delivered")}>
+                  Delivered
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("cancelled")}>
+                  Cancelled
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -191,34 +169,43 @@ export default function OrdersPage() {
                     <TableRow key={order.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{order.id}</p>
+                          <p className="font-medium">{order.orderNumber}</p>
                           <p className="text-sm text-muted-foreground">
-                            {order.items} {order.items === 1 ? "item" : "items"}
+                            ID: {order.id.substring(0, 8)}...
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p>{order.customer}</p>
+                          <p>{order.customerName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {order.email}
+                            {order.customerEmail}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(order.date).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">${order.total.toFixed(2)}</p>
+                        <p className="font-medium">
+                          ${order.totalAmount.toFixed(2)}
+                        </p>
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusVariantMap[order.status]}>
-                          {order.status}
+                          {order.status.charAt(0).toUpperCase() +
+                            order.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              (window.location.href = `/admin/orders/${order.id}`)
+                            }
+                          >
                             View
                           </Button>
                           <Button size="sm" variant="outline">

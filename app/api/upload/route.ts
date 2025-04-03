@@ -1,26 +1,45 @@
+import { Amplify } from "aws-amplify";
+import outputs from "@/amplify_outputs.json";
+Amplify.configure(outputs, { ssr: true });
+
 import { NextResponse } from "next/server";
+import { uploadData } from "aws-amplify/storage";
+import { v4 as uuidv4 } from "uuid";
 
-// Placeholder image URLs for demo purposes
-const placeholderImages = [
-  "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-  "https://images.unsplash.com/photo-1525904097878-94fb15835963?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-];
-
-export async function POST() {
+export async function POST(req: Request) {
   try {
-    // In a real implementation, you'd handle the file upload
-    // For now, we'll just return a random image URL
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
 
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
 
-    // Return a random placeholder image
-    const imageUrl =
-      placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const fileName = file.name.split(/\.\w+$/)[0];
+    const fileExtension = file.name.split(".").pop();
+    const key = `uploads/${fileName}-${uuidv4()}.${fileExtension}`;
 
-    return NextResponse.json({ url: imageUrl });
+    const result = await uploadData({
+      key,
+      data: buffer,
+      options: {
+        contentType: file.type,
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+        },
+      },
+    }).result;
+
+    return NextResponse.json({
+      url: key,
+      contentType: file.type,
+      contentLength: buffer.length,
+      eTag: result.eTag,
+      lastModified: new Date(),
+      metadata: result.metadata || {},
+    });
   } catch (error) {
     console.error("Error uploading image:", error);
     return NextResponse.json(

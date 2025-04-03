@@ -1,10 +1,27 @@
+import { Amplify } from "aws-amplify";
+import outputs from "@/amplify_outputs.json";
+Amplify.configure(outputs, { ssr: true });
+
+import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
-import { products } from "./data";
 
 // GET /api/products - Get all products
 export async function GET() {
-  return NextResponse.json(products);
+  try {
+    const result = await amplifyClient.models.Product.list();
+
+    if (!result.data) {
+      return NextResponse.json({ error: "No products found" }, { status: 404 });
+    }
+
+    return NextResponse.json(result.data);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
+  }
 }
 
 // POST /api/products - Create a new product
@@ -12,16 +29,22 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const newProduct = {
-      id: `product-${uuidv4()}`,
+    const currentDate = new Date().toISOString();
+
+    const result = await amplifyClient.models.Product.create({
       ...body,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      createdAt: currentDate,
+      updatedAt: currentDate,
+    });
 
-    products.push(newProduct);
+    if (!result.data) {
+      return NextResponse.json(
+        { error: "Failed to create product" },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(newProduct, { status: 201 });
+    return NextResponse.json(result.data, { status: 201 });
   } catch (error) {
     console.error("Error creating product:", error);
     return NextResponse.json(

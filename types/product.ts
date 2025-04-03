@@ -26,16 +26,15 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  discountPrice?: number | null;
   stock: number;
-  type: string;
-  attributes?: {
-    [key: string]: any;
-    custom?: { name: string; value: string }[];
-  };
-  images: string[];
+  discountPrice?: number | null;
+  imgUrl?: string;
+  isActive?: boolean;
+  productTypeID: string;
+  type?: string;
+  images?: string[];
+  specs?: { [key: string]: any };
+  customAttributes?: { name: string; value: string }[];
   createdAt?: string;
   updatedAt?: string;
 }
-
-// Removed duplicate interface

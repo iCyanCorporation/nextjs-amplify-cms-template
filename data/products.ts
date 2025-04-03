@@ -1,33 +1,21 @@
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-  category: string;
-  specs: {
-    [key: string]: string;
-  };
-}
+import { Product } from "@/types/product";
 
 export const products: Product[] = [
   {
     id: "1",
-    name: "Modern Minimal Chair",
-    description:
-      "Elegant and comfortable design perfect for any modern space. Made with premium materials for lasting durability.",
-    price: 299.99,
-    images: [
-      "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
-      "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
-    ],
-    category: "Furniture",
-    specs: {
-      Material: "Premium fabric and steel",
-      Dimensions: '24" x 22" x 34"',
-      Weight: "15 lbs",
-      Color: "Light Gray",
-    },
+    name: "Sample Product",
+    description: "Sample description",
+    price: 99.99,
+    stock: 100,
+    productTypeID: "type1",
+    type: "Type 1",
+    images: [],
+    discountPrice: null,
+    isActive: true,
+    specs: {},
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "2",
@@ -35,17 +23,24 @@ export const products: Product[] = [
     description:
       "Handcrafted wooden coffee table with a unique modern design. Perfect centerpiece for your living room.",
     price: 499.99,
+    stock: 50,
+    productTypeID: "type2",
+    type: "Type 2",
     images: [
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
     ],
-    category: "Furniture",
+    discountPrice: null,
+    isActive: true,
     specs: {
       Material: "Solid oak wood",
       Dimensions: '48" x 24" x 18"',
       Weight: "45 lbs",
       Color: "Natural wood",
     },
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "3",
@@ -53,17 +48,24 @@ export const products: Product[] = [
     description:
       "Contemporary table lamp with adjustable arm and dimming capabilities. Perfect for work or ambient lighting.",
     price: 129.99,
+    stock: 75,
+    productTypeID: "type3",
+    type: "Type 3",
     images: [
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
     ],
-    category: "Lighting",
+    discountPrice: null,
+    isActive: true,
     specs: {
       Material: "Aluminum and steel",
       Height: "18 inches",
       Power: "LED 12W",
       Color: "Matte Black",
     },
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "4",
@@ -71,17 +73,24 @@ export const products: Product[] = [
     description:
       "Silent movement wall clock with a clean, modern design. Makes a subtle statement in any room.",
     price: 79.99,
+    stock: 200,
+    productTypeID: "type4",
+    type: "Type 4",
     images: [
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
     ],
-    category: "Decor",
+    discountPrice: null,
+    isActive: true,
     specs: {
       Material: "Aluminum",
       Diameter: "12 inches",
       Movement: "Quartz",
       Color: "Silver",
     },
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "5",
@@ -89,17 +98,24 @@ export const products: Product[] = [
     description:
       "Hand-glazed ceramic pot perfect for indoor plants. Features a drainage hole and modern geometric design.",
     price: 49.99,
+    stock: 150,
+    productTypeID: "type5",
+    type: "Type 5",
     images: [
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
     ],
-    category: "Decor",
+    discountPrice: null,
+    isActive: true,
     specs: {
       Material: "Ceramic",
       Height: "8 inches",
       Diameter: "6 inches",
       Color: "White/Gray pattern",
     },
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "6",
@@ -107,16 +123,23 @@ export const products: Product[] = [
     description:
       "Luxuriously soft wool throw blanket. Perfect for cozy evenings and adding texture to your space.",
     price: 89.99,
+    stock: 120,
+    productTypeID: "type6",
+    type: "Type 6",
     images: [
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
       "https://cdn.pixabay.com/photo/2021/06/04/06/09/cherries-6308871_960_720.jpg",
     ],
-    category: "Textiles",
+    discountPrice: null,
+    isActive: true,
     specs: {
       Material: "100% Merino wool",
       Size: '50" x 60"',
       Care: "Dry clean only",
       Color: "Heather Gray",
     },
+    customAttributes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];

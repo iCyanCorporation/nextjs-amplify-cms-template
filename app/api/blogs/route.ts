@@ -3,17 +3,14 @@ import outputs from "@/amplify_outputs.json";
 Amplify.configure(outputs, { ssr: true });
 
 import { amplifyClient } from "@/hooks/useAmplifyClient";
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
 
   if (!id) {
-    return NextResponse.json(
-      { error: "Missing ID" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
 
   try {
@@ -22,10 +19,7 @@ export async function GET(request: Request) {
     });
 
     if (!result.data) {
-      return NextResponse.json(
-        { error: "not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
     // Clean up the data
@@ -39,9 +33,6 @@ export async function GET(request: Request) {
     return NextResponse.json(cleanedData);
   } catch (error) {
     console.error("Error fetching blog:", error);
-    return NextResponse.json(
-      { error: "Failed to load blog" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to load blog" }, { status: 500 });
   }
 }

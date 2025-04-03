@@ -4,7 +4,7 @@
 
 export const products = [
   {
-    id: "prod-1",
+    id: "6b945ff8-8ef2-4f9c-8d6a-0b2021b16c5b",
     name: "Premium T-Shirt",
     description:
       "A high-quality cotton t-shirt that provides comfort and style.",
