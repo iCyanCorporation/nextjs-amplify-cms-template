@@ -45,11 +45,11 @@ type OrderStatus =
 
 const statusVariantMap: Record<
   OrderStatus,
-  "default" | "success" | "warning" | "secondary" | "destructive"
+  "default" | "success" | "secondary" | "destructive" | "outline"
 > = {
   pending: "secondary",
   processing: "default",
-  shipped: "warning",
+  shipped: "outline", // Changed from "warning" to "outline" as "warning" is not a supported variant
   delivered: "success",
   cancelled: "destructive",
 };

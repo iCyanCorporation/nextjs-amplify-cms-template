@@ -228,7 +228,9 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={product.stock > 10 ? "success" : "warning"}
+                          variant={
+                            product.stock > 10 ? "success" : "destructive"
+                          }
                         >
                           {product.stock}
                         </Badge>
