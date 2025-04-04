@@ -38,3 +38,17 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Track which existing variants should be kept
+export interface Variant {
+  id?: string;
+  name?: string;
+  sku?: string;
+  price?: number | string;
+  stock?: number | string;
+  color?: string;
+  size?: string;
+  attributes?: Record<string, unknown>;
+  images?: string[];
+  isActive?: boolean;
+}

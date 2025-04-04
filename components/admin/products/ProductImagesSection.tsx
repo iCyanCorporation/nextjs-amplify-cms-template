@@ -1,16 +1,9 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImagePicker } from "@/components/image/ImagePicker";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle } from "lucide-react";
+import { Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import ImagePicker from "./ImagePicker";
 
 interface ProductImagesSectionProps {
   images: string[];
@@ -25,94 +18,137 @@ export default function ProductImagesSection({
   error,
   required = false,
 }: ProductImagesSectionProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const hasError = !!error || (required && images.length === 0);
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
-  // Function to handle single image selection
-  const handleImageSelect = (imageUrl: string) => {
-    if (imageUrl && !images.includes(imageUrl)) {
-      const newImages = [...images, imageUrl];
-      onChange(newImages);
+  // Ensure images is always an array
+  const imageArray = Array.isArray(images) ? images : [];
+
+  const handleAddImage = () => {
+    if (newImageUrl.trim()) {
+      onChange([...imageArray, newImageUrl.trim()]);
+      setNewImageUrl("");
     }
-    setDialogOpen(false); // Close dialog after selection
   };
 
-  // Function to remove an image
-  const removeImage = (index: number) => {
-    const newImages = [...images];
+  const handleRemoveImage = (index: number) => {
+    const newImages = [...imageArray];
     newImages.splice(index, 1);
     onChange(newImages);
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newImages = [...imageArray];
+    const draggedImage = newImages[draggedIndex];
+    newImages.splice(draggedIndex, 1);
+    newImages.splice(index, 0, draggedImage);
+
+    onChange(newImages);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const handleSelectImage = (url: string) => {
+    onChange([...imageArray, url]);
+  };
+
   return (
-    <Card className={hasError ? "border-red-500" : ""}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>
+    <div className="space-y-4">
+      <div>
+        <div className="flex justify-between mb-2">
+          <Label htmlFor="images">
             Product Images {required && <span className="text-red-500">*</span>}
+          </Label>
+          <span className="text-sm text-gray-500">
+            Drag to reorder - first image will be the main product image
           </span>
-          {hasError && (
-            <div className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle size={16} />
-              <span>{error || "At least one image is required"}</span>
-            </div>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Button
-          variant="outline"
-          onClick={() => setDialogOpen(true)}
-          className="mb-4"
-        >
-          Add Image
-        </Button>
+        </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="w-full max-w-6xl p-6">
-            <DialogHeader>
-              <DialogTitle>Select an Image</DialogTitle>
-            </DialogHeader>
-            <ImagePicker
-              onSelect={(imageUrl) => handleImageSelect(imageUrl)}
-              onClose={() => setDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {images.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-            {images.map((image, index) => (
-              <div key={index} className="relative group">
-                <div className="aspect-square relative overflow-hidden rounded-md border">
-                  <Image
-                    src={image}
-                    alt={`Product image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeImage(index)}
+        {imageArray.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {imageArray.map((image, index) => (
+              <div
+                key={index}
+                className="relative border rounded-md overflow-hidden group"
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+              >
+                <img
+                  src={image}
+                  alt={`Product image ${index + 1}`}
+                  className="w-full h-40 object-cover cursor-move"
+                />
+                {index === 0 && (
+                  <div className="absolute top-0 left-0 bg-primary text-white text-xs px-2 py-1">
+                    Main
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-2 right-2 bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  Remove
-                </Button>
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </button>
               </div>
             ))}
           </div>
-        )}
-
-        {images.length === 0 && (
-          <div
-            className={`p-4 border rounded-md text-center ${hasError ? "border-red-500 text-red-500" : "border-gray-200 text-gray-500"}`}
-          >
-            No images selected. Please add at least one image.
+        ) : (
+          <div className="border-2 border-dashed rounded-md p-8 text-center mb-4">
+            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">No images added yet</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Add images from our gallery or paste image URLs
+            </p>
           </div>
         )}
-      </CardContent>
-    </Card>
+
+        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex space-x-2">
+          <Input
+            type="url"
+            value={newImageUrl}
+            onChange={(e) => setNewImageUrl(e.target.value)}
+            placeholder="Enter image URL"
+            className="flex-1"
+          />
+          <Button type="button" onClick={handleAddImage}>
+            Add URL
+          </Button>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full flex items-center justify-center gap-2"
+          onClick={() => setImagePickerOpen(true)}
+        >
+          <ImageIcon className="h-4 w-4" />
+          <span>Browse Image Gallery</span>
+        </Button>
+      </div>
+
+      <ImagePicker
+        open={imagePickerOpen}
+        onClose={() => setImagePickerOpen(false)}
+        onSelect={handleSelectImage}
+      />
+    </div>
   );
 }
