@@ -15,6 +15,9 @@ import {
   Clock,
   Tag as TagIcon,
   AlertCircle,
+  Save,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import { ProductType, Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
@@ -363,11 +366,14 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       const result = await response.json();
       console.log("API response:", result);
 
+      // Show success message but don't redirect in edit mode
       if (mode === "edit") {
         alert("Product updated successfully!");
+        // Stay on the current page
+      } else {
+        // Only redirect for new product creation
+        router.push("/admin/products");
       }
-
-      router.push("/admin/products");
     } catch (error) {
       console.error(
         `Failed to ${mode === "edit" ? "update" : "create"} product:`,
@@ -415,7 +421,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header with back button and title */}
+      {/* Header with back button, title, and action buttons */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Button
@@ -443,6 +449,33 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Add update and cancel buttons in the header */}
+      <div className="flex gap-2 bg-gray-50/80  border border-gray-50 p-1 rounded-md mb-6 shadow-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          onClick={() => router.back()}
+          title="Cancel"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className=""
+          onClick={handleSubmit}
+          disabled={submitting}
+          title={mode === "edit" ? "Update Product" : "Create Product"}
+        >
+          {submitting ? (
+            <span className="animate-spin">⟳</span>
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       {/* Smart buttons - for edit mode only */}
@@ -560,8 +593,13 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Product Variants</h3>
                 <Button
-                  onClick={() => openVariantForm()}
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent form submission
+                    e.stopPropagation(); // Stop event bubbling
+                    openVariantForm();
+                  }}
                   className="flex items-center gap-2"
+                  type="button" // Explicitly set type to button to prevent form submission
                 >
                   <Plus className="h-4 w-4" />
                   Add Variant
@@ -609,14 +647,22 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => openVariantForm(variant)}
+                            onClick={(e) => {
+                              e.preventDefault(); // Prevent form submission
+                              e.stopPropagation(); // Stop event bubbling
+                              openVariantForm(variant);
+                            }}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => confirmDeleteVariant(variant.id!)}
+                            onClick={(e) => {
+                              e.preventDefault(); // Prevent form submission
+                              e.stopPropagation(); // Stop event bubbling
+                              confirmDeleteVariant(variant.id!);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
@@ -629,24 +675,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             </div>
           </TabsContent>
         </Tabs>
-
-        <div className="flex justify-end gap-4 pt-4 border-t">
-          <Button variant="outline" type="button" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? (
-              <>
-                <span className="animate-spin mr-2">⟳</span>
-                {mode === "edit" ? "Updating..." : "Creating..."}
-              </>
-            ) : mode === "edit" ? (
-              "Update Product"
-            ) : (
-              "Create Product"
-            )}
-          </Button>
-        </div>
       </form>
 
       {/* Variant Form Dialog */}

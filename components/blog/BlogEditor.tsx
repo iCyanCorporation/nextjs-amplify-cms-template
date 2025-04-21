@@ -32,7 +32,7 @@ import {
   ImageUp,
 } from "lucide-react";
 import { IoMdClose } from "react-icons/io";
-import { ImagePicker } from "@/components/image/ImagePicker";
+import { ImagePicker, ImagePickerButton } from "@/components/image/ImagePicker";
 import {
   Dialog,
   DialogContent,
@@ -210,10 +210,17 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                         <DialogHeader>
                           <DialogTitle>Choose an image</DialogTitle>
                         </DialogHeader>
-                        <ImagePicker
+
+                        <ImagePickerButton
                           onSelect={(url) => {
-                            setImgUrl(url);
+                            // url is a string
+                            if (Array.isArray(url)) {
+                              setImgUrl(url[0]);
+                            } else {
+                              setImgUrl(url);
+                            }
                           }}
+                          buttonText="Choose an image"
                         />
                       </DialogContent>
                     </Dialog>

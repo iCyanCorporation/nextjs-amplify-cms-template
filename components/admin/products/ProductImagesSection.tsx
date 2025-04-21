@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Upload, Image as ImageIcon } from "lucide-react";
-import ImagePicker from "./ImagePicker";
+import { ImagePickerButton } from "@/components/image/ImagePicker";
 
 interface ProductImagesSectionProps {
   images: string[];
@@ -20,14 +20,42 @@ export default function ProductImagesSection({
 }: ProductImagesSectionProps) {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [localImages, setLocalImages] = useState<string[]>([]);
+  const [updatePending, setUpdatePending] = useState(false);
+
+  // Sync local state with prop
+  useEffect(() => {
+    setLocalImages(Array.isArray(images) ? images : []);
+  }, [images]);
 
   // Ensure images is always an array
-  const imageArray = Array.isArray(images) ? images : [];
+  const imageArray = localImages;
 
-  const handleAddImage = () => {
+  // Debounced onChange to prevent frequent updates
+  const debouncedOnChange = useCallback(() => {
+    if (!updatePending) return;
+
+    const timeoutId = setTimeout(() => {
+      onChange(localImages);
+      setUpdatePending(false);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [localImages, onChange, updatePending]);
+
+  // Apply debounced update
+  useEffect(() => {
+    const cleanup = debouncedOnChange();
+    return cleanup;
+  }, [debouncedOnChange]);
+
+  const handleAddImage = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+
     if (newImageUrl.trim()) {
-      onChange([...imageArray, newImageUrl.trim()]);
+      const newImages = [...imageArray, newImageUrl.trim()];
+      setLocalImages(newImages);
+      setUpdatePending(true);
       setNewImageUrl("");
     }
   };
@@ -35,7 +63,8 @@ export default function ProductImagesSection({
   const handleRemoveImage = (index: number) => {
     const newImages = [...imageArray];
     newImages.splice(index, 1);
-    onChange(newImages);
+    setLocalImages(newImages);
+    setUpdatePending(true);
   };
 
   const handleDragStart = (index: number) => {
@@ -51,7 +80,8 @@ export default function ProductImagesSection({
     newImages.splice(draggedIndex, 1);
     newImages.splice(index, 0, draggedImage);
 
-    onChange(newImages);
+    setLocalImages(newImages);
+    setUpdatePending(true);
     setDraggedIndex(index);
   };
 
@@ -59,8 +89,19 @@ export default function ProductImagesSection({
     setDraggedIndex(null);
   };
 
-  const handleSelectImage = (url: string) => {
-    onChange([...imageArray, url]);
+  const handleSelectImage = (urls: string | string[]) => {
+    let newImages: string[];
+
+    if (Array.isArray(urls)) {
+      // If multiple images were selected (multiSelect mode)
+      newImages = [...imageArray, ...urls];
+    } else {
+      // Single image selection
+      newImages = [...imageArray, urls];
+    }
+
+    setLocalImages(newImages);
+    setUpdatePending(true);
   };
 
   return (
@@ -98,7 +139,11 @@ export default function ProductImagesSection({
                 )}
                 <button
                   type="button"
-                  onClick={() => handleRemoveImage(index)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemoveImage(index);
+                  }}
                   className="absolute top-2 right-2 bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
@@ -133,22 +178,12 @@ export default function ProductImagesSection({
           </Button>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full flex items-center justify-center gap-2"
-          onClick={() => setImagePickerOpen(true)}
-        >
-          <ImageIcon className="h-4 w-4" />
-          <span>Browse Image Gallery</span>
-        </Button>
+        <ImagePickerButton
+          onSelect={handleSelectImage}
+          buttonText="Choose from gallery"
+          multiSelect={true}
+        />
       </div>
-
-      <ImagePicker
-        open={imagePickerOpen}
-        onClose={() => setImagePickerOpen(false)}
-        onSelect={handleSelectImage}
-      />
     </div>
   );
 }

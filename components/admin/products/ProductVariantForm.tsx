@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import ProductImagesSection from "./ProductImagesSection";
+import { ImagePicker } from "@/components/image/ImagePicker";
 
 interface ProductVariant {
   id?: string;
@@ -62,6 +63,7 @@ export default function ProductVariantForm({
     stock: defaultStock,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   useEffect(() => {
     if (variant) {
@@ -137,133 +139,170 @@ export default function ProductVariantForm({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {variant?.id ? "Edit Variant" : "Add New Variant"}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {variant?.id ? "Edit Variant" : "Add New Variant"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Variant Name*</Label>
-              <Input
-                id="name"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className={errors.name ? "border-red-500" : ""}
-              />
-              {errors.name && (
-                <p className="text-red-500 text-xs">{errors.name}</p>
-              )}
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Variant Name*</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className={errors.name ? "border-red-500" : ""}
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-xs">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sku">SKU*</Label>
+                <Input
+                  id="sku"
+                  name="sku"
+                  value={form.sku}
+                  onChange={handleChange}
+                  className={errors.sku ? "border-red-500" : ""}
+                />
+                {errors.sku && (
+                  <p className="text-red-500 text-xs">{errors.sku}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Price*</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.price}
+                  onChange={handleChange}
+                  className={errors.price ? "border-red-500" : ""}
+                />
+                {errors.price && (
+                  <p className="text-red-500 text-xs">{errors.price}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stock">Stock*</Label>
+                <Input
+                  id="stock"
+                  name="stock"
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={form.stock}
+                  onChange={handleChange}
+                  className={errors.stock ? "border-red-500" : ""}
+                />
+                {errors.stock && (
+                  <p className="text-red-500 text-xs">{errors.stock}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="color">Color</Label>
+                <Input
+                  id="color"
+                  name="color"
+                  value={form.color}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="size">Size</Label>
+                <Input
+                  id="size"
+                  name="size"
+                  value={form.size}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sku">SKU*</Label>
-              <Input
-                id="sku"
-                name="sku"
-                value={form.sku}
-                onChange={handleChange}
-                className={errors.sku ? "border-red-500" : ""}
-              />
-              {errors.sku && (
-                <p className="text-red-500 text-xs">{errors.sku}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="price">Price*</Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={form.price}
-                onChange={handleChange}
-                className={errors.price ? "border-red-500" : ""}
-              />
-              {errors.price && (
-                <p className="text-red-500 text-xs">{errors.price}</p>
-              )}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isActive"
+                  checked={form.isActive}
+                  onCheckedChange={handleSwitchChange}
+                />
+                <Label htmlFor="isActive">Active</Label>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock*</Label>
-              <Input
-                id="stock"
-                name="stock"
-                type="number"
-                step="1"
-                min="0"
-                value={form.stock}
-                onChange={handleChange}
-                className={errors.stock ? "border-red-500" : ""}
-              />
-              {errors.stock && (
-                <p className="text-red-500 text-xs">{errors.stock}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
-              <Input
-                id="color"
-                name="color"
-                value={form.color}
-                onChange={handleChange}
-              />
+              <Label>Variant Images</Label>
+              <div className="flex flex-col space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex items-center gap-2 w-full"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setImagePickerOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Select Images
+                </Button>
+                <ProductImagesSection
+                  images={form.images}
+                  onChange={handleImagesChange}
+                  required={false}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="size">Size</Label>
-              <Input
-                id="size"
-                name="size"
-                value={form.size}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {variant?.id ? "Update Variant" : "Add Variant"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isActive"
-                checked={form.isActive}
-                onCheckedChange={handleSwitchChange}
-              />
-              <Label htmlFor="isActive">Active</Label>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Variant Images</Label>
-            <ProductImagesSection
-              images={form.images}
-              onChange={handleImagesChange}
-              required={false}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {variant?.id ? "Update Variant" : "Add Variant"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      {/* Image Picker Dialog */}
+      <Dialog open={imagePickerOpen} onOpenChange={setImagePickerOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Select Image</DialogTitle>
+          </DialogHeader>
+          <ImagePicker
+            onSelect={(imageUrl) => {
+              // Add the selected image to the existing images array
+              setForm((prev) => ({
+                ...prev,
+                images: [...prev.images, imageUrl],
+              }));
+              setImagePickerOpen(false);
+            }}
+            onClose={() => setImagePickerOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
