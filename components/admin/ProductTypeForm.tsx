@@ -27,8 +27,6 @@ const attributeTypes: { value: AttributeType; label: string }[] = [
   { value: "number", label: "Number" },
   { value: "boolean", label: "Yes/No" },
   { value: "color", label: "Color" },
-  { value: "select", label: "Selection" },
-  { value: "multiselect", label: "Multi-Selection" },
 ];
 
 export default function ProductTypeForm({
@@ -57,7 +55,7 @@ export default function ProductTypeForm({
         id: uuidv4(),
         name: "",
         type: "text",
-        required: false,
+        isRequired: false,
         options: [],
       },
     ]);
@@ -81,7 +79,7 @@ export default function ProductTypeForm({
 
   const updateAttributeRequired = (index: number, required: boolean) => {
     const newAttributes = [...attributes];
-    newAttributes[index].required = required;
+    newAttributes[index].isRequired = required;
     setAttributes(newAttributes);
   };
 
@@ -200,29 +198,13 @@ export default function ProductTypeForm({
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id={`attr-required-${attr.id}`}
-                    checked={attr.required}
+                    checked={attr.isRequired}
                     onCheckedChange={(checked) =>
                       updateAttributeRequired(index, checked === true)
                     }
                   />
                   <Label htmlFor={`attr-required-${attr.id}`}>Required</Label>
                 </div>
-
-                {(attr.type === "select" || attr.type === "multiselect") && (
-                  <div className="space-y-2">
-                    <Label htmlFor={`attr-options-${attr.id}`}>
-                      Options (comma separated)
-                    </Label>
-                    <Input
-                      id={`attr-options-${attr.id}`}
-                      placeholder="e.g. Small, Medium, Large"
-                      value={attr.options?.join(", ") || ""}
-                      onChange={(e) =>
-                        updateAttributeOptions(index, e.target.value)
-                      }
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
