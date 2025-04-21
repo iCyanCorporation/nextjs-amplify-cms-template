@@ -34,7 +34,6 @@ const schema = a
       isActive: a.boolean().default(true),
       discountPrice: a.float(), // Add discount price
       attributes: a.string(), // JSON stringified attributes/specs
-      customAttributes: a.string(), // JSON stringified custom attributes
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),

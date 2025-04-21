@@ -19,7 +19,7 @@ import {
   X,
   CheckCircle,
 } from "lucide-react";
-import { ProductType, Product } from "@/types/product";
+import { ProductType, Product, ProductAttribute } from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { validateProduct } from "@/utils/productValidation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,8 +39,7 @@ import {
 
 import ProductInfoSection from "./ProductInfoSection";
 import ProductImagesSection from "./ProductImagesSection";
-import TypeAttributesSection from "./TypeAttributesSection";
-import CustomAttributesSection from "./CustomAttributesSection";
+import CombinedAttributesSection from "./CombinedAttributesSection";
 import ProductVariantForm from "./ProductVariantForm";
 
 interface ProductFormProps {
@@ -61,6 +60,12 @@ interface ProductVariant {
   isActive: boolean;
 }
 
+interface AttributeValue {
+  id: string;
+  value: string;
+  color?: string; // For color type attributes
+}
+
 export default function ProductForm({ mode, productId }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(mode === "edit");
@@ -74,15 +79,19 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [hasDiscount, setHasDiscount] = useState(false);
   const [discountPrice, setDiscountPrice] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [attributes, setAttributes] = useState<{ [key: string]: any }>({});
-  const [customAttributes, setCustomAttributes] = useState<
-    { name: string; value: string }[]
-  >([]);
   const [images, setImages] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("general");
   const [comment, setComment] = useState("");
+
+  // New states for the combined attributes management
+  const [productAttributes, setProductAttributes] = useState<
+    ProductAttribute[]
+  >([]);
+  const [attributeValues, setAttributeValues] = useState<
+    Record<string, AttributeValue[]>
+  >({});
 
   // Variants states
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -157,32 +166,70 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           setIsActive(productData.isActive !== false);
 
           // Initialize attributes if they exist
-          if (productData.specs) {
-            setAttributes(productData.specs);
-          } else if (
-            productData.attributes &&
-            typeof productData.attributes === "string"
-          ) {
-            try {
-              setAttributes(JSON.parse(productData.attributes));
-            } catch (e) {
-              console.error("Failed to parse product attributes:", e);
-              setAttributes({});
-            }
+          let attributesData: ProductAttribute[] = [];
+          let attributeValuesData: Record<string, AttributeValue[]> = {};
+
+          // Try to load attributes from specs or existing attributes
+          if (productData.specs && typeof productData.specs === "object") {
+            // Convert existing specs to our new format
+            Object.entries(productData.specs).forEach(([key, value]) => {
+              const attrId = `attr_${key}`;
+              const attributeType =
+                typeof value === "boolean"
+                  ? "boolean"
+                  : typeof value === "number"
+                    ? "number"
+                    : "text";
+
+              // Add attribute
+              attributesData.push({
+                id: attrId,
+                name:
+                  key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
+                type: attributeType,
+                required: false, // Assuming specs are not inherently required
+                options: [], // Specs don't have predefined options
+              });
+
+              // Add value
+              attributeValuesData[attrId] = [
+                {
+                  id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  value: String(value), // Safely convert unknown value to string
+                },
+              ];
+            });
           }
 
-          // Initialize custom attributes
+          // Load custom attributes if they exist
           const customAttrs = productData.customAttributes || {};
-          setCustomAttributes(
-            typeof customAttrs === "object" && !Array.isArray(customAttrs)
-              ? Object.entries(customAttrs).map(([name, value]) => ({
-                  name,
-                  value: value as string,
-                }))
-              : Array.isArray(customAttrs)
-                ? customAttrs
-                : []
-          );
+          if (typeof customAttrs === "object" && !Array.isArray(customAttrs)) {
+            Object.entries(customAttrs).forEach(([name, value]) => {
+              const attrId = `attr_custom_${name}`;
+
+              // Add attribute
+              attributesData.push({
+                id: attrId,
+                name:
+                  name.charAt(0).toUpperCase() +
+                  name.slice(1).replace(/_/g, " "),
+                type: "text", // Assuming custom attributes are text
+                required: false,
+                options: [],
+              });
+
+              // Add value
+              attributeValuesData[attrId] = [
+                {
+                  id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  value: String(value), // Safely convert unknown value to string
+                },
+              ];
+            });
+          }
+
+          setProductAttributes(attributesData);
+          setAttributeValues(attributeValuesData);
 
           // Initialize variants if they exist
           if (productData.variants && Array.isArray(productData.variants)) {
@@ -219,19 +266,16 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
   const handleTypeChange = (typeId: string) => {
     setSelectedType(typeId);
-    // Reset attributes when type changes
-    setAttributes({});
-  };
-
-  const handleAttributeChange = (attributeId: string, value: any) => {
-    setAttributes({
-      ...attributes,
-      [attributeId]: value,
-    });
   };
 
   // Variant Handlers
   const openVariantForm = (variant?: ProductVariant) => {
+    if (productAttributes.length === 0) {
+      alert("Please define attributes before creating variants.");
+      setActiveTab("attributes");
+      return;
+    }
+
     setCurrentVariant(variant);
     setVariantFormOpen(true);
   };
@@ -295,6 +339,26 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       // Ensure images is always an array
       const imageArray = Array.isArray(images) ? images : [];
 
+      // Convert attributes to specs format (for backward compatibility)
+      const specs: Record<string, any> = {};
+      productAttributes.forEach((attr) => {
+        const values = attributeValues[attr.id] || [];
+        if (values.length > 0) {
+          // If it's a boolean attribute, convert to actual boolean
+          if (attr.type === "boolean") {
+            specs[attr.name.toLowerCase()] = values[0].value === "true";
+          }
+          // If it's a number attribute, convert to actual number
+          else if (attr.type === "number") {
+            specs[attr.name.toLowerCase()] = parseFloat(values[0].value);
+          }
+          // For other types, just use the string value
+          else {
+            specs[attr.name.toLowerCase()] = values[0].value;
+          }
+        }
+      });
+
       // Create the product data object - match the Amplify schema structure
       const productData = {
         name,
@@ -306,14 +370,12 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         images: imageArray, // Ensure it's an array
         imgUrl: imageArray.length > 0 ? imageArray[0] : "", // Use first image as primary image
         discountPrice: hasDiscount ? parseFloat(discountPrice) : null,
-        specs: attributes, // Will be stringified in the API
-        customAttributes: customAttributes.reduce(
-          (obj, item) => {
-            obj[item.name] = item.value;
-            return obj;
-          },
-          {} as Record<string, string>
-        ), // Convert array to object for better JSON storage
+        specs: specs, // Use our converted specs
+        // Also save the full attribute structure in a separate field
+        productAttributes: {
+          attributes: productAttributes,
+          values: attributeValues,
+        },
         variants: variants.map((variant) => ({
           id: variant.id?.startsWith("temp-") ? undefined : variant.id,
           name: variant.name,
@@ -403,12 +465,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         Active
       </Badge>
     );
-  };
-
-  const getCurrentTypeAttributes = () => {
-    if (!selectedType) return [];
-    const currentType = productTypes.find((type) => type.id === selectedType);
-    return currentType?.attributes || [];
   };
 
   if (loading) {
@@ -556,35 +612,24 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">
-                  Type-specific Attributes
-                </h3>
-                {selectedType && getCurrentTypeAttributes().length > 0 ? (
-                  <TypeAttributesSection
-                    attributes={getCurrentTypeAttributes()}
-                    values={attributes}
-                    onChange={handleAttributeChange}
-                  />
-                ) : (
-                  <div className="text-center p-6 bg-gray-50 rounded-md">
-                    <p className="text-gray-500">
-                      No type-specific attributes available
-                    </p>
-                  </div>
-                )}
+            <div className="space-y-6">
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-sm">
+                <p className="font-medium text-yellow-800">
+                  Define attributes first before creating variants
+                </p>
+                <p className="text-yellow-700 mt-1">
+                  Add attributes like color, size, or material, then add values
+                  for each attribute. These attributes will be available when
+                  creating product variants.
+                </p>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold mb-4">
-                  Custom Attributes
-                </h3>
-                <CustomAttributesSection
-                  customAttributes={customAttributes}
-                  setCustomAttributes={setCustomAttributes}
-                />
-              </div>
+              <CombinedAttributesSection
+                attributes={productAttributes}
+                setAttributes={setProductAttributes}
+                attributeValues={attributeValues}
+                setAttributeValues={setAttributeValues}
+              />
             </div>
           </TabsContent>
 
@@ -606,7 +651,24 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 </Button>
               </div>
 
-              {variants.length === 0 ? (
+              {productAttributes.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="font-medium">
+                    You need to define attributes first
+                  </p>
+                  <p className="mt-2">
+                    Go to the Attributes tab to define attributes like color,
+                    size, etc.
+                  </p>
+                  <Button
+                    className="mt-4"
+                    variant="outline"
+                    onClick={() => setActiveTab("attributes")}
+                  >
+                    Go to Attributes
+                  </Button>
+                </div>
+              ) : variants.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No variants created yet. Add variants to offer different
                   options like sizes or colors.
@@ -685,6 +747,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         variant={currentVariant}
         defaultPrice={price}
         defaultStock={stock}
+        productAttributes={productAttributes}
+        attributeValues={attributeValues}
       />
 
       {/* Delete Variant Confirmation Dialog */}

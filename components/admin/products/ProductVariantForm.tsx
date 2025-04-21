@@ -12,8 +12,23 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ProductAttribute } from "@/types/product";
 import ProductImagesSection from "./ProductImagesSection";
 import { ImagePicker } from "@/components/image/ImagePicker";
+
+interface AttributeValue {
+  id: string;
+  value: string;
+  color?: string;
+}
 
 interface ProductVariant {
   id?: string;
@@ -35,6 +50,8 @@ interface ProductVariantFormProps {
   variant?: ProductVariant;
   defaultPrice?: string;
   defaultStock?: string;
+  productAttributes: ProductAttribute[];
+  attributeValues: Record<string, AttributeValue[]>;
 }
 
 const DEFAULT_VARIANT: ProductVariant = {
@@ -56,6 +73,8 @@ export default function ProductVariantForm({
   variant,
   defaultPrice = "",
   defaultStock = "",
+  productAttributes,
+  attributeValues,
 }: ProductVariantFormProps) {
   const [form, setForm] = useState<ProductVariant>({
     ...DEFAULT_VARIANT,
@@ -64,18 +83,56 @@ export default function ProductVariantForm({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string | string[] | boolean>
+  >({});
 
   useEffect(() => {
     if (variant) {
       setForm(variant);
+
+      // Initialize selected attributes from variant
+      if (variant.attributes) {
+        setSelectedAttributes(variant.attributes);
+      } else {
+        // Create empty selected attributes
+        const initialAttributes: Record<string, string | string[] | boolean> =
+          {};
+        productAttributes.forEach((attr) => {
+          initialAttributes[attr.id] =
+            attr.type === "multiselect"
+              ? []
+              : attr.type === "boolean"
+                ? false
+                : "";
+        });
+        setSelectedAttributes(initialAttributes);
+      }
     } else {
       setForm({
         ...DEFAULT_VARIANT,
         price: defaultPrice,
         stock: defaultStock,
       });
+
+      // Create empty selected attributes for new variant
+      const initialAttributes: Record<string, string | string[] | boolean> = {};
+      productAttributes.forEach((attr) => {
+        initialAttributes[attr.id] =
+          attr.type === "multiselect"
+            ? []
+            : attr.type === "boolean"
+              ? false
+              : "";
+      });
+      setSelectedAttributes(initialAttributes);
     }
-  }, [variant, isOpen, defaultPrice, defaultStock]);
+  }, [variant, isOpen, defaultPrice, defaultStock, productAttributes]);
+
+  // Update variant name whenever selected attributes change
+  useEffect(() => {
+    updateVariantNameBasedOnAttributes();
+  }, [selectedAttributes, productAttributes, attributeValues]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -94,6 +151,84 @@ export default function ProductVariantForm({
 
   const handleImagesChange = (newImages: string[]) => {
     setForm((prev) => ({ ...prev, images: newImages }));
+  };
+
+  // Handle attribute selection
+  const handleAttributeChange = (
+    attributeId: string,
+    value: string | string[] | boolean
+  ) => {
+    setSelectedAttributes((prev) => ({
+      ...prev,
+      [attributeId]: value,
+    }));
+  };
+
+  // Update variant name based on selected attributes
+  const updateVariantNameBasedOnAttributes = () => {
+    const nameComponents: string[] = [];
+
+    // Add selected attribute values to the name
+    productAttributes.forEach((attr) => {
+      const selectedValue = selectedAttributes[attr.id];
+
+      if (
+        selectedValue !== undefined &&
+        selectedValue !== null &&
+        selectedValue !== ""
+      ) {
+        // For color attributes, add the value name
+        if (attr.type === "color" && typeof selectedValue === "string") {
+          const colorValue = attributeValues[attr.id]?.find(
+            (v) => v.id === selectedValue
+          );
+          if (colorValue) {
+            nameComponents.push(colorValue.value);
+          }
+        }
+        // For multiselect, add all selected values
+        else if (
+          attr.type === "multiselect" &&
+          Array.isArray(selectedValue) &&
+          selectedValue.length > 0
+        ) {
+          const valueNames = selectedValue
+            .map((id) => {
+              const value = attributeValues[attr.id]?.find((v) => v.id === id);
+              return value?.value || "";
+            })
+            .filter(Boolean);
+
+          if (valueNames.length > 0) {
+            nameComponents.push(valueNames.join("/"));
+          }
+        }
+        // For boolean attributes, only add if true
+        else if (
+          attr.type === "boolean" &&
+          typeof selectedValue === "boolean" &&
+          selectedValue === true
+        ) {
+          nameComponents.push(attr.name);
+        }
+        // For other attributes, add the selected value
+        else if (typeof selectedValue === "string" && selectedValue) {
+          const value = attributeValues[attr.id]?.find(
+            (v) => v.id === selectedValue
+          );
+          if (value) {
+            nameComponents.push(value.value);
+          }
+        }
+      }
+    });
+
+    if (nameComponents.length > 0) {
+      setForm((prev) => ({
+        ...prev,
+        name: nameComponents.join(" - "),
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -123,6 +258,20 @@ export default function ProductVariantForm({
       newErrors.stock = "Stock must be a valid integer";
     }
 
+    // Validate required attributes
+    productAttributes.forEach((attr) => {
+      if (attr.required) {
+        const value = selectedAttributes[attr.id];
+        if (
+          !value ||
+          (Array.isArray(value) && value.length === 0) ||
+          (typeof value === "string" && !value.trim())
+        ) {
+          newErrors[`attr_${attr.id}`] = `${attr.name} is required`;
+        }
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -134,8 +283,187 @@ export default function ProductVariantForm({
       return;
     }
 
-    onSave(form);
+    // Include selected attributes in the variant
+    const formWithAttributes = {
+      ...form,
+      attributes: selectedAttributes,
+    };
+
+    onSave(formWithAttributes);
     onClose();
+  };
+
+  // Render a single attribute field
+  const renderAttributeField = (attribute: ProductAttribute) => {
+    const attrValues = attributeValues[attribute.id] || [];
+    const selectedValue = selectedAttributes[attribute.id];
+
+    switch (attribute.type) {
+      case "text":
+      case "number":
+        return (
+          <Select
+            value={(selectedValue as string) || ""}
+            onValueChange={(value) =>
+              handleAttributeChange(attribute.id, value)
+            }
+          >
+            <SelectTrigger
+              className={errors[`attr_${attribute.id}`] ? "border-red-500" : ""}
+            >
+              <SelectValue placeholder={`Select ${attribute.name}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Add empty option if not required */}
+              {!attribute.required && (
+                <SelectItem value="">
+                  <span className="text-gray-500">None</span>
+                </SelectItem>
+              )}
+              {attrValues.map((value) => (
+                <SelectItem key={value.id} value={value.id}>
+                  {value.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "boolean":
+        return (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`attr-${attribute.id}`}
+              checked={!!selectedValue}
+              onCheckedChange={(checked) =>
+                handleAttributeChange(attribute.id, !!checked)
+              }
+            />
+            <Label htmlFor={`attr-${attribute.id}`}>{attribute.name}</Label>
+          </div>
+        );
+
+      case "color":
+        return (
+          <Select
+            value={(selectedValue as string) || ""}
+            onValueChange={(value) =>
+              handleAttributeChange(attribute.id, value)
+            }
+          >
+            <SelectTrigger
+              className={errors[`attr_${attribute.id}`] ? "border-red-500" : ""}
+            >
+              <SelectValue placeholder={`Select ${attribute.name}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Add empty option if not required */}
+              {!attribute.required && (
+                <SelectItem value="">
+                  <span className="text-gray-500">None</span>
+                </SelectItem>
+              )}
+              {attrValues.map((value) => (
+                <SelectItem key={value.id} value={value.id}>
+                  <div className="flex items-center gap-2">
+                    {value.color && (
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: value.color }}
+                      />
+                    )}
+                    {value.value}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "select":
+        return (
+          <Select
+            value={(selectedValue as string) || ""}
+            onValueChange={(value) =>
+              handleAttributeChange(attribute.id, value)
+            }
+          >
+            <SelectTrigger
+              className={errors[`attr_${attribute.id}`] ? "border-red-500" : ""}
+            >
+              <SelectValue placeholder={`Select ${attribute.name}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {/* Add empty option if not required */}
+              {!attribute.required && (
+                <SelectItem value="">
+                  <span className="text-gray-500">None</span>
+                </SelectItem>
+              )}
+              {attrValues.map((value) => (
+                <SelectItem key={value.id} value={value.id}>
+                  {value.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "multiselect":
+        return (
+          <div className="space-y-2 border p-3 rounded-md">
+            <Label>Select {attribute.name} (multiple)</Label>
+            <div className="space-y-1">
+              {attrValues.map((value) => {
+                const isSelected =
+                  Array.isArray(selectedValue) &&
+                  selectedValue.includes(value.id);
+
+                return (
+                  <div key={value.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`ms-${attribute.id}-${value.id}`}
+                      checked={isSelected}
+                      onCheckedChange={(checked) => {
+                        if (!Array.isArray(selectedValue)) {
+                          handleAttributeChange(
+                            attribute.id,
+                            checked ? [value.id] : []
+                          );
+                          return;
+                        }
+
+                        if (checked) {
+                          handleAttributeChange(attribute.id, [
+                            ...selectedValue,
+                            value.id,
+                          ]);
+                        } else {
+                          handleAttributeChange(
+                            attribute.id,
+                            selectedValue.filter((id) => id !== value.id)
+                          );
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`ms-${attribute.id}-${value.id}`}>
+                      {value.value}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
+            {errors[`attr_${attribute.id}`] && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors[`attr_${attribute.id}`]}
+              </p>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -215,27 +543,24 @@ export default function ProductVariantForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="color">Color</Label>
-                <Input
-                  id="color"
-                  name="color"
-                  value={form.color}
-                  onChange={handleChange}
-                />
-              </div>
+            {/* Attribute Fields */}
+            {productAttributes.length > 0 && (
+              <div className="space-y-4 border-t pt-4 mt-4">
+                <h3 className="font-medium">Variant Attributes</h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="size">Size</Label>
-                <Input
-                  id="size"
-                  name="size"
-                  value={form.size}
-                  onChange={handleChange}
-                />
+                <div className="space-y-4">
+                  {productAttributes.map((attribute) => (
+                    <div key={attribute.id} className="space-y-2">
+                      <Label>
+                        {attribute.name}
+                        {attribute.required ? " *" : ""}
+                      </Label>
+                      {renderAttributeField(attribute)}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
@@ -291,15 +616,33 @@ export default function ProductVariantForm({
             <DialogTitle>Select Image</DialogTitle>
           </DialogHeader>
           <ImagePicker
+            open={imagePickerOpen}
             onSelect={(imageUrl) => {
-              // Add the selected image to the existing images array
-              setForm((prev) => ({
-                ...prev,
-                images: [...prev.images, imageUrl],
-              }));
+              if (typeof imageUrl === "string") {
+                setForm((prev) => ({
+                  ...prev,
+                  images: [...prev.images, imageUrl],
+                }));
+              } else {
+                console.warn(
+                  "Expected single image URL, received array:",
+                  imageUrl
+                );
+                if (
+                  Array.isArray(imageUrl) &&
+                  imageUrl.length > 0 &&
+                  typeof imageUrl[0] === "string"
+                ) {
+                  setForm((prev) => ({
+                    ...prev,
+                    images: [...prev.images, imageUrl[0]],
+                  }));
+                }
+              }
               setImagePickerOpen(false);
             }}
             onClose={() => setImagePickerOpen(false)}
+            multiSelect={false}
           />
         </DialogContent>
       </Dialog>
