@@ -100,12 +100,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="ml-20 lg:ml-64 min-h-screen bg-gray-white max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-white">
       <ThemeProvider theme={theme}>
-        <Authenticator className="m-auto h-screen p-2">
-          <Sidebar />
-          <div className="py-6">{children}</div>
-        </Authenticator>
+        <div className="flex justify-center items-center min-h-screen">
+          <Authenticator className="max-w-md w-full px-4 py-6">
+            <div className="ml-20 lg:ml-64 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+              <Sidebar />
+              <div className="py-6">{children}</div>
+            </div>
+          </Authenticator>
+        </div>
       </ThemeProvider>
     </div>
   );

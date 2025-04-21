@@ -36,8 +36,11 @@ import {
   ChevronDownIcon,
   RefreshCwIcon,
 } from "lucide-react";
+import { useProductContext } from "@/app/context/ProductContext";
 
 export default function ProductsPage() {
+  const { getProductTypeName } = useProductContext();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,7 +107,9 @@ export default function ProductsPage() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .filter((product) => filterType === "all" || product.type === filterType);
+    .filter(
+      (product) => filterType === "all" || product.productType === filterType
+    );
 
   const paginatedProducts = filteredProducts.slice(
     (page - 1) * rowsPerPage,
@@ -113,7 +118,7 @@ export default function ProductsPage() {
 
   const productTypes = [
     "all",
-    ...Array.from(new Set(products.map((p) => p.type))),
+    ...Array.from(new Set(products.map((p) => p.productType))),
   ];
 
   return (
@@ -192,7 +197,7 @@ export default function ProductsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedProducts.map((product) => (
+                  {paginatedProducts.map((product: Product) => (
                     <TableRow key={product.id}>
                       <TableCell>
                         <div className="flex items-center">
@@ -211,7 +216,15 @@ export default function ProductsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.type}</TableCell>
+                      <TableCell>
+                        {product.productTypeId ? (
+                          <span>
+                            {getProductTypeName(product.productTypeId)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">None</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {product.discountPrice ? (
                           <div>

@@ -30,8 +30,8 @@ export interface Product {
   discountPrice?: number | null;
   imgUrl?: string;
   isActive?: boolean;
-  productTypeID: string;
-  type?: string;
+  productTypeId: string;
+  productType?: string;
   images?: string[];
   specs?: { [key: string]: any };
   customAttributes?: { name: string; value: string }[];
