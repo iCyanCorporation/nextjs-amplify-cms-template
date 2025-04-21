@@ -79,7 +79,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [isActive, setIsActive] = useState(true);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("general");
-  const [historyActivities, setHistoryActivities] = useState<any[]>([]);
   const [comment, setComment] = useState("");
 
   // Variants states
@@ -207,27 +206,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           console.error("Failed to load product data:", error);
           alert("Failed to load product data. Please try again.");
         }
-      }
-
-      // For edit mode, also fetch product activity history
-      if (mode === "edit" && productId) {
-        // Mock history data - in a real app you'd fetch this from your API
-        setHistoryActivities([
-          {
-            id: 1,
-            type: "update",
-            user: "Admin",
-            message: "Changed price from $99 to $129",
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-          },
-          {
-            id: 2,
-            type: "note",
-            user: "System",
-            message: "Product stock updated to 25",
-            timestamp: new Date(Date.now() - 172800000).toISOString(),
-          },
-        ]);
       }
 
       setLoading(false);
@@ -405,25 +383,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     }
   };
 
-  const addComment = () => {
-    if (!comment.trim()) return;
-
-    setHistoryActivities([
-      {
-        id: Date.now(),
-        type: "comment",
-        user: "Admin",
-        message: comment,
-        timestamp: new Date().toISOString(),
-      },
-      ...historyActivities,
-    ]);
-
-    setComment("");
-
-    // In a real app, you would save this to your database
-  };
-
   const getProductStatusBadge = () => {
     if (!isActive) {
       return <Badge variant="destructive">Archived</Badge>;
@@ -489,22 +448,22 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       {/* Smart buttons - for edit mode only */}
       {mode === "edit" && (
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <ShoppingCart className="h-8 w-8 text-blue-500 mb-2" />
             <span className="font-semibold text-2xl">0</span>
             <span className="text-sm text-gray-500">Orders</span>
           </Card>
-          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <Truck className="h-8 w-8 text-green-500 mb-2" />
             <span className="font-semibold text-2xl">{stock || "0"}</span>
             <span className="text-sm text-gray-500">In Stock</span>
           </Card>
-          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <Tag className="h-8 w-8 text-orange-500 mb-2" />
             <span className="font-semibold text-2xl">${price || "0"}</span>
             <span className="text-sm text-gray-500">Price</span>
           </Card>
-          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50">
+          <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <PackageIcon className="h-8 w-8 text-purple-500 mb-2" />
             <span className="font-semibold text-2xl">{variants.length}</span>
             <span className="text-sm text-gray-500">Variants</span>
@@ -519,14 +478,11 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-5 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
             <TabsTrigger value="attributes">Attributes</TabsTrigger>
             <TabsTrigger value="variants">Variants</TabsTrigger>
-            {mode === "edit" && (
-              <TabsTrigger value="history">History</TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -672,63 +628,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               )}
             </div>
           </TabsContent>
-
-          {mode === "edit" && (
-            <TabsContent value="history" className="space-y-4">
-              <div className="p-6 border rounded-md">
-                <h3 className="text-lg font-semibold mb-4">Activity History</h3>
-
-                <div className="flex gap-3 mb-6">
-                  <Avatar className="h-8 w-8">
-                    <div className="bg-primary text-white flex items-center justify-center w-full h-full rounded-full">
-                      A
-                    </div>
-                  </Avatar>
-                  <div className="flex-1">
-                    <textarea
-                      className="w-full border rounded-md p-2"
-                      placeholder="Add a comment..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Button size="sm" onClick={addComment}>
-                        Post
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {historyActivities.map((activity) => (
-                    <div key={activity.id} className="flex gap-3 pb-4 border-b">
-                      <Avatar className="h-8 w-8">
-                        <div className="bg-gray-200 flex items-center justify-center w-full h-full rounded-full">
-                          {activity.user.charAt(0)}
-                        </div>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{activity.user}</span>
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {new Date(activity.timestamp).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="mt-1">{activity.message}</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  {historyActivities.length === 0 && (
-                    <div className="text-center text-gray-500 py-4">
-                      No activity history
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-          )}
         </Tabs>
 
         <div className="flex justify-end gap-4 pt-4 border-t">

@@ -13,7 +13,7 @@ import {
 import { FaHome } from "react-icons/fa";
 
 import SignOutButton from "./SignOutButton";
-import { Button } from "@/components/ui/button";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -44,13 +44,16 @@ export default function Sidebar() {
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b">
           {!isCollapsed && (
-            <Link
-              href="/admin"
-              className="flex text-xl font-bold text-gray-800 gap-2"
-            >
-              <FaHome className="h-6 w-6 hover:opacity-80" />
-              <p>HOME</p>
-            </Link>
+            <>
+              <Link
+                href="/admin"
+                className="flex text-xl font-bold text-gray-800 gap-2"
+              >
+                <FaHome className="h-6 w-6 hover:opacity-80" />
+                <p>HOME</p>
+              </Link>
+              <ThemeToggle />
+            </>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}

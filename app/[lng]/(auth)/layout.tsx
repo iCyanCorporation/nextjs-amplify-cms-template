@@ -102,7 +102,7 @@ export default function RootLayout({
   return (
     <div className="min-h-screen bg-gray-white">
       <ThemeProvider theme={theme}>
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex min-h-screen">
           <Authenticator className="max-w-md w-full px-4 py-6">
             <div className="ml-20 lg:ml-64 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
               <Sidebar />
