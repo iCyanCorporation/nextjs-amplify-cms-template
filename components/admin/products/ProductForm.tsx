@@ -760,7 +760,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the variant. This action cannot be undone.
+              This will delete the variant. This action cannot be undone
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
