@@ -175,9 +175,13 @@
     --rte-editor-scrollbar: #ffffff40;
 
     /* //   Box shadow */
-    --rte-shadow-1: 0px 0px 0px 1px #3d444d, 0px 6px 12px -3px #01040966, 0px 6px 18px 0px #01040966;
-    --rte-shadow-2: 0px 0px 0px 1px #3d444d, 0px 8px 16px -4px #01040966, 0px 4px 32px -4px #01040966,
-      0px 24px 48px -12px #01040966, 0px 48px 96px -24px #01040966;
+    --rte-shadow-1:
+      0px 0px 0px 1px #3d444d, 0px 6px 12px -3px #01040966,
+      0px 6px 18px 0px #01040966;
+    --rte-shadow-2:
+      0px 0px 0px 1px #3d444d, 0px 8px 16px -4px #01040966,
+      0px 4px 32px -4px #01040966, 0px 24px 48px -12px #01040966,
+      0px 48px 96px -24px #01040966;
     --rte-shadow-3: 0px 0px 0px 1px #3d444d, 0px 24px 48px 0px #010409;
   }
 }
@@ -310,7 +314,7 @@ iframe.ql-video {
   flex: 1;
 }
 
-.ProseMirror>*+* {
+.ProseMirror > * + * {
   margin-top: 0.75em;
 }
 
@@ -401,6 +405,13 @@ iframe.ql-video {
 
 /* OTHER */
 .markdownContent {
+  /* iamges */
+  img {
+    max-width: 512px;
+    height: auto;
+    margin: 1rem 0;
+    border-radius: 0.5rem;
+  }
   /* Table styles */
   table {
     border-collapse: collapse;
@@ -415,7 +426,9 @@ iframe.ql-video {
   }
 
   /* YouTube video and iframe styles */
-  iframe, iframe.yt-video, .youtube-video-container iframe {
+  iframe,
+  iframe.yt-video,
+  .youtube-video-container iframe {
     width: 100% !important;
     max-width: 100% !important;
     aspect-ratio: 16 / 9;
@@ -455,7 +468,8 @@ iframe.ql-video {
   }
 
   /* Existing styles continue */
-  th, td {
+  th,
+  td {
     border: 1px solid #ddd;
     padding: 6px;
     text-align: left;
@@ -507,7 +521,8 @@ iframe.ql-video {
   }
 
   /* List styles */
-  ul, ol {
+  ul,
+  ol {
     padding-left: 1.5rem;
     margin: 1rem 0;
   }
@@ -525,19 +540,23 @@ iframe.ql-video {
   }
 
   /* Nested lists */
-  ul ul, ol ul {
+  ul ul,
+  ol ul {
     list-style-type: circle;
   }
 
-  ul ul ul, ol ul ul {
+  ul ul ul,
+  ol ul ul {
     list-style-type: square;
   }
 
-  ol ol, ul ol {
+  ol ol,
+  ul ol {
     list-style-type: lower-alpha;
   }
 
-  ol ol ol, ul ol ol {
+  ol ol ol,
+  ul ol ol {
     list-style-type: lower-roman;
   }
 }

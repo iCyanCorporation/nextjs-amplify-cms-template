@@ -152,11 +152,11 @@ export default async function ProductPage({ params }: { params: Params }) {
 
       <div className="py-8">
         <h3 className="py-4 font-bold">Product Detail</h3>
-        <div className="prose prose-indigo dark:prose-invert max-w-none">
-          <div
-            dangerouslySetInnerHTML={{ __html: product.description || "" }}
-          />
-        </div>
+
+        <div
+          className="prose prose-indigo dark:prose-invert markdownContent w-full"
+          dangerouslySetInnerHTML={{ __html: product.description || "" }}
+        />
       </div>
     </div>
   );
