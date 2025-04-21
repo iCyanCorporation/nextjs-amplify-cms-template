@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Button from '@/components/TiptapEditor/components/ui/Button';
-import { ImagePicker } from '@/components/image/ImagePicker';
+import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/TiptapEditor/components/ui/Button";
+import { ImagePicker } from "@/components/image/ImagePicker";
 
-import './style.scss';
+import "./style.scss";
 
 interface MediaLibraryProps {
   onInsert?: (image: ImageData) => void;
@@ -21,11 +21,11 @@ interface ImageData {
 }
 
 const MediaLibrary: React.FC<MediaLibraryProps> = ({ onInsert, onClose }) => {
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [images, setImages] = useState<ImageData[]>([]);
-  const [previews, setPreviews] = useState<ImageData[]>([]);
-  const [selected, setSelected] = useState<ImageData | null>(null);
+  // const [loading, setLoading] = useState(false);
+  // const [uploading, setUploading] = useState(false);
+  // const [images, setImages] = useState<ImageData[]>([]);
+  // const [previews, setPreviews] = useState<ImageData[]>([]);
+  // const [selected, setSelected] = useState<ImageData | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const handleUploadClick = () => {
@@ -38,51 +38,61 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ onInsert, onClose }) => {
     }
   };
 
-  const loadImage = (file: File): Promise<ImageData> => {
-    return new Promise((resolve) => {
-      const url = URL.createObjectURL(file);
-      const image = new Image();
-      image.onload = () => {
-        resolve({
-          url,
-          width: image.width,
-          height: image.height,
-          format: file.type.split('/')[1],
-          display_name: file.name.split(/\.\w+$/)[0]
-        });
-      };
-      image.src = url;
-    });
-  };
+  // const loadImage = (file: File): Promise<ImageData> => {
+  //   return new Promise((resolve) => {
+  //     const url = URL.createObjectURL(file);
+  //     const image = new Image();
+  //     image.onload = () => {
+  //       resolve({
+  //         url,
+  //         width: image.width,
+  //         height: image.height,
+  //         format: file.type.split("/")[1],
+  //         display_name: file.name.split(/\.\w+$/)[0],
+  //       });
+  //     };
+  //     image.src = url;
+  //   });
+  // };
 
+  // const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = e.target.files;
+  //   if (!files || files.length === 0) return;
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  //   setUploading(true);
 
-    setUploading(true);
+  //   const previewPromises = Array.from(files).map(loadImage);
+  //   const loadedPreviews = await Promise.all(previewPromises);
+  //   setPreviews(loadedPreviews);
 
-    const previewPromises = Array.from(files).map(loadImage);
-    const loadedPreviews = await Promise.all(previewPromises);
-    setPreviews(loadedPreviews);
+  //   loadedPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+  //   setPreviews([]);
+  //   setImages((prev) => [...loadedPreviews, ...prev]);
 
-    loadedPreviews.forEach(preview => URL.revokeObjectURL(preview.url));
-    setPreviews([]);
-    setImages(prev => [...loadedPreviews, ...prev]);
+  //   setUploading(false);
+  // };
 
-    setUploading(false);
-  };
+  const handleImageSelect = async (url: string | string[]) => {
+    var selectedUrl: string;
+    if (Array.isArray(url)) {
+      selectedUrl = url[0];
+    } else {
+      selectedUrl = url;
+    }
 
-  const handleImageSelect = async (url: string) => {
+    if (!selectedUrl) return;
+
     const img = new Image();
-    img.src = url;
-    await new Promise((resolve) => { img.onload = resolve; });
+    img.src = selectedUrl;
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
     const imageData: ImageData = {
-      url,
+      url: selectedUrl,
       width: img.width,
       height: img.height,
-      format: 'jpg',
-      display_name: 'image'
+      format: "jpg",
+      display_name: "image",
     };
     onInsert?.(imageData);
     onClose?.();
@@ -92,9 +102,11 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ onInsert, onClose }) => {
     <div className="p-4 space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Select Image</h2>
-        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
       </div>
-      <ImagePicker onSelect={handleImageSelect} onClose={onClose} />
+      <ImagePicker open={true} onSelect={handleImageSelect} onClose={onClose} />
     </div>
   );
 };

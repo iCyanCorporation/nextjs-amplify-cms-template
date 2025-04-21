@@ -33,8 +33,8 @@ export async function GET(request: Request, { params }: { params: Params }) {
       specs: productResult.data.attributes
         ? JSON.parse(productResult.data.attributes as string)
         : {},
-      customAttributes: productResult.data.customAttributes
-        ? JSON.parse(productResult.data.customAttributes as string)
+      attributes: productResult.data.attributes
+        ? JSON.parse(productResult.data.attributes as string)
         : {},
       variants: variantsResult.data || [],
     };
@@ -104,7 +104,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       isActive,
       images,
       specs,
-      customAttributes,
+      attributes,
       discountPrice,
       variants = [],
     } = body;
@@ -131,8 +131,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       imgUrl: imageArray.length > 0 ? imageArray[0] : "",
       isActive: isActive !== false,
       updatedAt: currentDate,
-      customAttributes: "", // Add this field to fix the TypeScript error
-      attributes: "", // Add this for specs
+      attributes: "", // Add this field to fix the TypeScript error
     };
 
     // Add discountPrice if it's provided
@@ -147,7 +146,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       basicProductData.attributes = JSON.stringify(specs);
     }
 
-    // Handle customAttributes separately
+    // Handle attributes separately
     interface AttributeItem {
       name: string;
       value: string;
@@ -155,24 +154,22 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
     let customAttrsArray: AttributeItem[] = [];
 
-    if (customAttributes) {
+    if (attributes) {
       // Convert to expected format if not already in the correct format
-      if (Array.isArray(customAttributes)) {
-        customAttrsArray = customAttributes as AttributeItem[];
+      if (Array.isArray(attributes)) {
+        customAttrsArray = attributes as AttributeItem[];
       } else {
         // Convert object to array of {name, value} pairs
-        customAttrsArray = Object.entries(customAttributes).map(
-          ([name, value]) => ({
-            name,
-            value: String(value),
-          })
-        );
+        customAttrsArray = Object.entries(attributes).map(([name, value]) => ({
+          name,
+          value: String(value),
+        }));
       }
 
-      // Only set customAttributes if we have attributes to save
+      // Only set attributes if we have attributes to save
       if (customAttrsArray.length > 0) {
         // Convert to string for API compatibility
-        basicProductData.customAttributes = JSON.stringify(customAttrsArray);
+        basicProductData.attributes = JSON.stringify(customAttrsArray);
       }
     }
 
@@ -237,15 +234,15 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             console.log("Failed to update images as string", stringError);
 
             // Method 3: If all else fails, store the image URLs in custom attributes
-            const customAttrsWithImages = customAttributes || {};
+            const customAttrsWithImages = attributes || {};
             customAttrsWithImages._imageUrls = imageArray;
 
             const fallbackResult = await amplifyClient.models.Product.update({
               id: productId,
-              customAttributes: JSON.stringify(customAttrsWithImages),
+              attributes: JSON.stringify(customAttrsWithImages),
             });
 
-            console.log("Stored images in customAttributes as fallback");
+            console.log("Stored images in attributes as fallback");
           }
         }
       } catch (imageUpdateError) {
@@ -353,13 +350,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         }
       }
 
-      // If we stored images in customAttributes as a fallback, retrieve them
-      if (
-        parsedImages.length === 0 &&
-        updatedProductResult.data.customAttributes
-      ) {
+      // If we stored images in attributes as a fallback, retrieve them
+      if (parsedImages.length === 0 && updatedProductResult.data.attributes) {
         const customAttrs = JSON.parse(
-          updatedProductResult.data.customAttributes as string
+          updatedProductResult.data.attributes as string
         );
         if (customAttrs._imageUrls && Array.isArray(customAttrs._imageUrls)) {
           parsedImages = customAttrs._imageUrls;
@@ -378,8 +372,8 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       specs: updatedProductResult.data.attributes
         ? JSON.parse(updatedProductResult.data.attributes as string)
         : {},
-      customAttributes: updatedProductResult.data.customAttributes
-        ? JSON.parse(updatedProductResult.data.customAttributes as string)
+      attributes: updatedProductResult.data.attributes
+        ? JSON.parse(updatedProductResult.data.attributes as string)
         : {},
       variants: updatedVariantsResult.data || [],
     };
