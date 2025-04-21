@@ -1,16 +1,10 @@
-export type AttributeType =
-  | "text"
-  | "number"
-  | "boolean"
-  | "color"
-  | "select"
-  | "multiselect";
+export type AttributeType = "text" | "number" | "boolean" | "color";
 
 export interface ProductAttribute {
   id: string;
   name: string;
   type: AttributeType;
-  required: boolean;
+  isRequired: boolean;
   options?: string[];
 }
 

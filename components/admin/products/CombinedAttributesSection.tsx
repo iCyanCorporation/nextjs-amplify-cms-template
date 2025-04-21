@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Minus, Save, X } from "lucide-react";
+import { Plus, Minus, Save, X, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AttributeType, ProductAttribute } from "@/types/product";
+import { Badge } from "@/components/ui/badge";
 
 interface AttributeValue {
   id: string;
@@ -35,6 +36,8 @@ interface CombinedAttributesSectionProps {
   setAttributeValues: React.Dispatch<
     React.SetStateAction<Record<string, AttributeValue[]>>
   >;
+  systemAttributes?: ProductAttribute[];
+  loadingAttributes?: boolean;
 }
 
 export default function CombinedAttributesSection({
@@ -42,6 +45,8 @@ export default function CombinedAttributesSection({
   setAttributes,
   attributeValues,
   setAttributeValues,
+  systemAttributes = [],
+  loadingAttributes = false,
 }: CombinedAttributesSectionProps) {
   const [isAddingAttribute, setIsAddingAttribute] = useState(false);
   const [isEditingValues, setIsEditingValues] = useState(false);
@@ -54,6 +59,8 @@ export default function CombinedAttributesSection({
   );
   const [newValueInput, setNewValueInput] = useState("");
   const [newColorInput, setNewColorInput] = useState("#000000");
+  const [selectingSystemAttribute, setSelectingSystemAttribute] =
+    useState(false);
 
   // Add a new attribute
   const addAttribute = () => {
@@ -64,7 +71,7 @@ export default function CombinedAttributesSection({
       id: newId,
       name: newAttributeName,
       type: newAttributeType,
-      required: newAttributeRequired,
+      isRequired: newAttributeRequired,
       options: [],
     };
 
@@ -123,20 +130,6 @@ export default function CombinedAttributesSection({
       [currentAttributeId]: [...currentValues, newValue],
     });
 
-    // Also update options for select/multiselect
-    if (attribute.type === "select" || attribute.type === "multiselect") {
-      const updatedAttribute = {
-        ...attribute,
-        options: [...(attribute.options || []), newValueInput],
-      };
-
-      setAttributes(
-        attributes.map((attr) =>
-          attr.id === currentAttributeId ? updatedAttribute : attr
-        )
-      );
-    }
-
     setNewValueInput("");
     setNewColorInput("#000000");
   };
@@ -153,23 +146,34 @@ export default function CombinedAttributesSection({
       ...attributeValues,
       [attributeId]: currentValues.filter((v) => v.id !== valueId),
     });
+  };
 
-    // Also update options for select/multiselect
-    const attribute = attributes.find((attr) => attr.id === attributeId);
-    if (
-      attribute &&
-      (attribute.type === "select" || attribute.type === "multiselect")
-    ) {
-      const updatedOptions = (attribute.options || []).filter(
-        (opt) => opt !== valueToRemove.value
-      );
+  // Add a system attribute to the product
+  const addSystemAttribute = (attribute: ProductAttribute) => {
+    // Check if this attribute is already added
+    const attributeExists = attributes.some(
+      (attr) => attr.id === attribute.id || attr.name === attribute.name
+    );
 
-      setAttributes(
-        attributes.map((attr) =>
-          attr.id === attributeId ? { ...attr, options: updatedOptions } : attr
-        )
-      );
+    if (attributeExists) {
+      return; // Skip if already exists
     }
+
+    // Add the attribute with its original ID from the database
+    setAttributes([
+      ...attributes,
+      {
+        ...attribute,
+        // Convert isRequired to required for frontend compatibility
+        isRequired: attribute.isRequired || false,
+      },
+    ]);
+
+    // Initialize empty values array
+    setAttributeValues({
+      ...attributeValues,
+      [attribute.id]: [],
+    });
   };
 
   // Get the current attribute being edited
@@ -183,19 +187,40 @@ export default function CombinedAttributesSection({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Product Attributes</CardTitle>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1"
-            onClick={() => setIsAddingAttribute(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add Attribute
-          </Button>
+          <div className="flex space-x-2">
+            {systemAttributes && systemAttributes.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => setSelectingSystemAttribute(true)}
+              >
+                <Edit className="h-4 w-4" />
+                Choose Existing
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={() => setIsAddingAttribute(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Add Attribute
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          {attributes.length > 0 ? (
+          {loadingAttributes ? (
+            <div className="text-center p-6">
+              <div className="inline-block animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+              <p className="mt-2 text-sm text-gray-500">
+                Loading attributes...
+              </p>
+            </div>
+          ) : attributes.length > 0 ? (
             <div className="space-y-4">
               {attributes.map((attr) => (
                 <div
@@ -207,7 +232,7 @@ export default function CombinedAttributesSection({
                     <div className="text-sm text-gray-500">
                       Type:{" "}
                       {attr.type.charAt(0).toUpperCase() + attr.type.slice(1)}
-                      {attr.required && (
+                      {attr.isRequired && (
                         <span className="ml-2 text-red-500">Required</span>
                       )}
                     </div>
@@ -423,6 +448,86 @@ export default function CombinedAttributesSection({
 
           <DialogFooter>
             <Button type="button" onClick={() => setIsEditingValues(false)}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* System Attribute Selector Dialog */}
+      <Dialog
+        open={selectingSystemAttribute}
+        onOpenChange={setSelectingSystemAttribute}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select from Existing Attributes</DialogTitle>
+            <DialogDescription>
+              Choose from pre-defined attributes to add to your product
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="border rounded-md p-4 max-h-80 overflow-y-auto">
+              {systemAttributes && systemAttributes.length > 0 ? (
+                <div className="space-y-3">
+                  {systemAttributes.map((attr) => {
+                    // Check if attribute is already added to the product
+                    const isAdded = attributes.some(
+                      (a) => a.id === attr.id || a.name === attr.name
+                    );
+
+                    return (
+                      <div
+                        key={attr.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100"
+                      >
+                        <div>
+                          <div className="font-medium flex items-center gap-2">
+                            {attr.name}
+                            {attr.isRequired && (
+                              <Badge variant="destructive" className="text-xs">
+                                Required
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Type: {attr.type || "text"}
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={isAdded ? "secondary" : "outline"}
+                          onClick={() => {
+                            if (!isAdded) {
+                              addSystemAttribute(attr);
+                            }
+                          }}
+                          disabled={isAdded}
+                        >
+                          {isAdded ? "Added" : "Add"}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <p>No system attributes found</p>
+                  <p className="text-sm mt-1">
+                    Create attributes first to see them here
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => setSelectingSystemAttribute(false)}
+            >
               Done
             </Button>
           </DialogFooter>

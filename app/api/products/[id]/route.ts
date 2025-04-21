@@ -27,10 +27,69 @@ export async function GET(request: Request, { params }: { params: Params }) {
       filter: { productId: { eq: productId } },
     });
 
-    // Combine the product with its variants
+    // Get all attribute definitions from the Attribute table
+    const attributesResult = await amplifyClient.models.Attribute.list({});
+    const attributes = attributesResult.data || [];
+
+    // Extract attribute values from variants
+    const attributeValues: Record<string, any[]> = {};
+    if (variantsResult.data && variantsResult.data.length > 0) {
+      // Process each variant to extract unique attribute values
+      variantsResult.data.forEach((variant) => {
+        if (variant.attributes) {
+          try {
+            const variantAttrs = JSON.parse(variant.attributes);
+
+            // For each attribute in the variant
+            Object.entries(variantAttrs).forEach(([attrKey, attrValue]) => {
+              // Find the attribute by name
+              const attributeObj = attributes.find(
+                (attr) => attr.name === attrKey
+              );
+              if (attributeObj) {
+                const attrId = attributeObj.id;
+
+                // Initialize the array if it doesn't exist
+                if (!attributeValues[attrId]) {
+                  attributeValues[attrId] = [];
+                }
+
+                // Add the value if it doesn't already exist
+                const valueExists = attributeValues[attrId].some(
+                  (val) => val.value === attrValue
+                );
+
+                if (!valueExists) {
+                  attributeValues[attrId].push({
+                    id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    value: attrValue,
+                    // Add color info if it's a color attribute
+                    ...(attributeObj.type === "color"
+                      ? { color: attrValue }
+                      : {}),
+                  });
+                }
+              }
+            });
+          } catch (e) {
+            console.error("Error parsing variant attributes:", e);
+          }
+        }
+      });
+    }
+
+    // Format attributes for frontend consumption
+    const productAttributes = attributes.map((attr) => ({
+      id: attr.id,
+      name: attr.name,
+      type: attr.type || "text", // Default to text if type is missing
+      required: attr.isRequired || false, // Convert isRequired to required for frontend
+      options: Array.isArray(attr.options) ? attr.options : [],
+    }));
+
+    // Combine the product with its variants and attributes
     const product = {
       ...productResult.data,
-      // Cast to any to access attributes, assuming it exists in the runtime data
       specs: (productResult.data as any).attributes
         ? JSON.parse((productResult.data as any).attributes as string)
         : {},
@@ -38,6 +97,9 @@ export async function GET(request: Request, { params }: { params: Params }) {
         ? JSON.parse((productResult.data as any).attributes as string)
         : {},
       variants: variantsResult.data || [],
+      // Include formatted attributes and values
+      productAttributes: productAttributes,
+      attributeValues: attributeValues,
     };
 
     return NextResponse.json(product);
@@ -104,8 +166,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       productTypeId,
       isActive,
       images,
-      specs,
-      attributes,
+      productAttributes, // NEW: Receive product attributes data
       discountPrice,
       variants = [],
     } = body;
@@ -127,12 +188,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       description: description || "",
       price: typeof price === "number" ? price : parseFloat(price || "0"),
       stock: typeof stock === "number" ? stock : parseInt(stock || "0", 10),
-      productTypeId: productTypeId, // Fix: use productTypeId (lowercase 'id') to match schema
-      discountPrice,
+      productTypeId: productTypeId,
       imgUrl: imageArray.length > 0 ? imageArray[0] : "",
       isActive: isActive !== false,
-      updatedAt: currentDate,
-      attributes: "", // Add this field to fix the TypeScript error
+      // Removed customAttributesData field - attributes will be managed separately
     };
 
     // Add discountPrice if it's provided
@@ -142,48 +201,94 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         : null;
     }
 
-    // Handle specs separately - store in attributes field
-    if (specs) {
-      (basicProductData as any).attributes = JSON.stringify(specs);
-    }
-
-    // Handle attributes separately
-    interface AttributeItem {
-      name: string;
-      value: string;
-    }
-
-    let customAttrsArray: AttributeItem[] = [];
-
-    if (attributes) {
-      // Convert to expected format if not already in the correct format
-      if (Array.isArray(attributes)) {
-        customAttrsArray = attributes as AttributeItem[];
-      } else {
-        // Convert object to array of {name, value} pairs
-        customAttrsArray = Object.entries(attributes).map(([name, value]) => ({
-          name,
-          value: String(value),
-        }));
-      }
-
-      // Only set attributes if we have attributes to save
-      if (customAttrsArray.length > 0) {
-        // Convert to string for API compatibility
-        (basicProductData as any).attributes = JSON.stringify(customAttrsArray);
-      }
-    }
-
     console.log(
       "Step 1: Updating basic product info with data:",
       basicProductData
     );
+
     const basicUpdateResult = await amplifyClient.models.Product.update(
       basicProductData as any
-    ); // Cast here
+    );
 
     if (!basicUpdateResult.data) {
       throw new Error("Failed to update basic product info");
+    }
+
+    // Step 1b: Process attributes if provided
+    if (productAttributes && Array.isArray(productAttributes)) {
+      try {
+        console.log("Processing product attributes");
+
+        // For each attribute definition
+        for (const attribute of productAttributes) {
+          let attributeId = attribute.id;
+
+          // If it's a new attribute (without proper ID) or needs updating
+          if (!attributeId || attributeId.startsWith("attr_")) {
+            // Check if this attribute already exists by name
+            const existingAttrsResult =
+              await amplifyClient.models.Attribute.list({
+                filter: { name: { eq: attribute.name } },
+              });
+
+            if (
+              existingAttrsResult.data &&
+              existingAttrsResult.data.length > 0
+            ) {
+              // Update existing attribute
+              attributeId = existingAttrsResult.data[0].id;
+              await amplifyClient.models.Attribute.update({
+                id: attributeId,
+                name: attribute.name,
+                type: attribute.type,
+                options: Array.isArray(attribute.options)
+                  ? attribute.options
+                  : [],
+                isRequired: Boolean(attribute.required), // Convert from required to isRequired
+              });
+              console.log(`Updated existing attribute: ${attribute.name}`);
+            } else {
+              // Create new attribute
+              const newAttrResult = await amplifyClient.models.Attribute.create(
+                {
+                  name: attribute.name,
+                  type: attribute.type,
+                  options: Array.isArray(attribute.options)
+                    ? attribute.options
+                    : [],
+                  isRequired: Boolean(attribute.required), // Convert from required to isRequired
+                }
+              );
+
+              if (newAttrResult.data) {
+                attributeId = newAttrResult.data.id;
+                console.log(
+                  `Created new attribute: ${attribute.name} with ID: ${attributeId}`
+                );
+              }
+            }
+          } else {
+            // This is an existing attribute with a valid ID, update it
+            await amplifyClient.models.Attribute.update({
+              id: attributeId,
+              name: attribute.name,
+              type: attribute.type,
+              options: Array.isArray(attribute.options)
+                ? attribute.options
+                : [],
+              isRequired: Boolean(attribute.required), // Convert from required to isRequired
+            });
+            console.log(
+              `Updated attribute with ID ${attributeId}: ${attribute.name}`
+            );
+          }
+        }
+
+        console.log("Attributes processed successfully");
+      } catch (attrError) {
+        console.error("Error processing attributes:", attrError);
+        // Continue with the product update even if attribute processing fails
+      }
     }
 
     // Step 2: Handle images separately using a get-then-update approach
@@ -236,8 +341,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             console.log("Failed to update images as string", stringError);
 
             // Method 3: If all else fails, store the image URLs in custom attributes
-            const customAttrsWithImages = attributes || {};
-            customAttrsWithImages._imageUrls = imageArray;
+            const customAttrsWithImages = { _imageUrls: imageArray };
 
             const fallbackResult = await amplifyClient.models.Product.update({
               id: productId,
@@ -374,12 +478,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     const updatedProduct = {
       ...updatedProductResult.data,
       images: parsedImages,
-      specs: (updatedProductResult.data as any).attributes
-        ? JSON.parse((updatedProductResult.data as any).attributes as string)
-        : {},
-      attributes: (updatedProductResult.data as any).attributes
-        ? JSON.parse((updatedProductResult.data as any).attributes as string)
-        : {},
       variants: updatedVariantsResult.data || [],
     };
 

@@ -6,7 +6,7 @@ async function getProducts() {
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       (typeof window === "undefined"
-        ? "http://localhost:3000"
+        ? process.env.NEXT_PUBLIC_API_URL
         : window.location.origin);
 
     const response = await fetch(`${baseUrl}/api/products`, {

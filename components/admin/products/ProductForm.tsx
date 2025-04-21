@@ -84,6 +84,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("general");
   const [comment, setComment] = useState("");
+  const [loadingAttributes, setLoadingAttributes] = useState(false);
 
   // New states for the combined attributes management
   const [productAttributes, setProductAttributes] = useState<
@@ -92,6 +93,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [attributeValues, setAttributeValues] = useState<
     Record<string, AttributeValue[]>
   >({});
+  const [systemAttributes, setSystemAttributes] = useState<ProductAttribute[]>(
+    []
+  );
 
   // Variants states
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -123,6 +127,23 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       } catch (error) {
         console.error("Error fetching product types:", error);
         setProductTypes([]);
+      }
+
+      // Fetch attributes from the Attribute table
+      try {
+        setLoadingAttributes(true);
+        const response = await fetch("/api/attributes");
+        if (!response.ok) {
+          throw new Error("Failed to fetch attributes");
+        }
+        const attributesData = await response.json();
+        console.log("Attributes loaded:", attributesData);
+        setSystemAttributes(attributesData);
+      } catch (error) {
+        console.error("Error fetching attributes:", error);
+        setSystemAttributes([]);
+      } finally {
+        setLoadingAttributes(false);
       }
 
       // If editing, fetch the product data
@@ -191,7 +212,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 name:
                   key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
                 type: attributeType,
-                required: false, // Assuming specs are not inherently required
+                isRequired: false, // Assuming specs are not inherently required
                 options: [], // Specs don't have predefined options
               });
 
@@ -218,7 +239,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   name.charAt(0).toUpperCase() +
                   name.slice(1).replace(/_/g, " "),
                 type: "text", // Assuming custom attributes are text
-                required: false,
+                isRequired: false,
                 options: [],
               });
 
@@ -343,26 +364,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       // Ensure images is always an array
       const imageArray = Array.isArray(images) ? images : [];
 
-      // Convert attributes to specs format (for backward compatibility)
-      const specs: Record<string, any> = {};
-      productAttributes.forEach((attr) => {
-        const values = attributeValues[attr.id] || [];
-        if (values.length > 0) {
-          // If it's a boolean attribute, convert to actual boolean
-          if (attr.type === "boolean") {
-            specs[attr.name.toLowerCase()] = values[0].value === "true";
-          }
-          // If it's a number attribute, convert to actual number
-          else if (attr.type === "number") {
-            specs[attr.name.toLowerCase()] = parseFloat(values[0].value);
-          }
-          // For other types, just use the string value
-          else {
-            specs[attr.name.toLowerCase()] = values[0].value;
-          }
-        }
-      });
-
       // Create the product data object - match the Amplify schema structure
       const productData = {
         name,
@@ -374,12 +375,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         images: imageArray, // Ensure it's an array
         imgUrl: imageArray.length > 0 ? imageArray[0] : "", // Use first image as primary image
         discountPrice: hasDiscount ? parseFloat(discountPrice) : null,
-        specs: specs, // Use our converted specs
-        // Also save the full attribute structure in a separate field
-        productAttributes: {
-          attributes: productAttributes,
-          values: attributeValues,
-        },
+        // Include product attributes for saving to the Attribute table
+        productAttributes,
         variants: variants.map((variant) => ({
           id: variant.id?.startsWith("temp-") ? undefined : variant.id,
           name: variant.name,
@@ -633,6 +630,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 setAttributes={setProductAttributes}
                 attributeValues={attributeValues}
                 setAttributeValues={setAttributeValues}
+                systemAttributes={systemAttributes}
+                loadingAttributes={loadingAttributes}
               />
             </div>
           </TabsContent>

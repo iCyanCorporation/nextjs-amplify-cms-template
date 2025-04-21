@@ -1,158 +1,116 @@
-import { NextRequest, NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource"; // Adjust the path as necessary
 import { Amplify } from "aws-amplify";
-import config from "@/amplify_outputs.json";
+import outputs from "@/amplify_outputs.json";
+Amplify.configure(outputs, { ssr: true });
 
-Amplify.configure(config, { ssr: true });
+import { amplifyClient } from "@/hooks/useAmplifyClient";
+import { NextResponse } from "next/server";
 
-const client = generateClient<Schema>();
+type Params = Promise<{ id: string }>;
 
-type Params = Promise<{
-  id: string;
-}>;
-// GET /api/attributes/[id] - Get a specific attribute by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Params }
-) {
-  // const id = params.id;
-  const { id } = await params;
+// GET /api/attributes/:id - Get a specific attribute
+export async function GET(request: Request, { params }: { params: Params }) {
   try {
-    const { data: attribute, errors } = await client.models.Attribute.get({
-      id,
-    });
+    const { id } = await params;
+    const result = await amplifyClient.models.Attribute.get({ id });
 
-    if (errors || !attribute) {
-      console.error("Error fetching attribute:", errors);
-      return NextResponse.json(
-        { error: "Attribute not found or failed to fetch" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(attribute);
-  } catch (error) {
-    console.error(`Unexpected error fetching attribute ${id}:`, error);
-    return NextResponse.json(
-      { error: "Unexpected error occurred" },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/attributes/[id] - Update a specific attribute by ID
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Params }
-) {
-  // const id = params.id;
-  const { id } = await params;
-  try {
-    const body = await request.json();
-    const { name, type, options, isRequired } = body;
-
-    // Fetch the existing attribute to ensure it exists
-    const { data: existingAttribute, errors: fetchErrors } =
-      await client.models.Attribute.get({ id });
-    if (fetchErrors || !existingAttribute) {
-      console.error("Error fetching attribute for update:", fetchErrors);
-      return NextResponse.json(
-        { error: "Attribute not found or failed to fetch for update" },
-        { status: 404 }
-      );
-    }
-
-    // Basic validation
-    if (!name && !type && options === undefined && isRequired === undefined) {
-      return NextResponse.json(
-        { error: "No update fields provided" },
-        { status: 400 }
-      );
-    }
-
-    // Validate type enum if provided
-    if (type) {
-      const validTypes = ["text", "number", "boolean", "color"];
-      if (!validTypes.includes(type)) {
-        return NextResponse.json(
-          {
-            error: `Invalid type: ${type}. Must be one of ${validTypes.join(", ")}`,
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    const updateData: Partial<Schema["Attribute"]["type"]> = {};
-    if (name !== undefined) updateData.name = name;
-    if (type !== undefined) updateData.type = type;
-    if (options !== undefined) updateData.options = options;
-    if (isRequired !== undefined) updateData.isRequired = isRequired;
-
-    const { data: updatedAttribute, errors } =
-      await client.models.Attribute.update({ id, ...updateData });
-
-    if (errors) {
-      console.error(`Error updating attribute ${id}:`, errors);
-      return NextResponse.json(
-        { error: "Failed to update attribute", details: errors },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(updatedAttribute);
-  } catch (error: any) {
-    console.error(`Unexpected error updating attribute ${id}:`, error);
-    if (error.name === "SyntaxError") {
-      // Handle JSON parsing errors
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-    }
-    return NextResponse.json(
-      { error: "Unexpected error occurred" },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/attributes/[id] - Delete a specific attribute by ID
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Params }
-) {
-  // const id = params.id;
-  const { id } = await params;
-
-  try {
-    // Optional: Check if attribute exists before deleting
-    const { data: existingAttribute, errors: fetchErrors } =
-      await client.models.Attribute.get({ id });
-    if (fetchErrors || !existingAttribute) {
-      console.error("Attribute not found for deletion:", fetchErrors);
+    if (!result.data) {
       return NextResponse.json(
         { error: "Attribute not found" },
         { status: 404 }
       );
     }
 
-    const { errors } = await client.models.Attribute.delete({ id });
+    return NextResponse.json(result.data);
+  } catch (error) {
+    console.error("Error fetching attribute:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch attribute" },
+      { status: 500 }
+    );
+  }
+}
 
-    if (errors) {
-      console.error(`Error deleting attribute ${id}:`, errors);
+// PUT /api/attributes/:id - Update a specific attribute
+export async function PUT(request: Request, { params }: { params: Params }) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    // Check if attribute exists
+    const existingResult = await amplifyClient.models.Attribute.get({ id });
+    if (!existingResult.data) {
       return NextResponse.json(
-        { error: "Failed to delete attribute", details: errors },
+        { error: "Attribute not found" },
+        { status: 404 }
+      );
+    }
+
+    // Handle both frontend format (required) and backend format (isRequired)
+    const isRequired =
+      body.isRequired !== undefined
+        ? body.isRequired
+        : body.required !== undefined
+          ? body.required
+          : false;
+
+    // Ensure options is an array
+    const options = Array.isArray(body.options) ? body.options : [];
+
+    // Update the attribute
+    const result = await amplifyClient.models.Attribute.update({
+      id,
+      name: body.name,
+      type: body.type,
+      options: options,
+      isRequired: Boolean(isRequired),
+    });
+
+    if (!result.data) {
+      return NextResponse.json(
+        { error: "Failed to update attribute" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(
-      { message: "Attribute deleted successfully" },
-      { status: 200 }
-    ); // Or 204 No Content
+    return NextResponse.json(result.data);
   } catch (error) {
-    console.error(`Unexpected error deleting attribute ${id}:`, error);
+    console.error("Error updating attribute:", error);
     return NextResponse.json(
-      { error: "Unexpected error occurred" },
+      { error: "Failed to update attribute" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/attributes/:id - Delete a specific attribute
+export async function DELETE(request: Request, { params }: { params: Params }) {
+  try {
+    const { id } = await params;
+
+    // Check if attribute exists
+    const existingResult = await amplifyClient.models.Attribute.get({ id });
+    if (!existingResult.data) {
+      return NextResponse.json(
+        { error: "Attribute not found" },
+        { status: 404 }
+      );
+    }
+
+    // Delete the attribute
+    const result = await amplifyClient.models.Attribute.delete({ id });
+
+    if (!result.data) {
+      return NextResponse.json(
+        { error: "Failed to delete attribute" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting attribute:", error);
+    return NextResponse.json(
+      { error: "Failed to delete attribute" },
       { status: 500 }
     );
   }

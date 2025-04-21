@@ -1,86 +1,75 @@
-import { NextRequest, NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource"; // Adjust the path as necessary
 import { Amplify } from "aws-amplify";
-import config from "@/amplify_outputs.json";
+import outputs from "@/amplify_outputs.json";
+Amplify.configure(outputs, { ssr: true });
 
-Amplify.configure(config, { ssr: true });
+import { amplifyClient } from "@/hooks/useAmplifyClient";
+import { NextResponse } from "next/server";
 
-const client = generateClient<Schema>();
-
-// GET /api/attributes - List all attributes
+// GET /api/attributes - Get all attributes
 export async function GET() {
   try {
-    const { data: attributes, errors } = await client.models.Attribute.list();
-    if (errors) {
-      console.error("Error fetching attributes:", errors);
+    const result = await amplifyClient.models.Attribute.list();
+
+    if (!result.data) {
       return NextResponse.json(
-        { error: "Failed to fetch attributes", details: errors },
-        { status: 500 }
+        { error: "No attributes found" },
+        { status: 404 }
       );
     }
-    return NextResponse.json(attributes);
+
+    return NextResponse.json(result.data);
   } catch (error) {
-    console.error("Unexpected error fetching attributes:", error);
+    console.error("Error fetching attributes:", error);
     return NextResponse.json(
-      { error: "Unexpected error occurred" },
+      { error: "Failed to fetch attributes" },
       { status: 500 }
     );
   }
 }
 
 // POST /api/attributes - Create a new attribute
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, type, options, isRequired } = body;
 
-    // Basic validation
-    if (!name || !type) {
+    // Validate the request body
+    if (!body.name || !body.type) {
       return NextResponse.json(
-        { error: "Missing required fields: name and type" },
+        { error: "Name and type are required fields" },
         { status: 400 }
       );
     }
 
-    // Validate type enum
-    const validTypes = ["text", "number", "boolean", "color"];
-    if (!validTypes.includes(type)) {
-      return NextResponse.json(
-        {
-          error: `Invalid type: ${type}. Must be one of ${validTypes.join(", ")}`,
-        },
-        { status: 400 }
-      );
-    }
+    // Handle both frontend format (required) and backend format (isRequired)
+    const isRequired =
+      body.isRequired !== undefined
+        ? body.isRequired
+        : body.required !== undefined
+          ? body.required
+          : false;
 
-    const { data: newAttribute, errors } = await client.models.Attribute.create(
-      {
-        name,
-        type,
-        options: options || [], // Default to empty array if not provided
-        isRequired: isRequired === true, // Default to false if not provided or not true
-        // productId is ignored due to schema definition concerns
-      }
-    );
+    // Ensure options is an array
+    const options = Array.isArray(body.options) ? body.options : [];
 
-    if (errors) {
-      console.error("Error creating attribute:", errors);
+    const result = await amplifyClient.models.Attribute.create({
+      name: body.name,
+      type: body.type,
+      options: options,
+      isRequired: Boolean(isRequired),
+    });
+
+    if (!result.data) {
       return NextResponse.json(
-        { error: "Failed to create attribute", details: errors },
+        { error: "Failed to create attribute" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(newAttribute, { status: 201 });
-  } catch (error: any) {
-    console.error("Unexpected error creating attribute:", error);
-    if (error.name === "SyntaxError") {
-      // Handle JSON parsing errors
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-    }
+    return NextResponse.json(result.data, { status: 201 });
+  } catch (error) {
+    console.error("Error creating attribute:", error);
     return NextResponse.json(
-      { error: "Unexpected error occurred" },
+      { error: "Failed to create attribute" },
       { status: 500 }
     );
   }
