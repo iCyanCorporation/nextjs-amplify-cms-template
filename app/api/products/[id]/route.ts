@@ -4,7 +4,7 @@ Amplify.configure(outputs, { ssr: true });
 
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
-import { type Variant, type Product } from "@/types/product";
+import { type Variant, type Product, type Attribute } from "@/types/product";
 
 type Params = Promise<{ id: string }>;
 // GET /api/products/:id - Get a specific product with variants
@@ -79,7 +79,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     }
 
     // Format attributes for frontend consumption
-    const productAttributes = attributes.map((attr) => ({
+    const Attributes = attributes.map((attr) => ({
       id: attr.id,
       name: attr.name,
       type: attr.type || "text", // Default to text if type is missing
@@ -98,7 +98,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
         : {},
       variants: variantsResult.data || [],
       // Include formatted attributes and values
-      productAttributes: productAttributes,
+      Attributes: Attributes,
       attributeValues: attributeValues,
     };
 
@@ -166,7 +166,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       productTypeId,
       isActive,
       images,
-      productAttributes, // NEW: Receive product attributes data
+      Attributes, // Use the correct property name that's being sent from the frontend
       discountPrice,
       variants = [],
     } = body;
@@ -191,7 +191,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       productTypeId: productTypeId,
       imgUrl: imageArray.length > 0 ? imageArray[0] : "",
       isActive: isActive !== false,
-      // Removed customAttributesData field - attributes will be managed separately
     };
 
     // Add discountPrice if it's provided
@@ -215,12 +214,21 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     }
 
     // Step 1b: Process attributes if provided
-    if (productAttributes && Array.isArray(productAttributes)) {
+    if (Attributes && Array.isArray(Attributes)) {
       try {
         console.log("Processing product attributes");
 
+        // Get existing Attribute records for this product
+        const existingAttributesResult =
+          await amplifyClient.models.Attribute.list({});
+
+        const existingAttributes = existingAttributesResult.data || [];
+
+        // Track which attribute IDs we're keeping
+        const attributeIdsToKeep: string[] = [];
+
         // For each attribute definition
-        for (const attribute of productAttributes) {
+        for (const attribute of Attributes) {
           let attributeId = attribute.id;
 
           // If it's a new attribute (without proper ID) or needs updating
@@ -244,7 +252,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                 options: Array.isArray(attribute.options)
                   ? attribute.options
                   : [],
-                isRequired: Boolean(attribute.required), // Convert from required to isRequired
+                isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
               });
               console.log(`Updated existing attribute: ${attribute.name}`);
             } else {
@@ -256,7 +264,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                   options: Array.isArray(attribute.options)
                     ? attribute.options
                     : [],
-                  isRequired: Boolean(attribute.required), // Convert from required to isRequired
+                  isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
                 }
               );
 
@@ -276,12 +284,15 @@ export async function PUT(request: Request, { params }: { params: Params }) {
               options: Array.isArray(attribute.options)
                 ? attribute.options
                 : [],
-              isRequired: Boolean(attribute.required), // Convert from required to isRequired
+              isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
             });
             console.log(
               `Updated attribute with ID ${attributeId}: ${attribute.name}`
             );
           }
+
+          // Add this attribute to the "keep" list
+          attributeIdsToKeep.push(attributeId);
         }
 
         console.log("Attributes processed successfully");
@@ -382,20 +393,35 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
       // Update or create variants
       const variantPromises = variants.map(async (variant: Variant) => {
+        // Safely handle potentially undefined values
+        const priceStr =
+          typeof price === "number" ? price.toString() : price || "0";
+        const stockStr =
+          typeof stock === "number" ? stock.toString() : stock || "0";
+
+        // Safely get variant price and stock as strings first
+        const variantPriceStr =
+          variant.price != null
+            ? typeof variant.price === "number"
+              ? variant.price.toString()
+              : String(variant.price)
+            : priceStr;
+
+        const variantStockStr =
+          variant.stock != null
+            ? typeof variant.stock === "number"
+              ? variant.stock.toString()
+              : String(variant.stock)
+            : stockStr;
+
         const variantData = {
-          productId,
-          name: variant.name,
-          sku: variant.sku,
-          price:
-            typeof variant.price === "number"
-              ? variant.price
-              : parseFloat(variant.price || price.toString()),
-          stock:
-            typeof variant.stock === "number"
-              ? variant.stock
-              : parseInt(variant.stock || stock.toString(), 10),
-          color: variant.color,
-          size: variant.size,
+          productId: productId,
+          name: variant.name || "",
+          sku: variant.sku || "",
+          price: parseFloat(variantPriceStr),
+          stock: parseInt(variantStockStr, 10),
+          color: variant.color || "",
+          size: variant.size || "",
           attributes: variant.attributes
             ? JSON.stringify(variant.attributes)
             : null,

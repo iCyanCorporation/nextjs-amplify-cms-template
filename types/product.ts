@@ -1,6 +1,6 @@
 export type AttributeType = "text" | "number" | "boolean" | "color";
 
-export interface ProductAttribute {
+export interface Attribute {
   id: string;
   name: string;
   type: AttributeType;
@@ -11,8 +11,7 @@ export interface ProductAttribute {
 export interface ProductType {
   id: string;
   name: string;
-  attributes?: ProductAttribute[];
-  productCount?: number;
+  description: string;
 }
 
 export interface Product {
@@ -28,7 +27,6 @@ export interface Product {
   productType?: string;
   images?: string[];
   specs?: { [key: string]: any };
-  customAttributes?: { name: string; value: string }[];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,11 +36,17 @@ export interface Variant {
   id?: string;
   name?: string;
   sku?: string;
-  price?: number | string;
-  stock?: number | string;
+  price?: number | null;
+  stock?: number | null;
   color?: string;
   size?: string;
   attributes?: Record<string, unknown>;
   images?: string[];
   isActive?: boolean;
+}
+
+export interface AttributeValue {
+  id: string;
+  value: string;
+  color?: string;
 }

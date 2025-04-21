@@ -148,8 +148,6 @@ export default function ProductTypesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>NAME</TableHead>
-                    <TableHead>ATTRIBUTES</TableHead>
-                    <TableHead>PRODUCTS</TableHead>
                     <TableHead>ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -157,10 +155,7 @@ export default function ProductTypesPage() {
                   {productTypes.map((type) => (
                     <TableRow key={type.id}>
                       <TableCell className="font-medium">{type.name}</TableCell>
-                      <TableCell>
-                        {type.attributes?.length || 0} attributes
-                      </TableCell>
-                      <TableCell>{type.productCount || 0} products</TableCell>
+
                       <TableCell>
                         <div className="flex gap-2">
                           <Button

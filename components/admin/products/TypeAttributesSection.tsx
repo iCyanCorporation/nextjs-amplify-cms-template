@@ -1,10 +1,10 @@
 import React from "react";
-import { ProductAttribute } from "@/types/product";
+import { Attribute } from "@/types/product";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DynamicAttributeField from "@/components/admin/DynamicAttributeField";
 
 interface TypeAttributesSectionProps {
-  attributes: ProductAttribute[];
+  attributes: Attribute[];
   values: { [key: string]: any };
   onChange: (attributeId: string, value: any) => void;
 }

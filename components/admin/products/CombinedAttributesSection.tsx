@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Minus, Save, X, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AttributeType, ProductAttribute } from "@/types/product";
+import { AttributeType, Attribute } from "@/types/product";
 import { Badge } from "@/components/ui/badge";
 
 interface AttributeValue {
@@ -30,26 +30,28 @@ interface AttributeValue {
 }
 
 interface CombinedAttributesSectionProps {
-  attributes: ProductAttribute[];
-  setAttributes: React.Dispatch<React.SetStateAction<ProductAttribute[]>>;
-  attributeValues: Record<string, AttributeValue[]>;
-  setAttributeValues: React.Dispatch<
+  attributes: Attribute[];
+  setAttributes: React.Dispatch<React.SetStateAction<Attribute[]>>;
+  attributeOption: Record<string, AttributeValue[]>;
+  setAttributeOption: React.Dispatch<
     React.SetStateAction<Record<string, AttributeValue[]>>
   >;
-  systemAttributes?: ProductAttribute[];
+  onRemoveAttribute: (attributeId: string) => void; // Add this prop
+  systemAttributes?: Attribute[];
   loadingAttributes?: boolean;
 }
 
 export default function CombinedAttributesSection({
   attributes,
   setAttributes,
-  attributeValues,
-  setAttributeValues,
+  attributeOption,
+  setAttributeOption,
+  onRemoveAttribute, // Destructure the new prop
   systemAttributes = [],
   loadingAttributes = false,
 }: CombinedAttributesSectionProps) {
   const [isAddingAttribute, setIsAddingAttribute] = useState(false);
-  const [isEditingValues, setIsEditingValues] = useState(false);
+  const [isEditingOption, setIsEditingOption] = useState(false);
   const [newAttributeName, setNewAttributeName] = useState("");
   const [newAttributeType, setNewAttributeType] =
     useState<AttributeType>("text");
@@ -62,12 +64,42 @@ export default function CombinedAttributesSection({
   const [selectingSystemAttribute, setSelectingSystemAttribute] =
     useState(false);
 
+  useEffect(() => {
+    if (systemAttributes && systemAttributes.length > 0 && !loadingAttributes) {
+      setAttributes((prevAttributes) => {
+        // Merge prevAttributes and systemAttributes, keeping only one per name+type (case-insensitive)
+        const unique: Attribute[] = [];
+        [...prevAttributes, ...systemAttributes].forEach((attr) => {
+          const exists = unique.some(
+            (u) =>
+              u.name.trim().toLowerCase() === attr.name.trim().toLowerCase() &&
+              u.type === attr.type
+          );
+          if (!exists) {
+            unique.push({ ...attr, isRequired: attr.isRequired || false });
+          }
+        });
+        return unique;
+      });
+
+      // Initialize empty Option array for each new attribute
+      const newOption = { ...attributeOption };
+      systemAttributes.forEach((attr) => {
+        // Only initialize if not already present (double check)
+        if (!newOption[attr.id]) {
+          newOption[attr.id] = [];
+        }
+      });
+      setAttributeOption(newOption);
+    }
+  }, [systemAttributes, loadingAttributes, setAttributes, setAttributeOption]);
+
   // Add a new attribute
   const addAttribute = () => {
     if (!newAttributeName.trim()) return;
 
     const newId = `attr_${Date.now()}`;
-    const newAttribute: ProductAttribute = {
+    const newAttribute: Attribute = {
       id: newId,
       name: newAttributeName,
       type: newAttributeType,
@@ -76,8 +108,8 @@ export default function CombinedAttributesSection({
     };
 
     setAttributes([...attributes, newAttribute]);
-    setAttributeValues({
-      ...attributeValues,
+    setAttributeOption({
+      ...attributeOption,
       [newId]: [],
     });
 
@@ -88,20 +120,17 @@ export default function CombinedAttributesSection({
     setIsAddingAttribute(false);
   };
 
-  // Remove an attribute
+  // Remove an attribute - NOW USES CALLBACK
   const removeAttribute = (id: string) => {
-    setAttributes(attributes.filter((attr) => attr.id !== id));
-
-    // Also remove its values
-    const newValues = { ...attributeValues };
-    delete newValues[id];
-    setAttributeValues(newValues);
+    // Call the callback provided by the parent component
+    onRemoveAttribute(id);
+    // Local state updates will now be handled by the parent via the callback's logic
   };
 
-  // Open the values editor for an attribute
-  const openValuesEditor = (attributeId: string) => {
+  // Open the Option editor for an attribute
+  const openOptionEditor = (attributeId: string) => {
     setCurrentAttributeId(attributeId);
-    setIsEditingValues(true);
+    setIsEditingOption(true);
     setNewValueInput("");
     setNewColorInput("#000000");
   };
@@ -123,12 +152,27 @@ export default function CombinedAttributesSection({
       newValue.color = newColorInput;
     }
 
-    const currentValues = attributeValues[currentAttributeId] || [];
+    const currentOption = attributeOption[currentAttributeId] || [];
 
-    setAttributeValues({
-      ...attributeValues,
-      [currentAttributeId]: [...currentValues, newValue],
+    // Update the attributeOption state
+    setAttributeOption({
+      ...attributeOption,
+      [currentAttributeId]: [...currentOption, newValue],
     });
+
+    // Also update the options array in the attribute itself (store only string values)
+    setAttributes(
+      attributes.map((attr) => {
+        if (attr.id === currentAttributeId) {
+          // Only store the value string in options, never the object
+          return {
+            ...attr,
+            options: [...(attr.options || []), newValue.value],
+          };
+        }
+        return attr;
+      })
+    );
 
     setNewValueInput("");
     setNewColorInput("#000000");
@@ -136,20 +180,35 @@ export default function CombinedAttributesSection({
 
   // Remove a value
   const removeValue = (attributeId: string, valueId: string) => {
-    const currentValues = attributeValues[attributeId] || [];
-    const valueToRemove = currentValues.find((v) => v.id === valueId);
+    const currentOption = attributeOption[attributeId] || [];
+    const valueToRemove = currentOption.find((v) => v.id === valueId);
 
     if (!valueToRemove) return;
 
-    // Update attribute values
-    setAttributeValues({
-      ...attributeValues,
-      [attributeId]: currentValues.filter((v) => v.id !== valueId),
+    // Remove from attributeOption
+    setAttributeOption({
+      ...attributeOption,
+      [attributeId]: currentOption.filter((v) => v.id !== valueId),
     });
+
+    // Also remove from the options array in the attribute itself (by value string)
+    setAttributes(
+      attributes.map((attr) => {
+        if (attr.id === attributeId) {
+          return {
+            ...attr,
+            options: (attr.options || []).filter(
+              (option) => option !== valueToRemove.value
+            ),
+          };
+        }
+        return attr;
+      })
+    );
   };
 
   // Add a system attribute to the product
-  const addSystemAttribute = (attribute: ProductAttribute) => {
+  const addSystemAttribute = (attribute: Attribute) => {
     // Check if this attribute is already added
     const attributeExists = attributes.some(
       (attr) => attr.id === attribute.id || attr.name === attribute.name
@@ -169,9 +228,9 @@ export default function CombinedAttributesSection({
       },
     ]);
 
-    // Initialize empty values array
-    setAttributeValues({
-      ...attributeValues,
+    // Initialize empty Option array
+    setAttributeOption({
+      ...attributeOption,
       [attribute.id]: [],
     });
   };
@@ -188,18 +247,6 @@ export default function CombinedAttributesSection({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Product Attributes</CardTitle>
           <div className="flex space-x-2">
-            {systemAttributes && systemAttributes.length > 0 && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={() => setSelectingSystemAttribute(true)}
-              >
-                <Edit className="h-4 w-4" />
-                Choose Existing
-              </Button>
-            )}
             <Button
               type="button"
               variant="outline"
@@ -237,7 +284,10 @@ export default function CombinedAttributesSection({
                       )}
                     </div>
                     <div className="text-sm mt-2">
-                      Values: {attributeValues[attr.id]?.length || 0}
+                      Options:{" "}
+                      {Array.isArray(attr.options) && attr.options.length > 0
+                        ? attr.options.length
+                        : 0}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -245,16 +295,16 @@ export default function CombinedAttributesSection({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => openValuesEditor(attr.id)}
+                      onClick={() => openOptionEditor(attr.id)}
                     >
-                      Edit Values
+                      Edit Option
                     </Button>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       className="text-red-500"
-                      onClick={() => removeAttribute(attr.id)}
+                      onClick={() => removeAttribute(attr.id)} // This now calls the callback
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
@@ -342,42 +392,40 @@ export default function CombinedAttributesSection({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Attribute Values Dialog */}
-      <Dialog open={isEditingValues} onOpenChange={setIsEditingValues}>
+      {/* Edit Attribute Option Dialog */}
+      <Dialog open={isEditingOption} onOpenChange={setIsEditingOption}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Edit Values for {getCurrentAttribute()?.name}
+              Edit Option for {getCurrentAttribute()?.name}
             </DialogTitle>
             <DialogDescription>
-              Add values for this attribute that can be used in product variants
+              Add Option for this attribute that can be used in product variants
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="flex gap-2 items-end">
               {getCurrentAttribute()?.type === "color" ? (
-                <>
-                  <div className="space-y-2 flex-1">
-                    <Label htmlFor="value-name">Value Name</Label>
+                <div className="space-y-2 flex-1">
+                  <Label htmlFor="value-name">Value Name</Label>
+
+                  <div className="flex items-center gap-2">
                     <Input
                       id="value-name"
                       placeholder="e.g., Red, Blue, Green"
                       value={newValueInput}
                       onChange={(e) => setNewValueInput(e.target.value)}
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="value-color">Color</Label>
                     <input
                       id="value-color"
                       type="color"
                       value={newColorInput}
                       onChange={(e) => setNewColorInput(e.target.value)}
-                      className="w-10 h-10 rounded cursor-pointer"
+                      className="w-8 rounded cursor-pointer aspect-square m-auto"
                     />
                   </div>
-                </>
+                </div>
               ) : (
                 <div className="space-y-2 flex-1">
                   <Label htmlFor="value-input">Value</Label>
@@ -405,11 +453,11 @@ export default function CombinedAttributesSection({
             </div>
 
             <div className="border rounded-md p-2 max-h-64 overflow-y-auto">
-              <h4 className="text-sm font-medium mb-2">Current Values</h4>
+              <h4 className="text-sm font-medium mb-2">Current Option</h4>
               {currentAttributeId &&
-              attributeValues[currentAttributeId]?.length > 0 ? (
+              attributeOption[currentAttributeId]?.length > 0 ? (
                 <div className="space-y-2">
-                  {attributeValues[currentAttributeId].map((value) => (
+                  {attributeOption[currentAttributeId].map((value) => (
                     <div
                       key={value.id}
                       className="flex items-center justify-between p-2 bg-gray-50 rounded"
@@ -418,7 +466,7 @@ export default function CombinedAttributesSection({
                         {getCurrentAttribute()?.type === "color" &&
                           value.color && (
                             <div
-                              className="w-4 h-4 rounded-full"
+                              className="w-5 h-5 rounded-full border border-gray-300"
                               style={{ backgroundColor: value.color }}
                             />
                           )}
@@ -440,14 +488,14 @@ export default function CombinedAttributesSection({
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No values added yet
+                  No Option added yet
                 </p>
               )}
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" onClick={() => setIsEditingValues(false)}>
+            <Button type="button" onClick={() => setIsEditingOption(false)}>
               Done
             </Button>
           </DialogFooter>

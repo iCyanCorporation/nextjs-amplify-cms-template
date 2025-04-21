@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -19,11 +19,23 @@ import {
   X,
   CheckCircle,
 } from "lucide-react";
-import { ProductType, Product, ProductAttribute } from "@/types/product";
+import {
+  ProductType,
+  Product,
+  Attribute,
+  Variant,
+  AttributeValue,
+} from "@/types/product";
 import { Button } from "@/components/ui/button";
 import { validateProduct } from "@/utils/productValidation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -36,34 +48,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 import ProductInfoSection from "./ProductInfoSection";
 import ProductImagesSection from "./ProductImagesSection";
 import CombinedAttributesSection from "./CombinedAttributesSection";
-import ProductVariantForm from "./ProductVariantForm";
+import VariantForm from "./ProductVariantForm";
 
 interface ProductFormProps {
   mode: "new" | "edit";
   productId?: string;
-}
-
-interface ProductVariant {
-  id?: string;
-  name: string;
-  sku: string;
-  price: string;
-  stock: string;
-  color: string;
-  size: string;
-  attributes?: Record<string, any>;
-  images: string[];
-  isActive: boolean;
-}
-
-interface AttributeValue {
-  id: string;
-  value: string;
-  color?: string; // For color type attributes
 }
 
 export default function ProductForm({ mode, productId }: ProductFormProps) {
@@ -87,24 +81,57 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [loadingAttributes, setLoadingAttributes] = useState(false);
 
   // New states for the combined attributes management
-  const [productAttributes, setProductAttributes] = useState<
-    ProductAttribute[]
-  >([]);
-  const [attributeValues, setAttributeValues] = useState<
+  const [Attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributeOption, setAttributeOption] = useState<
     Record<string, AttributeValue[]>
   >({});
-  const [systemAttributes, setSystemAttributes] = useState<ProductAttribute[]>(
-    []
-  );
+  const [systemAttributes, setSystemAttributes] = useState<Attribute[]>([]);
 
   // Variants states
-  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [variantFormOpen, setVariantFormOpen] = useState(false);
-  const [currentVariant, setCurrentVariant] = useState<
-    ProductVariant | undefined
-  >();
+  const [currentVariant, setCurrentVariant] = useState<Variant | undefined>();
   const [deleteVariantDialogOpen, setDeleteVariantDialogOpen] = useState(false);
   const [variantToDelete, setVariantToDelete] = useState<string | null>(null);
+
+  // Callback function to handle attribute removal from the child component
+  const handleRemoveAttribute = useCallback(
+    async (attributeIdToRemove: string) => {
+      try {
+        const response = await fetch(`/api/attributes/${attributeIdToRemove}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to delete attribute");
+        }
+
+        // Only update state if API call was successful
+        setAttributes((prevAttributes) =>
+          prevAttributes.filter((attr) => attr.id !== attributeIdToRemove)
+        );
+        setAttributeOption((prevOption) => {
+          const newOption = { ...prevOption };
+          delete newOption[attributeIdToRemove];
+          return newOption;
+        });
+
+        toast({ title: "Attribute removed successfully." });
+      } catch (error) {
+        console.error("Error removing attribute:", error);
+        toast({
+          title: "Error removing attribute",
+          description:
+            error instanceof Error
+              ? error.message
+              : "An unknown error occurred",
+          variant: "destructive",
+        });
+      }
+    },
+    [setAttributes, setAttributeOption]
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -136,9 +163,10 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         if (!response.ok) {
           throw new Error("Failed to fetch attributes");
         }
-        const attributesData = await response.json();
-        console.log("Attributes loaded:", attributesData);
-        setSystemAttributes(attributesData);
+        const data = await response.json();
+        console.log("Attributes loaded:", data);
+        // Extract the attributes from the response
+        setSystemAttributes(data.attributes || []);
       } catch (error) {
         console.error("Error fetching attributes:", error);
         setSystemAttributes([]);
@@ -187,8 +215,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           setIsActive(productData.isActive !== false);
 
           // Initialize attributes if they exist
-          let attributesData: ProductAttribute[] = [];
-          let attributeValuesData: Record<string, AttributeValue[]> = {};
+          let attributesData: Attribute[] = [];
+          let attributeOptionData: Record<string, AttributeValue[]> = {};
 
           // Try to load attributes from specs or existing attributes
           if (productData.specs && typeof productData.specs === "object") {
@@ -217,7 +245,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               });
 
               // Add value
-              attributeValuesData[attrId] = [
+              attributeOptionData[attrId] = [
                 {
                   id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                   value: String(value), // Safely convert unknown value to string
@@ -244,7 +272,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               });
 
               // Add value
-              attributeValuesData[attrId] = [
+              attributeOptionData[attrId] = [
                 {
                   id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                   value: String(value), // Safely convert unknown value to string
@@ -253,8 +281,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             });
           }
 
-          setProductAttributes(attributesData);
-          setAttributeValues(attributeValuesData);
+          setAttributes(attributesData);
+          setAttributeOption(attributeOptionData);
 
           // Initialize variants if they exist
           if (productData.variants && Array.isArray(productData.variants)) {
@@ -289,13 +317,35 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     loadData();
   }, [mode, productId]);
 
+  useEffect(() => {
+    if (Attributes.length > 0) {
+      setAttributeOption((prev) => {
+        const newOption: Record<string, AttributeValue[]> = { ...prev };
+        Attributes.forEach((attr) => {
+          if (
+            Array.isArray(attr.options) &&
+            attr.options.length > 0 &&
+            (!newOption[attr.id] ||
+              newOption[attr.id].length !== attr.options.length)
+          ) {
+            newOption[attr.id] = attr.options.map((opt) => ({
+              id: `val_${btoa(encodeURIComponent(opt))}`,
+              value: opt,
+            }));
+          }
+        });
+        return newOption;
+      });
+    }
+  }, [Attributes]);
+
   const handleTypeChange = (typeId: string) => {
     setSelectedType(typeId);
   };
 
   // Variant Handlers
-  const openVariantForm = (variant?: ProductVariant) => {
-    if (productAttributes.length === 0) {
+  const openVariantForm = (variant?: Variant) => {
+    if (Attributes.length === 0) {
       alert("Please define attributes before creating variants.");
       setActiveTab("attributes");
       return;
@@ -305,12 +355,35 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     setVariantFormOpen(true);
   };
 
+  // Convert Variant to ProductVariant type for compatibility with VariantForm
+  const convertToProductVariant = (variant?: Variant) => {
+    if (!variant) return undefined;
+
+    return {
+      ...variant,
+      name: variant.name || "", // Ensure name is always a string
+      sku: variant.sku || "",
+      price:
+        typeof variant.price === "number"
+          ? variant.price.toString()
+          : variant.price || "",
+      stock:
+        typeof variant.stock === "number"
+          ? variant.stock.toString()
+          : variant.stock || "",
+      color: variant.color || "",
+      size: variant.size || "",
+      images: variant.images || [],
+      isActive: variant.isActive !== false,
+    };
+  };
+
   const closeVariantForm = () => {
     setCurrentVariant(undefined);
     setVariantFormOpen(false);
   };
 
-  const handleSaveVariant = (variant: ProductVariant) => {
+  const handleSaveVariant = (variant: Variant) => {
     if (variant.id) {
       // Update existing variant
       setVariants(variants.map((v) => (v.id === variant.id ? variant : v)));
@@ -318,6 +391,17 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       // Add new variant
       setVariants([...variants, { ...variant, id: `temp-${Date.now()}` }]);
     }
+  };
+
+  // Adapter function to handle type conversion between ProductVariant and Variant
+  const handleSaveVariantAdapter = (productVariant: any) => {
+    // Convert from ProductVariant to Variant (ensuring price is a string)
+    const variant: Variant = {
+      ...productVariant,
+      price: productVariant.price?.toString() || "",
+      stock: productVariant.stock?.toString() || "",
+    };
+    handleSaveVariant(variant);
   };
 
   const confirmDeleteVariant = (variantId: string) => {
@@ -376,13 +460,14 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         imgUrl: imageArray.length > 0 ? imageArray[0] : "", // Use first image as primary image
         discountPrice: hasDiscount ? parseFloat(discountPrice) : null,
         // Include product attributes for saving to the Attribute table
-        productAttributes,
+        Attributes,
+        attributeOption,
         variants: variants.map((variant) => ({
           id: variant.id?.startsWith("temp-") ? undefined : variant.id,
           name: variant.name,
           sku: variant.sku,
-          price: parseFloat(variant.price || price),
-          stock: parseInt(variant.stock || stock, 10),
+          price: variant.price || price,
+          stock: variant.stock || stock,
           color: variant.color,
           size: variant.size,
           attributes: variant.attributes || {},
@@ -613,27 +698,25 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-4">
-            <div className="space-y-6">
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-sm">
-                <p className="font-medium text-yellow-800">
-                  Define attributes first before creating variants
-                </p>
-                <p className="text-yellow-700 mt-1">
-                  Add attributes like color, size, or material, then add values
-                  for each attribute. These attributes will be available when
-                  creating product variants.
-                </p>
-              </div>
-
-              <CombinedAttributesSection
-                attributes={productAttributes}
-                setAttributes={setProductAttributes}
-                attributeValues={attributeValues}
-                setAttributeValues={setAttributeValues}
-                systemAttributes={systemAttributes}
-                loadingAttributes={loadingAttributes}
-              />
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Attributes</CardTitle>
+                <CardDescription>
+                  Define product attributes like size, color, material etc.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CombinedAttributesSection
+                  attributes={Attributes}
+                  setAttributes={setAttributes}
+                  attributeOption={attributeOption}
+                  setAttributeOption={setAttributeOption}
+                  onRemoveAttribute={handleRemoveAttribute}
+                  systemAttributes={systemAttributes}
+                  loadingAttributes={loadingAttributes}
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="variants" className="space-y-4">
@@ -654,7 +737,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 </Button>
               </div>
 
-              {productAttributes.length === 0 ? (
+              {Attributes.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="font-medium">
                     You need to define attributes first
@@ -718,7 +801,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                               openVariantForm(variant);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4 text-gray-500" />
                           </Button>
                           <Button
                             size="sm"
@@ -743,15 +826,15 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       </form>
 
       {/* Variant Form Dialog */}
-      <ProductVariantForm
+      <VariantForm
         isOpen={variantFormOpen}
         onClose={closeVariantForm}
-        onSave={handleSaveVariant}
-        variant={currentVariant}
+        onSave={handleSaveVariantAdapter}
+        variant={convertToProductVariant(currentVariant)}
         defaultPrice={price}
         defaultStock={stock}
-        productAttributes={productAttributes}
-        attributeValues={attributeValues}
+        Attributes={Attributes}
+        attributeOptions={attributeOption}
       />
 
       {/* Delete Variant Confirmation Dialog */}

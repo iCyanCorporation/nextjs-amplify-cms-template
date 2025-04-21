@@ -21,7 +21,6 @@ const schema = a
       name: a.string().required(),
       description: a.string(),
       products: a.hasMany("Product", "productTypeId"),
-      attributes: a.string().array(), // Store type-specific attribute definitions
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     }),
@@ -47,7 +46,7 @@ const schema = a
     Attribute: a.model({
       name: a.string().required(),
       type: a.enum(["text", "number", "boolean", "color"]),
-      options: a.string().array(), // Store options for select attributes
+      options: a.json(), // Store options for select attributes
       isRequired: a.boolean().default(false),
     }),
 

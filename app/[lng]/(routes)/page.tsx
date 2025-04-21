@@ -8,9 +8,12 @@ import { Metadata } from "next";
 //   description: "A Website",
 // };
 
-export async function generateMetadata(
-  { params }: { params: Params }
-): Promise<Metadata> {
+type Params = Promise<{ lng: string }>;
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
   const { lng } = await params;
   const { t } = await handleTranslation(lng, "homepage");
 
@@ -19,24 +22,21 @@ export async function generateMetadata(
     alt: "My Website",
     width: 800,
     height: 600,
-    type: "image/jpeg"
-  }
+    type: "image/jpeg",
+  };
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || ""),
-    title: t('title'),
-    description: t('description'),
+    title: t("title"),
+    description: t("description"),
     openGraph: {
-      title: t('title'),
-      description: t('description'),
-      images: [
-        image
-      ],
-    }
-  }
+      title: t("title"),
+      description: t("description"),
+      images: [image],
+    },
+  };
 }
 
-type Params = Promise<{ lng: string }>;
 export default async function Page({ params }: { params: Params }) {
   const { lng } = await params;
   const { t } = await handleTranslation(lng, "homepage");
@@ -48,11 +48,16 @@ export default async function Page({ params }: { params: Params }) {
         <div className="col-span-1 sm:col-span-2">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 md:max-w-xl md:min-h-[180px] min-h-[120px] dark:text-white">
             <AnimatedTitle
-              sequences={homepageData.intro.title.sequences.flatMap(([key]) => [t(key), 1000])}
+              sequences={homepageData.intro.title.sequences.flatMap(([key]) => [
+                t(key),
+                1000,
+              ])}
               speed={homepageData.intro.title.speed}
             />
           </h1>
-          <h2 className="md:max-w-2xl dark:text-gray-300">{t(homepageData.intro.description)}</h2>
+          <h2 className="md:max-w-2xl dark:text-gray-300">
+            {t(homepageData.intro.description)}
+          </h2>
           <div className="mt-8">
             <a
               href="/about"
@@ -107,8 +112,8 @@ export default async function Page({ params }: { params: Params }) {
                 className={`group relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 p-1 transition-all duration-300 hover:scale-[1.02] break-inside-avoid grayscale-[0.8] hover:grayscale-0 ${(index + 1) % 3 === 0 ? "min-h-[500px]" : "min-h-[350px]"} min-h-[200px]`}
                 style={{
                   backgroundImage: `url(${item.imgUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
                 }}
               >
                 <div className="absolute inset-0 bg-black/50 group-hover:bg-black/20 transition-all duration-300"></div>
@@ -139,8 +144,8 @@ export default async function Page({ params }: { params: Params }) {
                   className="group relative aspect-[4/3] rounded-xl overflow-hidden transform perspective-1000 hover:rotate-y-12 transition-all duration-500"
                   style={{
                     backgroundImage: `url(${item.imgUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
                   }}
                 >
                   {/* <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 dark:from-purple-400/10 dark:to-blue-400/10"></div> */}
