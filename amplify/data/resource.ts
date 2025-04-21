@@ -5,6 +5,7 @@ The section below creates a database table with fields.
 =========================================================================*/
 const schema = a
   .schema({
+    // Blog
     Blog: a.model({
       title: a.string(),
       imgUrl: a.string(),
@@ -15,6 +16,7 @@ const schema = a
       updatedAt: a.datetime(),
     }),
 
+    // Shop
     ProductType: a.model({
       name: a.string().required(),
       description: a.string(),
@@ -33,13 +35,21 @@ const schema = a
       images: a.string().array(), // Store multiple images
       isActive: a.boolean().default(true),
       discountPrice: a.float(), // Add discount price
-      attributes: a.string(), // JSON stringified attributes/specs
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),
       orderProducts: a.hasMany("OrderProduct", "productId"),
+      tags: a.string().array(), // Store tags for search
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
+    }),
+
+    Attribute: a.model({
+      name: a.string().required(),
+      productId: a.hasMany("Product", "productId"),
+      type: a.enum(["text", "number", "boolean", "color"]),
+      options: a.string().array(), // Store options for select attributes
+      isRequired: a.boolean().default(false),
     }),
 
     ProductVariant: a.model({
@@ -86,6 +96,7 @@ const schema = a
       priceAtPurchase: a.float().required(),
     }),
 
+    // User settings
     Settings: a.model({
       key: a.string(),
       value: a.string(),

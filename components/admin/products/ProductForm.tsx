@@ -179,7 +179,11 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   ? "boolean"
                   : typeof value === "number"
                     ? "number"
-                    : "text";
+                    : (typeof value === "string" &&
+                          /^#([0-9A-F]{3}){1,2}$/i.test(value)) ||
+                        key.toLowerCase().includes("color")
+                      ? "color"
+                      : "text";
 
               // Add attribute
               attributesData.push({

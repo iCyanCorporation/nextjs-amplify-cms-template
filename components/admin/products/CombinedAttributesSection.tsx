@@ -286,8 +286,6 @@ export default function CombinedAttributesSection({
                   <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="boolean">Yes/No</SelectItem>
                   <SelectItem value="color">Color</SelectItem>
-                  <SelectItem value="select">Single Select</SelectItem>
-                  <SelectItem value="multiselect">Multi Select</SelectItem>
                 </SelectContent>
               </Select>
             </div>
