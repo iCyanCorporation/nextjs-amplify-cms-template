@@ -46,7 +46,6 @@ const schema = a
 
     Attribute: a.model({
       name: a.string().required(),
-      productId: a.hasMany("Product", "productId"),
       type: a.enum(["text", "number", "boolean", "color"]),
       options: a.string().array(), // Store options for select attributes
       isRequired: a.boolean().default(false),

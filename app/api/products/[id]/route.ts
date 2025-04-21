@@ -30,11 +30,12 @@ export async function GET(request: Request, { params }: { params: Params }) {
     // Combine the product with its variants
     const product = {
       ...productResult.data,
-      specs: productResult.data.attributes
-        ? JSON.parse(productResult.data.attributes as string)
+      // Cast to any to access attributes, assuming it exists in the runtime data
+      specs: (productResult.data as any).attributes
+        ? JSON.parse((productResult.data as any).attributes as string)
         : {},
-      attributes: productResult.data.attributes
-        ? JSON.parse(productResult.data.attributes as string)
+      attributes: (productResult.data as any).attributes
+        ? JSON.parse((productResult.data as any).attributes as string)
         : {},
       variants: variantsResult.data || [],
     };
@@ -136,14 +137,14 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
     // Add discountPrice if it's provided
     if (discountPrice !== undefined) {
-      basicProductData.discountPrice = discountPrice
+      (basicProductData as any).discountPrice = discountPrice
         ? parseFloat(discountPrice.toString())
         : null;
     }
 
     // Handle specs separately - store in attributes field
     if (specs) {
-      basicProductData.attributes = JSON.stringify(specs);
+      (basicProductData as any).attributes = JSON.stringify(specs);
     }
 
     // Handle attributes separately
@@ -169,7 +170,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       // Only set attributes if we have attributes to save
       if (customAttrsArray.length > 0) {
         // Convert to string for API compatibility
-        basicProductData.attributes = JSON.stringify(customAttrsArray);
+        (basicProductData as any).attributes = JSON.stringify(customAttrsArray);
       }
     }
 
@@ -177,8 +178,9 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       "Step 1: Updating basic product info with data:",
       basicProductData
     );
-    const basicUpdateResult =
-      await amplifyClient.models.Product.update(basicProductData);
+    const basicUpdateResult = await amplifyClient.models.Product.update(
+      basicProductData as any
+    ); // Cast here
 
     if (!basicUpdateResult.data) {
       throw new Error("Failed to update basic product info");
@@ -240,7 +242,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             const fallbackResult = await amplifyClient.models.Product.update({
               id: productId,
               attributes: JSON.stringify(customAttrsWithImages),
-            });
+            } as any); // Cast here
 
             console.log("Stored images in attributes as fallback");
           }
@@ -351,9 +353,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       }
 
       // If we stored images in attributes as a fallback, retrieve them
-      if (parsedImages.length === 0 && updatedProductResult.data.attributes) {
+      if (
+        parsedImages.length === 0 &&
+        (updatedProductResult.data as any).attributes
+      ) {
         const customAttrs = JSON.parse(
-          updatedProductResult.data.attributes as string
+          (updatedProductResult.data as any).attributes as string
         );
         if (customAttrs._imageUrls && Array.isArray(customAttrs._imageUrls)) {
           parsedImages = customAttrs._imageUrls;
@@ -369,11 +374,11 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     const updatedProduct = {
       ...updatedProductResult.data,
       images: parsedImages,
-      specs: updatedProductResult.data.attributes
-        ? JSON.parse(updatedProductResult.data.attributes as string)
+      specs: (updatedProductResult.data as any).attributes
+        ? JSON.parse((updatedProductResult.data as any).attributes as string)
         : {},
-      attributes: updatedProductResult.data.attributes
-        ? JSON.parse(updatedProductResult.data.attributes as string)
+      attributes: (updatedProductResult.data as any).attributes
+        ? JSON.parse((updatedProductResult.data as any).attributes as string)
         : {},
       variants: updatedVariantsResult.data || [],
     };

@@ -8,12 +8,16 @@ Amplify.configure(config, { ssr: true });
 
 const client = generateClient<Schema>();
 
+type Params = Promise<{
+  id: string;
+}>;
 // GET /api/attributes/[id] - Get a specific attribute by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
-  const id = params.id;
+  // const id = params.id;
+  const { id } = await params;
   try {
     const { data: attribute, errors } = await client.models.Attribute.get({
       id,
@@ -40,9 +44,10 @@ export async function GET(
 // PUT /api/attributes/[id] - Update a specific attribute by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
-  const id = params.id;
+  // const id = params.id;
+  const { id } = await params;
   try {
     const body = await request.json();
     const { name, type, options, isRequired } = body;
@@ -113,9 +118,11 @@ export async function PUT(
 // DELETE /api/attributes/[id] - Delete a specific attribute by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
-  const id = params.id;
+  // const id = params.id;
+  const { id } = await params;
+
   try {
     // Optional: Check if attribute exists before deleting
     const { data: existingAttribute, errors: fetchErrors } =
