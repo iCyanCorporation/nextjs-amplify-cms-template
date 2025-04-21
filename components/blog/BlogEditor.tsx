@@ -1,23 +1,46 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { useRouter } from "next/navigation";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { categoryList } from '@/types/blog';
-import EditForm from '@/components/EditorComponent';
-import { ArrowLeftFromLine, ArrowRightFromLine, ImagePlus, ImageUp } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { categoryList } from "@/types/blog";
+import EditForm from "@/components/EditorComponent";
+import {
+  ArrowLeftFromLine,
+  ArrowRightFromLine,
+  ImagePlus,
+  ImageUp,
+} from "lucide-react";
 import { IoMdClose } from "react-icons/io";
-import { ImagePicker } from '@/components/image/ImagePicker';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Link from 'next/link';
+import { ImagePicker } from "@/components/image/ImagePicker";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import Link from "next/link";
 const client = generateClient<Schema>();
 
 export default function BlogEditor({ blogId }: { blogId?: string }) {
@@ -47,7 +70,7 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
       setImgUrl(data.imgUrl || "");
       setContent(data.content || "");
       setCategory(data.category || "");
-      setTags((data.tags?.filter((tag): tag is string => tag !== null) || []));
+      setTags(data.tags?.filter((tag): tag is string => tag !== null) || []);
     } catch (error) {
       console.error("Error loading blog:", error);
     } finally {
@@ -64,11 +87,11 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag();
     }
@@ -103,7 +126,7 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
         });
       }
 
-      router.push('/admin/blog');
+      router.push("/admin/blog");
     } catch (error) {
       console.error("Error saving blog:", error);
     } finally {
@@ -121,34 +144,44 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
 
   return (
     <div>
-      <div className='z-50 flex items-center gap-2 p-4'>
+      <div className="z-50 flex items-center gap-2 p-4">
         <Link href="/admin/blog">
           <Button className="p-2 hover:opacity-80">
             <i className="fa-solid fa-arrow-left"></i> back
           </Button>
         </Link>
-        <Button className='hover:opacity-80' onClick={() => window.location.reload()}>refresh</Button>
+        <Button
+          className="hover:opacity-80"
+          onClick={() => window.location.reload()}
+        >
+          refresh
+        </Button>
         <Button
           type="submit"
           form="blog-form"
           disabled={isLoading}
           className="hover:opacity-80"
         >
-          {isLoading ? 'Processing...' : blogId ? 'Update Post' : 'Create Post'}
+          {isLoading ? "Processing..." : blogId ? "Update Post" : "Create Post"}
         </Button>
       </div>
       <div className="flex">
-
         {/* ================================
       Editor
       ================================ */}
-        <div className={`p-4 space-y-6 ${isPreview ? 'w-1/2' : 'w-full'}`}>
+        <div className={`p-4 space-y-6 ${isPreview ? "w-1/2" : "w-full"}`}>
           <Card>
             <CardHeader>
-              <CardTitle>{blogId ? 'Edit Blog Post' : 'Create New Blog Post'}</CardTitle>
+              <CardTitle>
+                {blogId ? "Edit Blog Post" : "Create New Blog Post"}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <form id="blog-form" onSubmit={handleSubmit} className="space-y-6">
+              <form
+                id="blog-form"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Input
@@ -161,11 +194,15 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="category" className='flex gap-2'>
+                  <Label htmlFor="category" className="flex gap-2">
                     <p>Post Image</p>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="destructive" type="button" className="hover:opacity-80" >
+                        <Button
+                          variant="destructive"
+                          type="button"
+                          className="hover:opacity-80"
+                        >
                           {imgUrl ? <ImageUp /> : <ImagePlus />}
                         </Button>
                       </DialogTrigger>
@@ -173,11 +210,14 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                         <DialogHeader>
                           <DialogTitle>Choose an image</DialogTitle>
                         </DialogHeader>
-                        <ImagePicker onSelect={(url) => {
-                          setImgUrl(url);
-                        }} />
+                        <ImagePicker
+                          onSelect={(url) => {
+                            setImgUrl(url);
+                          }}
+                        />
                       </DialogContent>
-                    </Dialog></Label>
+                    </Dialog>
+                  </Label>
                   <div className=" items-center gap-4">
                     {imgUrl && (
                       <div className="aspect-square relative h-24 relative items-center flex">
@@ -190,11 +230,10 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                           onClick={() => setImgUrl("")}
                           className="absolute top-2 right-2 p-1 bg-red-300 bg-opacity-70 rounded-full aspect-square h-6 w-6 flex items-center justify-center hover:opacity-80"
                         >
-                          <IoMdClose className='w-4 h-4' />
+                          <IoMdClose className="w-4 h-4" />
                         </button>
                       </div>
                     )}
-
                   </div>
                 </div>
 
@@ -264,19 +303,23 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                 </div>
               </form>
             </CardContent>
-
           </Card>
         </div>
         {/* ================================
       Preview 
       ================================= */}
-        <div className={`p-4 ${isPreview ? 'w-1/2' : 'w-0'}`}>
+        <div className={`p-4 ${isPreview ? "w-1/2" : "w-0"}`}>
           <button onClick={() => setIsPreview(!isPreview)}>
-            {isPreview ? < ArrowRightFromLine className="h-4 w-4" /> : <ArrowLeftFromLine className="h-4 w-4" />}
+            {isPreview ? (
+              <ArrowRightFromLine className="h-4 w-4" />
+            ) : (
+              <ArrowLeftFromLine className="h-4 w-4" />
+            )}
           </button>
 
           {isPreview && (
-            <div className="prose dark:prose-invert max-w-none
+            <div
+              className="prose dark:prose-invert max-w-none
             prose-table:border-collapse
             prose-td:border prose-td:border-gray-300 prose-td:dark:border-gray-700 prose-td:p-2
             prose-th:border prose-th:border-gray-300 prose-th:dark:border-gray-700 prose-th:p-2
@@ -284,14 +327,15 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
             prose-ul:list-disc prose-ul:ml-4
             prose-ol:list-decimal prose-ol:ml-4
             prose-li:my-1
-          ">
+          "
+            >
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-semibold mb-4">Content Preview</h2>
               </div>
               <div dangerouslySetInnerHTML={{ __html: content }} />
               {tags.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {tags.map(tag => (
+                  {tags.map((tag) => (
                     <Badge key={tag} variant="outline">
                       {tag}
                     </Badge>

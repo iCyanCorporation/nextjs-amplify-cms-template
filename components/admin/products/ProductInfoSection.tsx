@@ -3,9 +3,9 @@ import { ProductType } from "@/types/product";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertCircle } from "lucide-react";
+import EditorComponent from "@/components/EditorComponent";
 import {
   Select,
   SelectContent,
@@ -203,14 +203,17 @@ export default function ProductInfoSection({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Product Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe your product..."
-              className="min-h-[150px]"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <div className="flex items-center space-x-2">
+              {/* This div is left empty to align with the form layout */}
+            </div>
+          </div>
+        </div>
+
+        {/* Product Description Editor moved to bottom of card */}
+        <div className="mt-6 space-y-2">
+          <Label htmlFor="description">Product Description</Label>
+          <div className="min-h-[150px] border rounded-md">
+            <EditorComponent content={description} onChange={setDescription} />
           </div>
         </div>
       </CardContent>

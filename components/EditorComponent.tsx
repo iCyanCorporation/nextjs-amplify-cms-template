@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import TiptapEditor, { type TiptapEditorRef } from "@/components/TiptapEditor";
-import { FieldGroupIcon } from "@aws-amplify/ui-react";
-
 
 interface PostForm {
   title: string;
   content: string;
 }
-
 
 interface EditFormProps {
   content: string;
@@ -17,12 +14,12 @@ interface EditFormProps {
 
 export default function EditForm({ content, onChange }: EditFormProps) {
   const editorRef = useRef<TiptapEditorRef>(null);
-  const [editorContent, setEditorContent] = useState<string>(content || '');
+  const [editorContent, setEditorContent] = useState<string>(content || "");
   const { control, reset, watch } = useForm<PostForm>({
     defaultValues: {
-      content: content
+      content: content,
     },
-    mode: 'onChange'
+    mode: "onChange",
   });
 
   useEffect(() => {

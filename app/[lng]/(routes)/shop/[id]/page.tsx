@@ -116,13 +116,6 @@ export default async function ProductPage({ params }: { params: Params }) {
               </p>
             </div>
 
-            <div className="mt-6">
-              <h3 className="sr-only">Description</h3>
-              <p className="text-base text-gray-700 dark:text-gray-300 transition-colors">
-                {product.description}
-              </p>
-            </div>
-
             <div className="mt-8">
               <AddToCartButton
                 product={{
@@ -154,6 +147,15 @@ export default async function ProductPage({ params }: { params: Params }) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="py-8">
+        <h3 className="py-4 font-bold">Product Detail</h3>
+        <div className="prose prose-indigo dark:prose-invert max-w-none">
+          <div
+            dangerouslySetInnerHTML={{ __html: product.description || "" }}
+          />
         </div>
       </div>
     </div>
