@@ -5,7 +5,9 @@ export interface Attribute {
   name: string;
   type: AttributeType;
   isRequired: boolean;
-  options?: string[];
+  // For text/number/boolean: string[]
+  // For color: Record<string, string>[] (e.g. [{red: "#00ff66"}])
+  options?: string[] | Record<string, string>[];
 }
 
 export interface ProductType {

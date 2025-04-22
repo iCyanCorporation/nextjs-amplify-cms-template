@@ -320,19 +320,45 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   useEffect(() => {
     if (Attributes.length > 0) {
       setAttributeOption((prev) => {
-        const newOption: Record<string, AttributeValue[]> = { ...prev };
+        const newOption: Record<string, AttributeValue[]> = { ...prev }; // Start with previous state
+
         Attributes.forEach((attr) => {
-          if (
-            Array.isArray(attr.options) &&
-            attr.options.length > 0 &&
-            (!newOption[attr.id] ||
-              newOption[attr.id].length !== attr.options.length)
-          ) {
-            newOption[attr.id] = attr.options.map((opt) => ({
-              id: `val_${btoa(encodeURIComponent(opt))}`,
-              value: opt,
-            }));
+          // Initialize or clear the options for the current attribute
+          newOption[attr.id] = [];
+
+          if (Array.isArray(attr.options) && attr.options.length > 0) {
+            if (attr.type === "color") {
+              // Handle color options (array of objects: [{ name: code }, ...])
+              (attr.options as Record<string, string>[]).forEach(
+                (optObj, index) => {
+                  if (typeof optObj === "object" && optObj !== null) {
+                    const valueName = Object.keys(optObj)[0];
+                    const colorCode = optObj[valueName];
+                    if (valueName) {
+                      // Ensure the object has a key
+                      newOption[attr.id].push({
+                        id: `val_${attr.id}_${valueName}_${index}`, // Unique ID
+                        value: valueName,
+                        color: colorCode,
+                      });
+                    }
+                  }
+                }
+              );
+            } else {
+              // Handle other options (array of strings)
+              (attr.options as string[]).forEach((optStr, index) => {
+                if (typeof optStr === "string") {
+                  // Ensure it's a string
+                  newOption[attr.id].push({
+                    id: `val_${attr.id}_${optStr}_${index}`, // Unique ID
+                    value: optStr,
+                  });
+                }
+              });
+            }
           }
+          // If attr.options is empty or not an array, newOption[attr.id] remains []
         });
         return newOption;
       });

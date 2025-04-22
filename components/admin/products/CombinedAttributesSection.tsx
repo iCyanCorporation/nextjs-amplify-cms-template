@@ -160,15 +160,42 @@ export default function CombinedAttributesSection({
       [currentAttributeId]: [...currentOption, newValue],
     });
 
-    // Also update the options array in the attribute itself (store only string values)
+    // Also update the options array in the attribute itself
     setAttributes(
       attributes.map((attr) => {
         if (attr.id === currentAttributeId) {
-          // Only store the value string in options, never the object
-          return {
-            ...attr,
-            options: [...(attr.options || []), newValue.value],
-          };
+          if (attribute.type === "color") {
+            // Store as array of objects: [{ value: color }, ...]
+            // Ensure we maintain the correct type of array (all objects)
+            const currentOptions = Array.isArray(attr.options)
+              ? (attr.options.filter(
+                  (opt) => typeof opt === "object"
+                ) as Record<string, string>[])
+              : ([] as Record<string, string>[]);
+
+            const newColorAttr: Attribute = {
+              ...attr,
+              options: [
+                ...currentOptions,
+                { [newValueInput]: newColorInput },
+              ] as Record<string, string>[],
+            };
+            return newColorAttr;
+          } else {
+            // Store as array of strings
+            // Ensure we maintain the correct type of array (all strings)
+            const currentOptions = Array.isArray(attr.options)
+              ? (attr.options.filter(
+                  (opt) => typeof opt === "string"
+                ) as string[])
+              : ([] as string[]);
+
+            const newTextAttr: Attribute = {
+              ...attr,
+              options: [...currentOptions, newValue.value] as string[],
+            };
+            return newTextAttr;
+          }
         }
         return attr;
       })
@@ -191,20 +218,8 @@ export default function CombinedAttributesSection({
       [attributeId]: currentOption.filter((v) => v.id !== valueId),
     });
 
-    // Also remove from the options array in the attribute itself (by value string)
-    setAttributes(
-      attributes.map((attr) => {
-        if (attr.id === attributeId) {
-          return {
-            ...attr,
-            options: (attr.options || []).filter(
-              (option) => option !== valueToRemove.value
-            ),
-          };
-        }
-        return attr;
-      })
-    );
+    // Note: We are not updating the `attributes` state here directly.
+    // It will be updated when the "Done" button is clicked in the dialog.
   };
 
   // Add a system attribute to the product
@@ -239,6 +254,42 @@ export default function CombinedAttributesSection({
   const getCurrentAttribute = () => {
     if (!currentAttributeId) return null;
     return attributes.find((attr) => attr.id === currentAttributeId) || null;
+  };
+
+  // Handle closing the Edit Option dialog and update the main attributes state
+  const handleEditOptionDone = () => {
+    if (!currentAttributeId) {
+      setIsEditingOption(false);
+      return;
+    }
+
+    const attribute = attributes.find((attr) => attr.id === currentAttributeId);
+    const currentOptionsFromDialog = attributeOption[currentAttributeId] || [];
+
+    if (attribute) {
+      let updatedOptions: string[] | Record<string, string>[] = [];
+
+      if (attribute.type === "color") {
+        // Convert AttributeValue[] back to Record<string, string>[] for the attributes state
+        updatedOptions = currentOptionsFromDialog.map((opt) => ({
+          [opt.value]: opt.color || "#000000", // Use default black if color somehow missing
+        }));
+      } else {
+        // Convert AttributeValue[] back to string[] for the attributes state
+        updatedOptions = currentOptionsFromDialog.map((opt) => opt.value);
+      }
+
+      // Update the specific attribute in the main attributes array
+      setAttributes((prevAttributes) =>
+        prevAttributes.map((attr) =>
+          attr.id === currentAttributeId
+            ? { ...attr, options: updatedOptions }
+            : attr
+        )
+      );
+    }
+
+    setIsEditingOption(false); // Close the dialog
   };
 
   return (
@@ -495,7 +546,7 @@ export default function CombinedAttributesSection({
           </div>
 
           <DialogFooter>
-            <Button type="button" onClick={() => setIsEditingOption(false)}>
+            <Button type="button" onClick={handleEditOptionDone}>
               Done
             </Button>
           </DialogFooter>
