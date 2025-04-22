@@ -21,15 +21,10 @@ export default function Sidebar() {
 
   const navItems = [
     // { href: "/admin", icon: RiDashboardLine, label: "Dashboard" },
-    { href: "/admin/blog", icon: RiArticleLine, label: "Blog" },
     { href: "/admin/image", icon: RiImageLine, label: "Images" },
+    { href: "/admin/blog", icon: RiArticleLine, label: "Blog" },
     // shop
-    { href: "/admin/products", icon: RiArticleLine, label: "Products" },
-    {
-      href: "/admin/product-types",
-      icon: RiArticleLine,
-      label: "Product Types",
-    },
+    { href: "/admin/products", icon: RiArticleLine, label: "Shop" },
     { href: "/admin/orders", icon: RiArticleLine, label: "Orders" },
     { href: "/admin/settings", icon: RiArticleLine, label: "Settings" },
   ];

@@ -54,6 +54,7 @@ import ProductInfoSection from "./ProductInfoSection";
 import ProductImagesSection from "./ProductImagesSection";
 import CombinedAttributesSection from "./CombinedAttributesSection";
 import VariantForm from "./ProductVariantForm";
+import ProductTypeTab from "./ProductTypeTab"; // Import the new component
 
 interface ProductFormProps {
   mode: "new" | "edit";
@@ -679,9 +680,12 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-4 mb-6">
+          {/* Update grid columns to 5 */}
+          <TabsList className="grid grid-cols-5 mb-6">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
+            <TabsTrigger value="productTypes">Product Types</TabsTrigger>{" "}
+            {/* Add new trigger */}
             <TabsTrigger value="attributes">Attributes</TabsTrigger>
             <TabsTrigger value="variants">Variants</TabsTrigger>
           </TabsList>
@@ -721,6 +725,11 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               error={formErrors.images}
               required={true}
             />
+          </TabsContent>
+
+          {/* Add new content section for Product Types */}
+          <TabsContent value="productTypes" className="space-y-4">
+            <ProductTypeTab />
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-4">

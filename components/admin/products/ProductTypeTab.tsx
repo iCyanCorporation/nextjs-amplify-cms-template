@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ProductType } from "@/types/product";
 import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
-import ProductTypeForm from "@/components/admin/ProductTypeForm";
+import ProductTypeForm from "@/components/admin/ProductTypeForm"; // Assuming this path is correct relative to the new component
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function ProductTypesPage() {
+export default function ProductTypeTab() {
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalType, setModalType] = useState<"create" | "edit" | null>(null);
@@ -80,13 +80,16 @@ export default function ProductTypesPage() {
 
       setProductTypes(productTypes.filter((t) => t.id !== typeToDelete));
       setDeleteModal(false);
+      setTypeToDelete(null); // Reset typeToDelete after successful deletion
     } catch (error) {
       console.error("Error deleting product type:", error);
+      // Optionally: show an error message to the user
     }
   };
 
   const handleSaveType = async (type: ProductType) => {
     try {
+      let savedType: ProductType | null = null;
       if (modalType === "create") {
         const response = await fetch("/api/product-types", {
           method: "POST",
@@ -99,9 +102,11 @@ export default function ProductTypesPage() {
         if (!response.ok) {
           throw new Error("Failed to create product type");
         }
-
-        const newType = await response.json();
-        setProductTypes([...productTypes, newType]);
+        savedType = await response.json();
+        if (savedType) {
+          // Add null check here
+          setProductTypes([...productTypes, savedType]);
+        }
       } else if (modalType === "edit" && type.id) {
         const response = await fetch(`/api/product-types/${type.id}`, {
           method: "PUT",
@@ -114,22 +119,30 @@ export default function ProductTypesPage() {
         if (!response.ok) {
           throw new Error("Failed to update product type");
         }
-
-        const updatedType = await response.json();
-        setProductTypes(
-          productTypes.map((t) => (t.id === type.id ? updatedType : t))
-        );
+        savedType = await response.json();
+        if (savedType) {
+          // Assign to a new const to explicitly tell TS it's not null here
+          const nonNullSavedType = savedType;
+          setProductTypes((prevTypes) =>
+            prevTypes.map((t) => {
+              if (t.id === type.id) {
+                return nonNullSavedType; // Use the non-null constant
+              }
+              return t;
+            })
+          );
+        }
       }
       setModalType(null);
     } catch (error) {
       console.error("Error saving product type:", error);
+      // Optionally: show an error message to the user
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">Product Types</h1>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         <Button onClick={openCreateModal} className="flex items-center gap-1">
           <PlusIcon className="h-4 w-4" />
           Add Product Type
@@ -155,7 +168,6 @@ export default function ProductTypesPage() {
                   {productTypes.map((type) => (
                     <TableRow key={type.id}>
                       <TableCell className="font-medium">{type.name}</TableCell>
-
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
@@ -221,8 +233,8 @@ export default function ProductTypesPage() {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this product type? This will
-              affect all products associated with this type.
+              Are you sure you want to delete this product type? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -102,16 +102,12 @@ export default function RootLayout({
   return (
     <div className="min-h-screen bg-gray-white">
       <ThemeProvider theme={theme}>
-        <div className="flex min-h-screen justify-center items-center">
-          <Authenticator className="max-w-md w-full px-4 py-6">
-            {({ signOut, user }) =>
-              user ? (
-                <div className="ml-20 lg:ml-64 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-                  <Sidebar />
-                  <div className="py-6">{children}</div>
-                </div>
-              ) : null
-            }
+        <div className="flex min-h-screen w-full">
+          <Authenticator className="max-w-md w-full m-auto px-4 py-6 ">
+            <div className="ml-20 lg:ml-64 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+              <Sidebar />
+              <div className="">{children}</div>
+            </div>
           </Authenticator>
         </div>
       </ThemeProvider>
