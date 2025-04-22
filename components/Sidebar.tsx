@@ -1,99 +1,148 @@
 "use client";
-
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  RiDashboardLine,
-  RiArticleLine,
-  RiImageLine,
-  RiMenuFoldLine,
-  RiMenuUnfoldLine,
-} from "react-icons/ri";
+import { RiDashboardLine, RiArticleLine, RiImageLine } from "react-icons/ri";
 import { FaHome } from "react-icons/fa";
-
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSeparator,
+  SidebarProvider,
+} from "./ui/sidebar";
 import SignOutButton from "./SignOutButton";
 import ThemeToggle from "./ThemeToggle";
 
-export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+export default function SidebarNav() {
   const pathname = usePathname();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const navItems = [
-    // { href: "/admin", icon: RiDashboardLine, label: "Dashboard" },
     { href: "/admin/image", icon: RiImageLine, label: "Images" },
     { href: "/admin/blog", icon: RiArticleLine, label: "Blog" },
-    // shop
     { href: "/admin/products", icon: RiArticleLine, label: "Shop" },
     { href: "/admin/orders", icon: RiArticleLine, label: "Orders" },
     { href: "/admin/settings", icon: RiArticleLine, label: "Settings" },
   ];
 
-  const isActive = (path: string) => pathname === path;
+  // Dummy user info for the profile section
+  const user = {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "https://avatars.githubusercontent.com/u/6661165?v=4",
+  };
 
   return (
-    <div
-      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-50
-        ${isCollapsed ? "w-20" : "w-64"}`}
-    >
-      <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between p-4 border-b">
-          {!isCollapsed && (
-            <>
-              <Link
-                href="/admin"
-                className="flex text-xl font-bold text-gray-800 gap-2"
-              >
-                <FaHome className="h-6 w-6 hover:opacity-80" />
-                <p>HOME</p>
-              </Link>
-              <ThemeToggle />
-            </>
-          )}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isCollapsed ? (
-              <RiMenuUnfoldLine className="w-5 h-5" />
-            ) : (
-              <RiMenuFoldLine className="w-5 h-5" />
-            )}
-          </button>
+    <Sidebar className="fixed left-0 top-0 h-screen z-50 flex flex-col justify-between bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
+      <SidebarHeader className="flex flex-col gap-2 px-4 py-4 border-b border-neutral-200 dark:border-neutral-800">
+        {/* Organization Info */}
+        <div className="flex flex-col mb-2">
+          <span className="font-semibold text-lg">Acme Inc</span>
+          <span className="text-xs text-neutral-400">Enterprise</span>
         </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center ${
-                    isCollapsed ? "justify-center" : "justify-start"
-                  } p-3 rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
+        <div className="flex items-center justify-between">
+          <span className="uppercase text-xs text-neutral-400 tracking-widest">
+            Platform
+          </span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="flex-1 flex flex-col justify-between px-2 py-2">
+        <SidebarMenu>
+          {navItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <Link href={item.href} className="flex items-center w-full">
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  className={`flex items-center gap-3 w-full px-2 py-2 rounded-md transition
+                    hover:bg-neutral-100 dark:hover:bg-neutral-800
+                    ${pathname === item.href ? "bg-neutral-200 dark:bg-neutral-800 font-semibold" : ""}
+                  `}
                 >
-                  <item.icon className="w-5 h-5" />
-                  {!isCollapsed && <span className="ml-3">{item.label}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="p-4 border-t">
-          <Link href={"/"}>
-            <button className="flex p-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors hover:opacity-80">
-              <FaHome className="h-5 w-5" />
-              {!isCollapsed && <span className="ml-3">Go Homepage</span>}
-            </button>
-          </Link>
-          <SignOutButton isCollapsed={isCollapsed} />
+                  <span className="flex items-center gap-3">
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+        <SidebarSeparator />
+      </SidebarContent>
+      <SidebarFooter className="px-2 py-4 border-t border-neutral-200 dark:border-neutral-800">
+        {/* User Profile Dropdown */}
+        <div className="relative">
+          <button
+            className="flex items-center gap-3 w-full px-2 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+            onClick={() => setProfileMenuOpen((v) => !v)}
+          >
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-8 h-8 rounded-full"
+            />
+            <div className="flex flex-col items-start">
+              <span className="font-medium text-sm">{user.name}</span>
+              <span className="text-xs text-neutral-400">{user.email}</span>
+            </div>
+            <svg
+              className={`ml-auto w-4 h-4 transition-transform ${profileMenuOpen ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {profileMenuOpen && (
+            <div className="absolute left-0 bottom-12 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-md shadow-lg z-50">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full"
+                />
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm">{user.name}</span>
+                  <span className="text-xs text-neutral-400">{user.email}</span>
+                </div>
+              </div>
+              <div className="flex flex-col py-1">
+                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                  <span>⚡</span> Upgrade to Pro
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                  <span>⚙️</span> Account
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                  <span>💳</span> Billing
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                  <span>🔔</span> Notifications
+                </button>
+              </div>
+              <div className="flex items-center justify-between px-4 py-2 border-t border-neutral-200 dark:border-neutral-800">
+                <span className="text-sm">Dark Mode</span>
+                <ThemeToggle />
+              </div>
+              <div className="border-t border-neutral-200 dark:border-neutral-800">
+                <SignOutButton isCollapsed={false} />
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
