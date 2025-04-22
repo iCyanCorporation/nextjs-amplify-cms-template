@@ -52,7 +52,7 @@ import { toast } from "@/hooks/use-toast";
 
 import ProductInfoSection from "./ProductInfoSection";
 import ProductImagesSection from "./ProductImagesSection";
-import CombinedAttributesSection from "./CombinedAttributesSection";
+import CombinedAttributesSection from "./ProductAttributesSection";
 import VariantForm from "./ProductVariantForm";
 import ProductTypeTab from "./ProductTypeTab"; // Import the new component
 

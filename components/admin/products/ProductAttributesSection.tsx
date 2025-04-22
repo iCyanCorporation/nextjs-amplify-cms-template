@@ -95,30 +95,42 @@ export default function CombinedAttributesSection({
   }, [systemAttributes, loadingAttributes, setAttributes, setAttributeOption]);
 
   // Add a new attribute
-  const addAttribute = () => {
-    if (!newAttributeName.trim()) return;
-
-    const newId = `attr_${Date.now()}`;
-    const newAttribute: Attribute = {
-      id: newId,
+  // Add a new attribute and upload to DB, then update state with DB id
+  const [isAdding, setIsAdding] = useState(false);
+  const addAttribute = async () => {
+    if (!newAttributeName.trim() || isAdding) return;
+    setIsAdding(true);
+    const payload = {
       name: newAttributeName,
       type: newAttributeType,
       isRequired: newAttributeRequired,
       options: [],
     };
-
-    setAttributes([...attributes, newAttribute]);
-    setAttributeOption({
-      ...attributeOption,
-      [newId]: [],
-    });
-
-    // Reset form
-    setNewAttributeName("");
-    setNewAttributeType("text");
-    setNewAttributeRequired(false);
-    setIsAddingAttribute(false);
-  };
+    try {
+      const response = await fetch("/api/attributes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("Failed to add attribute");
+      const savedAttribute = await response.json();
+      setAttributes((prev) => [...prev, savedAttribute]);
+      setAttributeOption((prev) => ({
+        ...prev,
+        [savedAttribute.id]: [],
+      }));
+      // Reset form only after DB returns
+      setNewAttributeName("");
+      setNewAttributeType("text");
+      setNewAttributeRequired(false);
+      setIsAddingAttribute(false);
+    } catch (error) {
+      console.error("Error adding attribute:", error);
+      // Optionally show error to user
+    } finally {
+      setIsAdding(false);
+    }
+  }
 
   // Remove an attribute - NOW USES CALLBACK
   const removeAttribute = (id: string) => {
@@ -143,64 +155,45 @@ export default function CombinedAttributesSection({
     if (!attribute) return;
 
     const newValue: AttributeValue = {
-      id: `val_${Date.now()}`,
+      id: newValueInput, // Use the value itself as the id (must be unique per attribute)
       value: newValueInput,
     };
-
-    // Add color for color type attributes
     if (attribute.type === "color") {
       newValue.color = newColorInput;
     }
-
     const currentOption = attributeOption[currentAttributeId] || [];
-
-    // Update the attributeOption state
     setAttributeOption({
       ...attributeOption,
       [currentAttributeId]: [...currentOption, newValue],
     });
-
-    // Also update the options array in the attribute itself
+    // For local UI, update the options array in the attribute itself as array of objects
     setAttributes(
       attributes.map((attr) => {
         if (attr.id === currentAttributeId) {
+          const currentOptions = Array.isArray(attr.options)
+            ? (attr.options.filter((opt) => typeof opt === "object") as Record<string, string>[])
+            : ([] as Record<string, string>[]);
           if (attribute.type === "color") {
-            // Store as array of objects: [{ value: color }, ...]
-            // Ensure we maintain the correct type of array (all objects)
-            const currentOptions = Array.isArray(attr.options)
-              ? (attr.options.filter(
-                  (opt) => typeof opt === "object"
-                ) as Record<string, string>[])
-              : ([] as Record<string, string>[]);
-
-            const newColorAttr: Attribute = {
+            return {
               ...attr,
               options: [
                 ...currentOptions,
                 { [newValueInput]: newColorInput },
               ] as Record<string, string>[],
             };
-            return newColorAttr;
           } else {
-            // Store as array of strings
-            // Ensure we maintain the correct type of array (all strings)
-            const currentOptions = Array.isArray(attr.options)
-              ? (attr.options.filter(
-                  (opt) => typeof opt === "string"
-                ) as string[])
-              : ([] as string[]);
-
-            const newTextAttr: Attribute = {
+            return {
               ...attr,
-              options: [...currentOptions, newValue.value] as string[],
+              options: [
+                ...currentOptions,
+                { [newValueInput]: "" },
+              ] as Record<string, string>[],
             };
-            return newTextAttr;
           }
         }
         return attr;
       })
     );
-
     setNewValueInput("");
     setNewColorInput("#000000");
   };
@@ -257,7 +250,7 @@ export default function CombinedAttributesSection({
   };
 
   // Handle closing the Edit Option dialog and update the main attributes state
-  const handleEditOptionDone = () => {
+  const handleEditOptionDone = async () => {
     if (!currentAttributeId) {
       setIsEditingOption(false);
       return;
@@ -267,29 +260,61 @@ export default function CombinedAttributesSection({
     const currentOptionsFromDialog = attributeOption[currentAttributeId] || [];
 
     if (attribute) {
-      let updatedOptions: string[] | Record<string, string>[] = [];
+      // Always save as array of objects: [{value: color}, ...] or [{value: ""}, ...]
+      const updatedOptions = currentOptionsFromDialog.map((opt) => {
+        if (attribute.type === "color") {
+          return { [opt.value]: opt.color || "#000000" };
+        } else {
+          return { [opt.value]: "" };
+        }
+      });
+      // Prepare payload for API
+      const payload = {
+        name: attribute.name,
+        type: attribute.type,
+        options: updatedOptions,
+        isRequired: attribute.isRequired || false,
+      };
 
-      if (attribute.type === "color") {
-        // Convert AttributeValue[] back to Record<string, string>[] for the attributes state
-        updatedOptions = currentOptionsFromDialog.map((opt) => ({
-          [opt.value]: opt.color || "#000000", // Use default black if color somehow missing
-        }));
-      } else {
-        // Convert AttributeValue[] back to string[] for the attributes state
-        updatedOptions = currentOptionsFromDialog.map((opt) => opt.value);
+      try {
+        let response;
+        if (attribute.id && !attribute.id.startsWith("attr_")) {
+          // Existing attribute in DB, update
+          response = await fetch(`/api/attributes/${attribute.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          // New attribute, create
+          response = await fetch("/api/attributes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to save attribute");
+        }
+
+        const savedAttribute = await response.json();
+
+        // Update the specific attribute in the main attributes array with DB id
+        setAttributes((prevAttributes) =>
+          prevAttributes.map((attr) =>
+            attr.id === currentAttributeId
+              ? { ...attr, ...savedAttribute }
+              : attr
+          )
+        );
+      } catch (error) {
+        console.error("Error saving attribute:", error);
+        // Optionally show error to user
       }
-
-      // Update the specific attribute in the main attributes array
-      setAttributes((prevAttributes) =>
-        prevAttributes.map((attr) =>
-          attr.id === currentAttributeId
-            ? { ...attr, options: updatedOptions }
-            : attr
-        )
-      );
     }
 
-    setIsEditingOption(false); // Close the dialog
+    setIsEditingOption(false);
   };
 
   return (
@@ -328,17 +353,16 @@ export default function CombinedAttributesSection({
                   <div className="flex-1">
                     <div className="font-medium">{attr.name}</div>
                     <div className="text-sm text-gray-500">
-                      Type:{" "}
-                      {attr.type.charAt(0).toUpperCase() + attr.type.slice(1)}
+                      Type: {" "}
+                      {attr.type
+                        ? attr.type.charAt(0).toUpperCase() + attr.type.slice(1)
+                        : <span className="text-red-400">Unknown</span>}
                       {attr.isRequired && (
                         <span className="ml-2 text-red-500">Required</span>
                       )}
                     </div>
                     <div className="text-sm mt-2">
-                      Options:{" "}
-                      {Array.isArray(attr.options) && attr.options.length > 0
-                        ? attr.options.length
-                        : 0}
+                      Options: {Array.isArray(attr.options) && attr.options.length > 0 ? attr.options.length : 0}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -508,29 +532,23 @@ export default function CombinedAttributesSection({
               {currentAttributeId &&
               attributeOption[currentAttributeId]?.length > 0 ? (
                 <div className="space-y-2">
-                  {attributeOption[currentAttributeId].map((value) => (
-                    <div
-                      key={value.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                    >
+                  {attributeOption[currentAttributeId]?.map((value) => (
+                    <div key={value.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <div className="flex items-center gap-2">
-                        {getCurrentAttribute()?.type === "color" &&
-                          value.color && (
-                            <div
-                              className="w-5 h-5 rounded-full border border-gray-300"
-                              style={{ backgroundColor: value.color }}
-                            />
-                          )}
-                        <span>{value.value}</span>
+                        {getCurrentAttribute()?.type === "color" && value.color && (
+                          <div
+                            className="w-5 h-5 rounded-full border border-gray-300"
+                            style={{ backgroundColor: value.color }}
+                          />
+                        )}
+                        <span className="text-sm">{value.value}</span>
                       </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 h-8 w-8"
-                        onClick={() =>
-                          removeValue(currentAttributeId, value.id)
-                        }
+                        className="text-red-500"
+                        onClick={() => removeValue(currentAttributeId!, value.id)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -538,15 +556,39 @@ export default function CombinedAttributesSection({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No Option added yet
-                </p>
+                <p className="text-gray-500">No options added yet.</p>
               )}
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" onClick={handleEditOptionDone}>
+            <Button
+              type="button"
+              onClick={async () => {
+                if (!currentAttributeId) return;
+                const currentAttr = getCurrentAttribute();
+                const options = (attributeOption[currentAttributeId] || []).map(
+                  (option: AttributeValue) =>
+                    currentAttr?.type === "color"
+                      ? { [option.value]: option.color || "#000000" }
+                      : { [option.value]: "" }
+                );
+                try {
+                  const response = await fetch(
+                    `/api/attributes/${currentAttributeId}/options`,
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(options),
+                    }
+                  );
+                  if (!response.ok) throw new Error("Failed to save options");
+                } catch (error) {
+                  console.error("Error saving attribute options:", error);
+                }
+                handleEditOptionDone();
+              }}
+            >
               Done
             </Button>
           </DialogFooter>
