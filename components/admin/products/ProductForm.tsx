@@ -543,7 +543,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
       // Show success message but don't redirect in edit mode
       if (mode === "edit") {
-        alert("Product updated successfully!");
+        toast({ title: "Product updated successfully!" });
         // Stay on the current page
       } else {
         // Only redirect for new product creation

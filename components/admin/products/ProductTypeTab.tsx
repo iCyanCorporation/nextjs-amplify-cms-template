@@ -52,6 +52,8 @@ export default function ProductTypeTab() {
   };
 
   const openCreateModal = () => {
+    // Prevent unnecessary update if already in create mode
+    if (modalType === "create") return;
     setSelectedType(null);
     setModalType("create");
   };
@@ -143,7 +145,11 @@ export default function ProductTypeTab() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Button onClick={openCreateModal} className="flex items-center gap-1">
+        <Button
+          type="button"
+          onClick={openCreateModal}
+          className="flex items-center gap-1"
+        >
           <PlusIcon className="h-4 w-4" />
           Add Product Type
         </Button>
