@@ -1,116 +1,185 @@
 "use client";
 
-import React from "react";
-import { Authenticator, ThemeProvider } from "@aws-amplify/ui-react";
-import "@aws-amplify/ui-react/styles.css";
-import "../../globals.css";
+import React, { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
+import * as Auth from "aws-amplify/auth";
 import Sidebar from "@/components/Sidebar";
+
+import { CustomSignIn } from "@/components/auth/CustomSignIn";
+import { CustomSignUp } from "@/components/auth/CustomSignUp";
+import { CustomConfirmSignUp } from "@/components/auth/CustomConfirmSignUp";
+import { CustomForgotPassword } from "@/components/auth/CustomForgotPassword";
+import { CustomConfirmResetPassword } from "@/components/auth/CustomConfirmResetPassword";
 
 Amplify.configure(outputs);
 
-const theme = {
-  name: "custom-theme",
-  tokens: {
-    colors: {
-      background: {
-        primary: {
-          value: "#ffffff",
-        },
-        secondary: {
-          value: "#f3f4f6",
-        },
-      },
-      font: {
-        primary: {
-          value: "#111111",
-        },
-        interactive: {
-          value: "#333333",
-        },
-      },
-      brand: {
-        primary: {
-          10: "#e6f1fe",
-          20: "#cce3fd",
-          40: "#99c7fb",
-          60: "#66aaf9",
-          80: "#338ef7",
-          90: "#1a81f6",
-          100: "#0073f5",
-        },
-      },
-    },
-    components: {
-      tabs: {
-        item: {
-          _focus: {
-            color: { value: "#000000" },
-          },
-          _hover: {
-            color: { value: "#000000" },
-          },
-          _active: {
-            color: { value: "#000000" },
-          },
-        },
-      },
-      button: {
-        primary: {
-          backgroundColor: {
-            value: "#000000",
-          },
-          color: {
-            value: "#000000",
-          },
-          _hover: {
-            backgroundColor: {
-              value: "{colors.brand.primary.80}",
-            },
-            color: {
-              value: "#777777",
-            },
-          },
-          _active: {
-            backgroundColor: {
-              value: "{colors.brand.primary.90}",
-            },
-            color: {
-              value: "#ffffff",
-            },
-          },
-        },
-      },
-      fieldcontrol: {
-        _focus: {
-          borderColor: { value: "{colors.brand.primary.100}" },
-        },
-      },
-      text: {
-        color: { value: "#000000" },
-      },
-    },
-  },
-};
+type AuthStep =
+  | "signIn"
+  | "signUp"
+  | "confirmSignUp"
+  | "forgotPassword"
+  | "confirmResetPassword"
+  | "authenticated";
+
+interface AuthState {
+  step: AuthStep;
+  user?: any;
+  email?: string;
+}
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-gray-white">
-      <ThemeProvider theme={theme}>
+  const [auth, setAuth] = useState<AuthState>({ step: "signIn" });
+
+  // Check if user is already signed in
+  useEffect(() => {
+    Auth.getCurrentUser()
+      .then((user) => setAuth({ step: "authenticated", user }))
+      .catch(() => setAuth((prev) => ({ ...prev, step: "signIn" })));
+  }, []);
+
+  // Handlers for each step
+  const handleSignIn = async (username: string, password: string) => {
+    try {
+      const user = await Auth.signIn({ username, password });
+      setAuth({ step: "authenticated", user });
+    } catch (err: any) {
+      if (err.code === "UserNotConfirmedException") {
+        setAuth({ step: "confirmSignUp", email: username });
+      } else if (err.code === "PasswordResetRequiredException") {
+        setAuth({ step: "forgotPassword", email: username });
+      } else {
+        alert(err.message || "Sign in failed");
+      }
+    }
+  };
+
+  const handleSignUp = async (data: {
+    username: string;
+    password: string;
+    email: string;
+  }) => {
+    try {
+      await Auth.signUp({
+        username: data.username,
+        password: data.password,
+        options: { userAttributes: { email: data.email } },
+      });
+      setAuth({ step: "confirmSignUp", email: data.username });
+    } catch (err: any) {
+      alert(err.message || "Sign up failed");
+    }
+  };
+
+  const handleConfirmSignUp = async (username: string, code: string) => {
+    try {
+      await Auth.confirmSignUp({ username, confirmationCode: code });
+      setAuth({ step: "signIn", email: username });
+    } catch (err: any) {
+      alert(err.message || "Confirmation failed");
+    }
+  };
+
+  const handleForgotPassword = async (username: string) => {
+    try {
+      await Auth.resetPassword({ username });
+      setAuth({ step: "confirmResetPassword", email: username });
+    } catch (err: any) {
+      alert(err.message || "Reset failed");
+    }
+  };
+
+  const handleConfirmResetPassword = async (
+    username: string,
+    code: string,
+    newPassword: string
+  ) => {
+    try {
+      await Auth.confirmResetPassword({
+        username,
+        confirmationCode: code,
+        newPassword,
+      });
+      setAuth({ step: "signIn", email: username });
+    } catch (err: any) {
+      alert(err.message || "Reset confirmation failed");
+    }
+  };
+
+  const handleSignOut = async () => {
+    await Auth.signOut();
+    setAuth({ step: "signIn" });
+  };
+
+  // Render UI based on auth.step
+  let content = null;
+  switch (auth.step) {
+    case "signIn":
+      content = (
+        <CustomSignIn
+          onSignIn={handleSignIn}
+          onGoToSignUp={() => setAuth({ step: "signUp" })}
+          onGoToForgotPassword={() => setAuth({ step: "forgotPassword" })}
+          defaultEmail={auth.email}
+        />
+      );
+      break;
+    case "signUp":
+      content = (
+        <CustomSignUp
+          onSignUp={handleSignUp}
+          onGoToSignIn={() => setAuth({ step: "signIn" })}
+        />
+      );
+      break;
+    case "confirmSignUp":
+      content = (
+        <CustomConfirmSignUp
+          email={auth.email}
+          onConfirm={handleConfirmSignUp}
+          onGoToSignIn={() => setAuth({ step: "signIn", email: auth.email })}
+        />
+      );
+      break;
+    case "forgotPassword":
+      content = (
+        <CustomForgotPassword
+          email={auth.email}
+          onSendCode={handleForgotPassword}
+          onGoToSignIn={() => setAuth({ step: "signIn", email: auth.email })}
+        />
+      );
+      break;
+    case "confirmResetPassword":
+      content = (
+        <CustomConfirmResetPassword
+          email={auth.email}
+          onConfirm={handleConfirmResetPassword}
+          onGoToSignIn={() => setAuth({ step: "signIn", email: auth.email })}
+        />
+      );
+      break;
+    case "authenticated":
+      content = (
         <div className="flex min-h-screen w-full">
-          <Authenticator className="max-w-md w-full m-auto px-4 py-6 ">
-            <div className="ml-20 lg:ml-64 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-              <Sidebar />
-              <div className="">{children}</div>
-            </div>
-          </Authenticator>
+          <Sidebar />
+          <main className="ml-20 lg:ml-64 flex-1 p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
         </div>
-      </ThemeProvider>
+      );
+      break;
+    default:
+      content = null;
+  }
+
+  return (
+    <div className="min-h-screen bg-background m-auto items-center justify-center flex flex-col gap-4">
+      {content}
     </div>
   );
 }
