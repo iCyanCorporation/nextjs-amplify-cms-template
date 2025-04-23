@@ -4,6 +4,8 @@ Amplify.configure(outputs, { ssr: true });
 
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
+import { generateClient } from "aws-amplify/api";
+import type { Schema } from "@/amplify/data/resource";
 
 type Params = Promise<{ id: string }>;
 
@@ -32,6 +34,19 @@ export async function GET(request: Request, { params }: { params: Params }) {
 
 // PUT /api/attributes/:id - Update a specific attribute
 export async function PUT(request: Request, { params }: { params: Params }) {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const authToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : authHeader;
+  // @ts-ignore override Amplify client options for Cognito auth
+  const client = generateClient<Schema>({
+    authMode: "identityPool",
+    authToken,
+  });
+
   const { id } = await params;
   const { name, type, options } = await request.json();
   // AWSJSON scalar expects a JSON string
@@ -43,7 +58,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     options: formattedOptions,
   });
   try {
-    const result = await amplifyClient.models.Attribute.update({
+    const result = await client.models.Attribute.update({
       id,
       name,
       type,
@@ -63,11 +78,24 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
 // DELETE /api/attributes/:id - Delete a specific attribute
 export async function DELETE(request: Request, { params }: { params: Params }) {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const authToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : authHeader;
+  // @ts-ignore override Amplify client options for Cognito auth
+  const client = generateClient<Schema>({
+    authMode: "identityPool",
+    authToken,
+  });
+
   try {
     const { id } = await params;
 
     // Check if attribute exists
-    const existingResult = await amplifyClient.models.Attribute.get({ id });
+    const existingResult = await client.models.Attribute.get({ id });
     if (!existingResult.data) {
       return NextResponse.json(
         { error: "Attribute not found" },
@@ -76,7 +104,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     }
 
     // Delete the attribute
-    const result = await amplifyClient.models.Attribute.delete({ id });
+    const result = await client.models.Attribute.delete({ id });
 
     if (!result.data) {
       return NextResponse.json(

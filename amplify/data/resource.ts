@@ -104,8 +104,9 @@ const schema = a
     }),
   })
   .authorization((allow) => [
-    allow.publicApiKey().to(["read"]),
-    allow.owner().to(["create", "read", "update", "delete"]),
+    // allow.publicApiKey().to(["read"]),
+    allow.guest().to(["read"]),
+    allow.owner(),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;
@@ -116,9 +117,9 @@ The section below creates an auth for the database table.
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey", // apiKey iam
-    apiKeyAuthorizationMode: {
-      expiresInDays: 365,
-    },
+    defaultAuthorizationMode: "userPool", // apiKey iam userPool
+    // apiKeyAuthorizationMode: {
+    //   expiresInDays: 365,
+    // },
   },
 });
