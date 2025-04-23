@@ -104,7 +104,10 @@ const schema = a
       updatedAt: a.datetime(),
     }),
   })
-  .authorization((allow) => [allow.publicApiKey(), allow.owner()]);
+  .authorization((allow) => [
+    allow.publicApiKey().to(["read"]),
+    allow.owner().to(["create", "read", "update", "delete"]),
+  ]);
 
 export type Schema = ClientSchema<typeof schema>;
 
@@ -114,7 +117,7 @@ The section below creates an auth for the database table.
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
+    defaultAuthorizationMode: "apiKey", // apiKey iam
     apiKeyAuthorizationMode: {
       expiresInDays: 365,
     },

@@ -114,11 +114,14 @@ export default function CombinedAttributesSection({
       if (!response.ok) throw new Error("Failed to add attribute");
       const result = await response.json();
       // API may wrap created item in data property
-      const saved = (result && (result as any).data) ? (result as any).data : result;
+      const saved =
+        result && (result as any).data ? (result as any).data : result;
       // Ensure options and isRequired defaults
       const newAttr: Attribute = {
         ...saved,
-        options: Array.isArray((saved as any).options) ? (saved as any).options : [],
+        options: Array.isArray((saved as any).options)
+          ? (saved as any).options
+          : [],
         isRequired: (saved as any).isRequired ?? false,
       };
       setAttributes((prev) => [...prev, newAttr]);
@@ -137,7 +140,7 @@ export default function CombinedAttributesSection({
     } finally {
       setIsAdding(false);
     }
-  }
+  };
 
   // Remove an attribute - NOW USES CALLBACK
   const removeAttribute = (id: string) => {
@@ -178,7 +181,10 @@ export default function CombinedAttributesSection({
       attributes.map((attr) => {
         if (attr.id === currentAttributeId) {
           const currentOptions = Array.isArray(attr.options)
-            ? (attr.options.filter((opt) => typeof opt === "object") as Record<string, string>[])
+            ? (attr.options.filter((opt) => typeof opt === "object") as Record<
+                string,
+                string
+              >[])
             : ([] as Record<string, string>[]);
           if (attribute.type === "color") {
             return {
@@ -191,10 +197,10 @@ export default function CombinedAttributesSection({
           } else {
             return {
               ...attr,
-              options: [
-                ...currentOptions,
-                { [newValueInput]: "" },
-              ] as Record<string, string>[],
+              options: [...currentOptions, { [newValueInput]: "" }] as Record<
+                string,
+                string
+              >[],
             };
           }
         }
@@ -360,16 +366,21 @@ export default function CombinedAttributesSection({
                   <div className="flex-1">
                     <div className="font-medium">{attr.name}</div>
                     <div className="text-sm text-gray-500">
-                      Type: {" "}
-                      {attr.type
-                        ? attr.type.charAt(0).toUpperCase() + attr.type.slice(1)
-                        : <span className="text-red-400">Unknown</span>}
+                      Type:{" "}
+                      {attr.type ? (
+                        attr.type.charAt(0).toUpperCase() + attr.type.slice(1)
+                      ) : (
+                        <span className="text-red-400">Unknown</span>
+                      )}
                       {attr.isRequired && (
                         <span className="ml-2 text-red-500">Required</span>
                       )}
                     </div>
                     <div className="text-sm mt-2">
-                      Options: {Array.isArray(attr.options) && attr.options.length > 0 ? attr.options.length : 0}
+                      Options:{" "}
+                      {Array.isArray(attr.options) && attr.options.length > 0
+                        ? attr.options.length
+                        : 0}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -540,14 +551,18 @@ export default function CombinedAttributesSection({
               attributeOption[currentAttributeId]?.length > 0 ? (
                 <div className="space-y-2">
                   {attributeOption[currentAttributeId]?.map((value) => (
-                    <div key={value.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div
+                      key={value.id}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                    >
                       <div className="flex items-center gap-2">
-                        {getCurrentAttribute()?.type === "color" && value.color && (
-                          <div
-                            className="w-5 h-5 rounded-full border border-gray-300"
-                            style={{ backgroundColor: value.color }}
-                          />
-                        )}
+                        {getCurrentAttribute()?.type === "color" &&
+                          value.color && (
+                            <div
+                              className="w-5 h-5 rounded-full border border-gray-300"
+                              style={{ backgroundColor: value.color }}
+                            />
+                          )}
                         <span className="text-sm">{value.value}</span>
                       </div>
                       <Button
@@ -555,7 +570,9 @@ export default function CombinedAttributesSection({
                         variant="ghost"
                         size="icon"
                         className="text-red-500"
-                        onClick={() => removeValue(currentAttributeId!, value.id)}
+                        onClick={() =>
+                          removeValue(currentAttributeId!, value.id)
+                        }
                       >
                         <X className="h-4 w-4" />
                       </Button>
