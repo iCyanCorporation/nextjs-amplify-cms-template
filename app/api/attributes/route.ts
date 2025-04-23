@@ -21,9 +21,13 @@ export async function POST(request: Request) {
   const { name, type } = await request.json();
 
   try {
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const result = await amplifyClient.models.Attribute.create(
       { name, type },
-      { authMode: "userPool" }
+      { authMode: "identityPool", authToken }
     );
     console.log("Attribute create result:", result);
     // unwrap data if present, else use result directly

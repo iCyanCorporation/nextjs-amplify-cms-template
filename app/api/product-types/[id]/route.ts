@@ -3,100 +3,87 @@ import { NextResponse } from "next/server";
 
 type Params = Promise<{ id: string }>;
 
-// GET /api/attributes/:id - Get a specific attribute
+// GET /api/product-types/:id - Get a specific product type
 export async function GET({ params }: { params: Params }) {
   try {
     const { id } = await params;
-    const result = await amplifyClient.models.Attribute.get(
+    const result = await amplifyClient.models.ProductType.get(
       { id },
       { authMode: "identityPool" }
     );
-
     if (!result.data) {
       return NextResponse.json(
-        { error: "Attribute not found" },
+        { error: "Product type not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error("Error fetching attribute:", error);
+    console.error("Error fetching product type:", error);
     return NextResponse.json(
-      { error: "Failed to fetch attribute" },
+      { error: "Failed to fetch product type" },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/attributes/:id - Update a specific attribute
+// PUT /api/product-types/:id - Update a specific product type
 export async function PUT(request: Request, { params }: { params: Params }) {
   const authToken = request.headers.get("Authorization");
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
   const { id } = await params;
-  const { name, type, options } = await request.json();
-  // AWSJSON scalar expects a JSON string
-  const formattedOptions = JSON.stringify(options);
+  const { name, description } = await request.json();
   try {
-    const result = await amplifyClient.models.Attribute.update(
-      { id, name, type, options: formattedOptions },
+    const result = await amplifyClient.models.ProductType.update(
+      { id, name, description, updatedAt: new Date().toISOString() },
       { authMode: "identityPool", authToken }
     );
-
     const record = (result as any).data ?? result;
     return NextResponse.json(record);
   } catch (error) {
-    console.error("Error updating attribute:", error);
+    console.error("Error updating product type:", error);
     return NextResponse.json(
-      { error: "Failed to update attribute" },
+      { error: "Failed to update product type" },
       { status: 500 }
     );
   }
 }
 
-// DELETE /api/attributes/:id - Delete a specific attribute
+// DELETE /api/product-types/:id - Delete a specific product type
 export async function DELETE(request: Request, { params }: { params: Params }) {
   const authToken = request.headers.get("Authorization");
   if (!authToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
   try {
     const { id } = await params;
-
-    // Check if attribute exists
-    const existingResult = await amplifyClient.models.Attribute.get(
+    const existing = await amplifyClient.models.ProductType.get(
       { id },
       { authMode: "identityPool", authToken }
     );
-    if (!existingResult.data) {
+    if (!existing.data) {
       return NextResponse.json(
-        { error: "Attribute not found" },
+        { error: "Product type not found" },
         { status: 404 }
       );
     }
-
-    // Delete the attribute
-    const result = await amplifyClient.models.Attribute.delete(
+    const result = await amplifyClient.models.ProductType.delete(
       { id },
       { authMode: "identityPool", authToken }
     );
-
     if (!result.data) {
       return NextResponse.json(
-        { error: "Failed to delete attribute" },
+        { error: "Failed to delete product type" },
         { status: 500 }
       );
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting attribute:", error);
+    console.error("Error deleting product type:", error);
     return NextResponse.json(
-      { error: "Failed to delete attribute" },
+      { error: "Failed to delete product type" },
       { status: 500 }
     );
   }

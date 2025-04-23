@@ -1,14 +1,15 @@
 import "./globals.css";
 
 import { Amplify } from "aws-amplify";
-Amplify.configure(outputs);
+Amplify.configure(outputs, { ssr: true });
 import outputs from "@/amplify_outputs.json";
 
 // Import the Providers
 import { Providers } from "./providers";
+import UserProvider from "@/app/contexts/UserContext";
 
 // Context
-import ProductProvider from "@/app/context/ProductContext";
+import ProductProvider from "@/app/contexts/ProductContext";
 
 // In the layout component, wrap the children with the Providers
 export default function RootLayout({
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
-          <ProductProvider>{children}</ProductProvider>
+          <UserProvider>
+            <ProductProvider>{children}</ProductProvider>
+          </UserProvider>
         </Providers>
       </body>
     </html>

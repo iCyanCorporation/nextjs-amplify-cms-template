@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      { authMode: "userPool" }
+      { authMode: "identityPool" }
     );
     return NextResponse.json(data);
   } catch (error) {
@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest) {
         ...body,
         updatedAt: new Date().toISOString(),
       },
-      { authMode: "userPool" }
+      { authMode: "identityPool" }
     );
     return NextResponse.json(data);
   } catch (error) {
@@ -84,7 +84,7 @@ export async function DELETE(request: NextRequest) {
 
     const { data } = await amplifyClient.models.ProductVariant.delete(
       { id },
-      { authMode: "userPool" }
+      { authMode: "identityPool" }
     );
     return NextResponse.json(data);
   } catch (error) {

@@ -1,6 +1,9 @@
+"use client";
+
 // @ts-nocheck
 import React, { useState, useEffect } from "react";
-import { fetchAuthSession, getCurrentUser } from "@aws-amplify/auth";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
+
 import { Plus, Minus, Save, X, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,15 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { AttributeType, Attribute } from "@/types/product";
-import { Badge } from "@/components/ui/badge";
-
-interface AttributeValue {
-  id: string;
-  value: string;
-  color?: string; // For color type attributes
-}
+import { AttributeType, Attribute, AttributeValue } from "@/types/product";
 
 interface CombinedAttributesSectionProps {
   attributes: Attribute[];
@@ -149,8 +144,7 @@ export default function CombinedAttributesSection({
       isRequired: newAttributeRequired,
     };
     try {
-      const session = await fetchAuthSession();
-      const token = session.tokens.accessToken;
+      const token = await getAuthToken();
       const response = await fetch("/api/attributes", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: token },
@@ -204,18 +198,20 @@ export default function CombinedAttributesSection({
 
   // Add a new value for the current attribute
   const addValue = () => {
+    // console.log("[addValue] currentAttributeId:", currentAttributeId);
+    // console.log("[addValue] newValueInput:", newValueInput);
+    // console.log("[addValue] attributeOption before:", attributeOption);
+
     if (!currentAttributeId || !newValueInput.trim()) return;
 
     const attribute = attributes.find((attr) => attr.id === currentAttributeId);
     if (!attribute) return;
 
     const newValue: AttributeValue = {
-      id: newValueInput, // Use the value itself as the id (must be unique per attribute)
-      value: newValueInput,
+      key: newValueInput,
+      value: attribute?.type === "color" ? newColorInput : newValueInput,
     };
-    if (attribute.type === "color") {
-      newValue.color = newColorInput;
-    }
+
     const currentOption = attributeOption[currentAttributeId] || [];
     setAttributeOption({
       ...attributeOption,
@@ -242,10 +238,10 @@ export default function CombinedAttributesSection({
           } else {
             return {
               ...attr,
-              options: [...currentOptions, { [newValueInput]: "" }] as Record<
-                string,
-                string
-              >[],
+              options: [
+                ...currentOptions,
+                { [newValueInput]: newValueInput },
+              ] as Record<string, string>[],
             };
           }
         }
@@ -259,14 +255,14 @@ export default function CombinedAttributesSection({
   // Remove a value
   const removeValue = (attributeId: string, valueId: string) => {
     const currentOption = attributeOption[attributeId] || [];
-    const valueToRemove = currentOption.find((v) => v.id === valueId);
+    const valueToRemove = currentOption.find((v) => v.key === valueId);
 
     if (!valueToRemove) return;
 
     // Remove from attributeOption
     setAttributeOption({
       ...attributeOption,
-      [attributeId]: currentOption.filter((v) => v.id !== valueId),
+      [attributeId]: currentOption.filter((v) => v.key !== valueId),
     });
 
     // Note: We are not updating the `attributes` state here directly.
@@ -319,13 +315,9 @@ export default function CombinedAttributesSection({
 
     if (attribute) {
       // Always save as array of objects: [{value: color}, ...] or [{value: ""}, ...]
-      const updatedOptions = currentOptionsFromDialog.map((opt) => {
-        if (attribute.type === "color") {
-          return { [opt.value]: opt.color || "#000000" };
-        } else {
-          return { [opt.value]: "" };
-        }
-      });
+      const updatedOptions = currentOptionsFromDialog.map((opt) => ({
+        [opt.key]: opt.value,
+      }));
       // Prepare payload for API
       const payload = {
         name: attribute.name,
@@ -336,8 +328,7 @@ export default function CombinedAttributesSection({
 
       try {
         let response;
-        const session = await fetchAuthSession();
-        const token = session.tokens.accessToken;
+        const token = await getAuthToken();
         if (attribute.id && !attribute.id.startsWith("attr_")) {
           // Existing attribute in DB, update
           response = await fetch(`/api/attributes/${attribute.id}`, {
@@ -604,20 +595,29 @@ export default function CombinedAttributesSection({
               {currentAttributeId &&
               attributeOption[currentAttributeId]?.length > 0 ? (
                 <div className="space-y-2">
-                  {attributeOption[currentAttributeId]?.map((value) => (
+                  {/* {console.log('[render] attributeOption', attributeOption, 'currentAttributeId', currentAttributeId)} */}
+                  {attributeOption[currentAttributeId]?.map((item) => (
                     <div
-                      key={value.id}
+                      key={item.key}
                       className="flex items-center justify-between p-2 bg-gray-50 rounded"
                     >
                       <div className="flex items-center gap-2">
-                        {getCurrentAttribute()?.type === "color" &&
-                          value.color && (
+                        {getCurrentAttribute()?.type === "color" ? (
+                          item.value && (
                             <div
                               className="w-5 h-5 rounded-full border border-gray-300"
-                              style={{ backgroundColor: value.color }}
+                              style={{ backgroundColor: item.value }}
+                              title={item.key}
                             />
-                          )}
-                        <span className="text-sm">{value.value}</span>
+                          )
+                        ) : (
+                          <></>
+                        )}
+                        <span className="text-sm">
+                          {getCurrentAttribute()?.type === "color"
+                            ? item.key
+                            : item.value}
+                        </span>
                       </div>
                       <Button
                         type="button"
@@ -625,7 +625,7 @@ export default function CombinedAttributesSection({
                         size="icon"
                         className="text-red-500"
                         onClick={() =>
-                          removeValue(currentAttributeId!, value.id)
+                          removeValue(currentAttributeId!, item.key)
                         }
                       >
                         <X className="h-4 w-4" />
@@ -646,15 +646,13 @@ export default function CombinedAttributesSection({
                 if (!currentAttributeId) return;
                 const currentAttr = getCurrentAttribute();
                 const options = (attributeOption[currentAttributeId] || []).map(
-                  (option: AttributeValue) =>
-                    currentAttr?.type === "color"
-                      ? { [option.value]: option.color || "#000000" }
-                      : { [option.value]: "" }
+                  (option: AttributeValue) => {
+                    return { [option.key]: option.value };
+                  }
                 );
                 try {
                   if (!currentAttr) throw new Error("Attribute not found");
-                  const session = await fetchAuthSession();
-                  const token = session.tokens.accessToken;
+                  const token = await getAuthToken();
                   const response = await fetch(
                     `/api/attributes/${currentAttributeId}`,
                     {
@@ -716,11 +714,6 @@ export default function CombinedAttributesSection({
                         <div>
                           <div className="font-medium flex items-center gap-2">
                             {attr.name}
-                            {attr.isRequired && (
-                              <Badge variant="destructive" className="text-xs">
-                                Required
-                              </Badge>
-                            )}
                           </div>
                           <div className="text-sm text-gray-500">
                             Type: {attr.type || "text"}

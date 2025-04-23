@@ -36,7 +36,7 @@ import {
   ChevronDownIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useProductContext } from "@/app/context/ProductContext";
+import { useProductContext } from "@/app/contexts/ProductContext";
 
 export default function ProductsPage() {
   const { getProductTypeName } = useProductContext();

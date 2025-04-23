@@ -23,42 +23,24 @@ import {
 import { Attribute } from "@/types/product";
 import ProductImagesSection from "./ProductImagesSection";
 import { ImagePicker } from "@/components/image/ImagePicker";
+import { AttributeValue, Variant } from "@/types/product";
 
-interface attributeOption {
-  id: string;
-  value: string;
-  color?: string;
-}
-
-interface ProductVariant {
-  id?: string;
-  name: string;
-  sku: string;
-  price: string;
-  stock: string;
-  color: string;
-  size: string;
-  attributes?: Record<string, any>;
-  images: string[];
-  isActive: boolean;
-}
-
-interface ProductVariantFormProps {
+interface VariantFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (variant: ProductVariant) => void;
-  variant?: ProductVariant;
-  defaultPrice?: string;
-  defaultStock?: string;
+  onSave: (variant: Variant) => void;
+  variant?: Variant;
+  defaultPrice?: number;
+  defaultStock?: number;
   Attributes: Attribute[];
-  attributeOptions: Record<string, attributeOption[]>;
+  AttributeValues: Record<string, AttributeValue[]>;
 }
 
-const DEFAULT_VARIANT: ProductVariant = {
+const DEFAULT_VARIANT: Variant = {
   name: "",
   sku: "",
-  price: "",
-  stock: "",
+  price: 0,
+  stock: 0,
   color: "",
   size: "",
   attributes: {},
@@ -66,22 +48,22 @@ const DEFAULT_VARIANT: ProductVariant = {
   isActive: true,
 };
 
-export default function ProductVariantForm({
+export default function VariantForm({
   isOpen,
   onClose,
   onSave,
   variant,
-  defaultPrice = "",
-  defaultStock = "",
+  defaultPrice = 0,
+  defaultStock = 0,
   Attributes,
-  attributeOptions,
-}: ProductVariantFormProps) {
-  const [form, setForm] = useState<ProductVariant>({
+  AttributeValues,
+}: VariantFormProps) {
+  const [form, setForm] = useState<Variant>({
     ...DEFAULT_VARIANT,
     price: defaultPrice,
     stock: defaultStock,
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<string, string | string[] | boolean>
@@ -98,7 +80,9 @@ export default function ProductVariantForm({
 
       // Initialize selected attributes from variant
       if (variant.attributes) {
-        setSelectedAttributes(variant.attributes);
+        setSelectedAttributes(
+          variant.attributes as Record<string, string | boolean | string[]>
+        );
       } else {
         // Create empty selected attributes
         const initialAttributes: Record<string, string | string[] | boolean> =
@@ -139,13 +123,21 @@ export default function ProductVariantForm({
   // Update variant name whenever selected attributes change
   useEffect(() => {
     updateVariantNameBasedOnAttributes();
-  }, [selectedAttributes, Attributes, attributeOptions]);
+  }, [selectedAttributes, Attributes, AttributeValues]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    // Convert price and stock to numbers, others remain as string
+    if (name === "price" || name === "stock") {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value === "" ? 0 : Number(value),
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
     // Clear error when field is edited
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -186,9 +178,14 @@ export default function ProductVariantForm({
           (typeof selectedValue === "boolean" && selectedValue === true))
       ) {
         // For color/text/number attributes with multi-select (array)
-        if (["color", "text", "number"].includes(attr.type) && Array.isArray(selectedValue)) {
+        if (
+          ["color", "text", "number"].includes(attr.type) &&
+          Array.isArray(selectedValue)
+        ) {
           selectedValue.forEach((id) => {
-            const valueObj = attributeOptions[attr.id]?.find((v) => v.id === id);
+            const valueObj = AttributeValues[attr.id]?.find(
+              (v) => v.key === id
+            );
             if (valueObj) {
               nameComponents.push(valueObj.value);
             }
@@ -196,8 +193,8 @@ export default function ProductVariantForm({
         }
         // For color attributes, single string fallback (legacy)
         else if (attr.type === "color" && typeof selectedValue === "string") {
-          const colorValue = attributeOptions[attr.id]?.find(
-            (v) => v.id === selectedValue
+          const colorValue = AttributeValues[attr.id]?.find(
+            (v) => v.key === selectedValue
           );
           if (colorValue) {
             nameComponents.push(colorValue.value);
@@ -213,8 +210,8 @@ export default function ProductVariantForm({
         }
         // For other attributes, add the selected value
         else if (typeof selectedValue === "string" && selectedValue) {
-          const value = attributeOptions[attr.id]?.find(
-            (v) => v.id === selectedValue
+          const value = AttributeValues[attr.id]?.find(
+            (v) => v.key === selectedValue
           );
           if (value) {
             nameComponents.push(value.value);
@@ -234,11 +231,11 @@ export default function ProductVariantForm({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!form.name.trim()) {
+    if (!form.name || !form.name.toString().trim()) {
       newErrors.name = "Variant name is required";
     }
 
-    if (!form.sku.trim()) {
+    if (!form.sku || !form.sku.toString().trim()) {
       newErrors.sku = "SKU is required";
     }
 
@@ -297,40 +294,59 @@ export default function ProductVariantForm({
 
   // Render a single attribute field (multi-checkbox for items, dropdown per checked)
   const renderAttributeField = (attribute: Attribute) => {
-    const attrValues = attributeOptions[attribute.id] || [];
+    const attrValues = AttributeValues[attribute.id] || [];
     // For multi-select, selectedValue is an array of selected item ids
-    const selectedValue: string[] = Array.isArray(selectedAttributes[attribute.id]) ? (selectedAttributes[attribute.id] as string[]) : [];
+    const selectedValue: string[] = Array.isArray(
+      selectedAttributes[attribute.id]
+    )
+      ? (selectedAttributes[attribute.id] as string[])
+      : [];
 
     // Only apply multi-checkbox logic for text, number, color types
     if (["text", "number", "color"].includes(attribute.type)) {
       return (
         <div className="space-y-2">
           {attrValues.map((item) => {
-            const checked = selectedValue?.includes(item.id) ?? false;
+            const checked = selectedValue?.includes(item.key) ?? false;
             return (
-              <div key={item.id} className="flex items-center gap-2 mb-1">
+              <div key={item.key} className="flex items-center gap-2 mb-1">
                 <Checkbox
-                  id={`attr-${attribute.id}-item-${item.id}`}
+                  id={`attr-${attribute.id}-item-${item.key}`}
                   checked={checked}
                   onCheckedChange={(isChecked) => {
-                    let newSelected: string[] = Array.isArray(selectedValue) ? [...selectedValue] : [];
+                    let newSelected: string[] = Array.isArray(selectedValue)
+                      ? [...selectedValue]
+                      : [];
                     if (isChecked) {
-                      if (!newSelected.includes(item.id)) newSelected.push(item.id);
+                      if (!newSelected.includes(item.key))
+                        newSelected.push(item.key);
                     } else {
-                      newSelected = newSelected.filter((id) => id !== item.id);
+                      newSelected = newSelected.filter(
+                        (key) => key !== item.key
+                      );
                     }
                     handleAttributeChange(attribute.id, newSelected);
                   }}
                 />
-                <Label htmlFor={`attr-${attribute.id}-item-${item.id}`}>{item.value}</Label>
+                <Label htmlFor={`attr-${attribute.id}-item-${item.key}`}>
+                  {item.value}
+                </Label>
                 {/* Show dropdown if checked */}
                 {checked && (
                   <Select
-                    value={typeof selectedAttributes[`${attribute.id}_${item.id}_dropdown`] === "string" ? (selectedAttributes[`${attribute.id}_${item.id}_dropdown`] as string) : ""}
+                    value={
+                      typeof selectedAttributes[
+                        `${attribute.id}_${item.key}_dropdown`
+                      ] === "string"
+                        ? (selectedAttributes[
+                            `${attribute.id}_${item.key}_dropdown`
+                          ] as string)
+                        : ""
+                    }
                     onValueChange={(dropdownValue) => {
                       setSelectedAttributes((prev) => ({
                         ...prev,
-                        [`${attribute.id}_${item.id}_dropdown`]: dropdownValue,
+                        [`${attribute.id}_${item.key}_dropdown`]: dropdownValue,
                       }));
                     }}
                   >
@@ -349,7 +365,9 @@ export default function ProductVariantForm({
           })}
           {/* Validation error */}
           {errors[`attr_${attribute.id}`] && (
-            <p className="text-red-500 text-xs">{errors[`attr_${attribute.id}`]}</p>
+            <p className="text-red-500 text-xs">
+              {errors[`attr_${attribute.id}`]}
+            </p>
           )}
         </div>
       );
@@ -388,7 +406,7 @@ export default function ProductVariantForm({
                   <Input
                     id="name"
                     name="name"
-                    value={form.name}
+                    value={form.name ?? ""}
                     onChange={handleChange}
                     className={errors.name ? "border-red-500" : ""}
                   />
@@ -402,7 +420,7 @@ export default function ProductVariantForm({
                   <Input
                     id="sku"
                     name="sku"
-                    value={form.sku}
+                    value={form.sku ?? ""}
                     onChange={handleChange}
                     className={errors.sku ? "border-red-500" : ""}
                   />
@@ -421,7 +439,7 @@ export default function ProductVariantForm({
                     type="number"
                     step="0.01"
                     min="0"
-                    value={form.price}
+                    value={form.price ?? ""}
                     onChange={handleChange}
                     className={errors.price ? "border-red-500" : ""}
                   />
@@ -438,7 +456,7 @@ export default function ProductVariantForm({
                     type="number"
                     step="1"
                     min="0"
-                    value={form.stock}
+                    value={form.stock ?? ""}
                     onChange={handleChange}
                     className={errors.stock ? "border-red-500" : ""}
                   />
@@ -495,7 +513,7 @@ export default function ProductVariantForm({
                     Select Images
                   </Button>
                   <ProductImagesSection
-                    images={form.images}
+                    images={form.images ?? []}
                     onChange={handleImagesChange}
                     required={false}
                   />
@@ -528,23 +546,22 @@ export default function ProductVariantForm({
                 if (typeof imageUrl === "string") {
                   setForm((prev) => ({
                     ...prev,
-                    images: [...prev.images, imageUrl],
+                    images: [...(prev.images ?? []), imageUrl],
+                  }));
+                } else if (
+                  Array.isArray(imageUrl) &&
+                  imageUrl.length > 0 &&
+                  typeof imageUrl[0] === "string"
+                ) {
+                  setForm((prev) => ({
+                    ...prev,
+                    images: [...(prev.images ?? []), imageUrl[0]],
                   }));
                 } else {
                   console.warn(
                     "Expected single image URL, received array:",
                     imageUrl
                   );
-                  if (
-                    Array.isArray(imageUrl) &&
-                    imageUrl.length > 0 &&
-                    typeof imageUrl[0] === "string"
-                  ) {
-                    setForm((prev) => ({
-                      ...prev,
-                      images: [...prev.images, imageUrl[0]],
-                    }));
-                  }
                 }
                 setImagePickerOpen(false);
               }}

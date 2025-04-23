@@ -47,6 +47,7 @@ export default function ProductTypeForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (!name) {
       alert("Product type name is required");
@@ -79,7 +80,9 @@ export default function ProductTypeForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button type="submit" variant="default" data-testid="save-product-type">
+          {initialData ? "Save" : "Add Product Type"}
+        </Button>
       </div>
     </form>
   );

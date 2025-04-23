@@ -28,8 +28,12 @@ export async function GET() {
 // POST /api/product-types - Create a new product type
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
+    const body = await request.json();
     const currentDate = new Date().toISOString();
 
     const result = await amplifyClient.models.ProductType.create(
@@ -39,7 +43,8 @@ export async function POST(request: Request) {
         updatedAt: currentDate,
       },
       {
-        authMode: "userPool",
+        authMode: "identityPool",
+        authToken,
       }
     );
 

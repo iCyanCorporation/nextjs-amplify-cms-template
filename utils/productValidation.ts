@@ -3,14 +3,8 @@
  * @param productData The product data to validate
  * @returns An object containing validation results
  */
-export const validateProduct = (productData: {
-  name: string;
-  description?: string;
-  price: string;
-  stock: string;
-  images?: string[];
-  productTypeId?: string | null;
-}) => {
+import { Product } from "@/types/product";
+export const validateProduct = (productData: Product) => {
   const errors: Record<string, string> = {};
 
   // Required validations
@@ -18,15 +12,15 @@ export const validateProduct = (productData: {
     errors.name = "Product name is required";
   }
 
-  if (!productData.price || isNaN(parseFloat(productData.price))) {
+  if (!productData.price || isNaN(productData.price)) {
     errors.price = "Valid price is required";
-  } else if (parseFloat(productData.price) < 0) {
+  } else if (productData.price < 0) {
     errors.price = "Price cannot be negative";
   }
 
-  if (!productData.stock || isNaN(parseInt(productData.stock, 10))) {
+  if (!productData.stock || isNaN(productData.stock)) {
     errors.stock = "Valid stock quantity is required";
-  } else if (parseInt(productData.stock, 10) < 0) {
+  } else if (productData.stock < 0) {
     errors.stock = "Stock cannot be negative";
   }
 

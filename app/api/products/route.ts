@@ -25,6 +25,11 @@ export async function GET() {
 // POST /api/products - Create a new product
 export async function POST(request: Request) {
   try {
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const currentDate = new Date().toISOString();
 
@@ -67,29 +72,34 @@ export async function POST(request: Request) {
     // Try first with images as array
     try {
       productData.images = imageArray;
-      console.log("Creating product with array images:", productData);
+      // console.log("Creating product with array images:", productData);
 
       // Create the product
-      const productResult = await amplifyClient.models.Product.create(
+      const createdProduct = await amplifyClient.models.Product.create(
         productData,
-        {
-          authMode: "userPool",
-        }
+        { authMode: "identityPool", authToken }
       );
 
-      if (!productResult.data) {
+      if (!createdProduct.data) {
         return NextResponse.json(
           { error: "Failed to create product" },
           { status: 500 }
         );
       }
 
-      const productId = productResult.data.id;
-      await createVariants(variants, productId, price, stock, currentDate);
+      const productId = createdProduct.data.id;
+      await createVariants(
+        variants,
+        productId,
+        price,
+        stock,
+        currentDate,
+        authToken
+      );
 
       // Return the created product - parse images back to array
       let responseData = {
-        ...productResult.data,
+        ...createdProduct.data,
         images: imageArray,
       };
 
@@ -105,26 +115,34 @@ export async function POST(request: Request) {
         productData.images = JSON.stringify(imageArray);
 
         console.log("Creating product with stringified images:", productData);
-        const productResult = await amplifyClient.models.Product.create(
+        const createdProduct = await amplifyClient.models.Product.create(
           productData,
           {
-            authMode: "userPool",
+            authMode: "identityPool",
+            authToken,
           }
         );
 
-        if (!productResult.data) {
+        if (!createdProduct.data) {
           return NextResponse.json(
             { error: "Failed to create product" },
             { status: 500 }
           );
         }
 
-        const productId = productResult.data.id;
-        await createVariants(variants, productId, price, stock, currentDate);
+        const productId = createdProduct.data.id;
+        await createVariants(
+          variants,
+          productId,
+          price,
+          stock,
+          currentDate,
+          authToken
+        );
 
         // Return the created product - parse images back to array
         let responseData = {
-          ...productResult.data,
+          ...createdProduct.data,
           images: imageArray,
         };
 
@@ -146,26 +164,34 @@ export async function POST(request: Request) {
         productData.customAttributes = JSON.stringify(customAttrs);
 
         console.log("Creating product without images field:", productData);
-        const productResult = await amplifyClient.models.Product.create(
+        const createdProduct = await amplifyClient.models.Product.create(
           productData,
           {
-            authMode: "userPool",
+            authMode: "identityPool",
+            authToken,
           }
         );
 
-        if (!productResult.data) {
+        if (!createdProduct.data) {
           return NextResponse.json(
             { error: "Failed to create product" },
             { status: 500 }
           );
         }
 
-        const productId = productResult.data.id;
-        await createVariants(variants, productId, price, stock, currentDate);
+        const productId = createdProduct.data.id;
+        await createVariants(
+          variants,
+          productId,
+          price,
+          stock,
+          currentDate,
+          authToken
+        );
 
         // Return the created product with the manually added images
         let responseData = {
-          ...productResult.data,
+          ...createdProduct.data,
           images: imageArray,
         };
 
@@ -187,7 +213,8 @@ async function createVariants(
   productId: string,
   price: string,
   stock: string,
-  currentDate: string
+  currentDate: string,
+  authToken: string
 ) {
   const variantPromises = (variants || []).map(async (variant: any) => {
     const variantData = {
@@ -208,7 +235,8 @@ async function createVariants(
     };
 
     return amplifyClient.models.ProductVariant.create(variantData, {
-      authMode: "userPool",
+      authMode: "identityPool",
+      authToken,
     });
   });
 

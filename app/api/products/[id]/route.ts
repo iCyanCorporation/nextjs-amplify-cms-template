@@ -118,6 +118,11 @@ export async function GET(request: Request, { params }: { params: Params }) {
 // DELETE /api/products/:id - Delete a product
 export async function DELETE(request: Request, { params }: { params: Params }) {
   try {
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id: productId } = await params;
 
     // Get all variants for this product
@@ -130,7 +135,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     const deleteVariantPromises = (variantsResult.data || []).map((variant) =>
       amplifyClient.models.ProductVariant.delete(
         { id: variant.id },
-        { authMode: "userPool" }
+        { authMode: "identityPool", authToken }
       )
     );
 
@@ -141,7 +146,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       {
         id: productId,
       },
-      { authMode: "userPool" }
+      { authMode: "identityPool", authToken }
     );
 
     if (!deleteResult.data) {
@@ -164,6 +169,11 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
 // Completely revised PUT handler to work around GraphQL schema issues
 export async function PUT(request: Request, { params }: { params: Params }) {
   try {
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id: productId } = await params;
     const body = await request.json();
     const currentDate = new Date().toISOString();
@@ -184,11 +194,11 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     // Ensure images is an array
     const imageArray = Array.isArray(images) ? images : [];
 
-    console.log("Updating product with data:", {
-      id: productId,
-      productTypeId,
-      images: imageArray,
-    });
+    // console.log("Updating product with data:", {
+    //   id: productId,
+    //   productTypeId,
+    //   images: imageArray,
+    // });
 
     // Split the update into two steps to work around the GraphQL schema limitation
     // Step 1: Update basic product info without images
@@ -210,14 +220,14 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         : null;
     }
 
-    console.log(
-      "Step 1: Updating basic product info with data:",
-      basicProductData
-    );
+    // console.log(
+    //   "Step 1: Updating basic product info with data:",
+    //   basicProductData
+    // );
 
     const basicUpdateResult = await amplifyClient.models.Product.update(
       basicProductData as any,
-      { authMode: "userPool" }
+      { authMode: "identityPool", authToken }
     );
 
     if (!basicUpdateResult.data) {
@@ -232,10 +242,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         // Get existing Attribute records for this product
         const existingAttributesResult =
           await amplifyClient.models.Attribute.list({
-            authMode: "userPool",
+            authMode: "identityPool",
           });
 
-        const existingAttributes = existingAttributesResult.data || [];
+        // const existingAttributes = existingAttributesResult.data || [];
 
         // Track which attribute IDs we're keeping
         const attributeIdsToKeep: string[] = [];
@@ -250,7 +260,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             const existingAttrsResult =
               await amplifyClient.models.Attribute.list({
                 filter: { name: { eq: attribute.name } },
-                authMode: "userPool",
+                authMode: "identityPool",
               });
 
             if (
@@ -268,7 +278,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                     ? attribute.options
                     : [],
                 },
-                { authMode: "userPool" }
+                { authMode: "identityPool" }
               );
               console.log(`Updated existing attribute: ${attribute.name}`);
             } else {
@@ -281,7 +291,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                     ? attribute.options
                     : [],
                 },
-                { authMode: "userPool" }
+                { authMode: "identityPool", authToken }
               );
 
               if (newAttrResult.data) {
@@ -302,7 +312,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                   ? attribute.options
                   : [],
               },
-              { authMode: "userPool" }
+              { authMode: "identityPool", authToken }
             );
             console.log(
               `Updated attribute with ID ${attributeId}: ${attribute.name}`
@@ -328,7 +338,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
           {
             id: productId,
           },
-          { authMode: "userPool" }
+          { authMode: "identityPool" }
         );
 
         if (!currentProduct.data) {
@@ -341,14 +351,14 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         // Try updating with API-friendly approach - just the ID and images
         try {
           // Method 1: Try updating only the images field
-          const imagesUpdateResult = await amplifyClient.models.Product.update(
+          await amplifyClient.models.Product.update(
             {
               id: productId,
               // Use a method that works for your specific GraphQL schema:
               // Try as array first
               images: imageArray,
             },
-            { authMode: "userPool" }
+            { authMode: "identityPool", authToken }
           );
 
           console.log("Successfully updated images as array");
@@ -371,7 +381,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                   id: productId,
                   images: imageArray, // Pass the array directly
                 },
-                { authMode: "userPool" }
+                { authMode: "identityPool", authToken }
               );
 
             console.log("Successfully updated images as string");
@@ -381,12 +391,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             // Method 3: If all else fails, store the image URLs in custom attributes
             const customAttrsWithImages = { _imageUrls: imageArray };
 
-            const fallbackResult = await amplifyClient.models.Product.update(
+            await amplifyClient.models.Product.update(
               {
                 id: productId,
                 attributes: JSON.stringify(customAttrsWithImages),
               } as any,
-              { authMode: "userPool" }
+              { authMode: "identityPool", authToken }
             ); // Cast here
 
             console.log("Stored images in attributes as fallback");
@@ -404,7 +414,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       const existingVariantsResult =
         await amplifyClient.models.ProductVariant.list({
           filter: { productId: { eq: productId } },
-          authMode: "userPool",
+          authMode: "identityPool",
         });
       const existingVariants = existingVariantsResult.data || [];
       const existingVariantIds = existingVariants.map((v) => v.id);
@@ -421,7 +431,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       const deletePromises = variantsToDelete.map((variant) =>
         amplifyClient.models.ProductVariant.delete(
           { id: variant.id },
-          { authMode: "userPool" }
+          { authMode: "identityPool", authToken }
         )
       );
 
@@ -475,7 +485,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
               ...variantData,
               id: variant.id,
             },
-            { authMode: "userPool" }
+            { authMode: "identityPool", authToken }
           );
         } else {
           // Create new variant
@@ -484,7 +494,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
               ...variantData,
               createdAt: currentDate,
             },
-            { authMode: "userPool" }
+            { authMode: "identityPool", authToken }
           );
         }
       });

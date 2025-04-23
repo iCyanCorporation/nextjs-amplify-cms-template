@@ -22,8 +22,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
-export default function ProductTypeTab() {
+// Allow parent to sync types list
+interface ProductTypeTabProps {
+  onTypesChange?: (types: ProductType[]) => void;
+}
+
+export default function ProductTypeTab({ onTypesChange }: ProductTypeTabProps) {
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalType, setModalType] = useState<"create" | "edit" | null>(null);
@@ -72,8 +78,10 @@ export default function ProductTypeTab() {
     if (!typeToDelete) return;
 
     try {
+      const token = await getAuthToken();
       const response = await fetch(`/api/product-types/${typeToDelete}`, {
         method: "DELETE",
+        headers: { Authorization: token },
       });
 
       if (!response.ok) {
@@ -93,10 +101,12 @@ export default function ProductTypeTab() {
     try {
       let savedType: ProductType | null = null;
       if (modalType === "create") {
+        const token = await getAuthToken();
         const response = await fetch("/api/product-types", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: token,
           },
           body: JSON.stringify(type),
         });
@@ -110,10 +120,12 @@ export default function ProductTypeTab() {
           setProductTypes([...productTypes, savedType]);
         }
       } else if (modalType === "edit" && type.id) {
+        const token = await getAuthToken();
         const response = await fetch(`/api/product-types/${type.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: token,
           },
           body: JSON.stringify(type),
         });
@@ -141,6 +153,13 @@ export default function ProductTypeTab() {
       // Optionally: show an error message to the user
     }
   };
+
+  // Notify parent when types list changes
+  useEffect(() => {
+    if (onTypesChange) {
+      onTypesChange(productTypes);
+    }
+  }, [productTypes, onTypesChange]);
 
   return (
     <div className="space-y-6">
@@ -177,6 +196,7 @@ export default function ProductTypeTab() {
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
+                            type="button"
                             size="sm"
                             variant="outline"
                             className="flex items-center gap-1"
@@ -186,6 +206,7 @@ export default function ProductTypeTab() {
                             Edit
                           </Button>
                           <Button
+                            type="button"
                             size="sm"
                             variant="outline"
                             className="text-red-600 hover:bg-red-50 flex items-center gap-1"

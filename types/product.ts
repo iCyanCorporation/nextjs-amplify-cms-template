@@ -48,7 +48,6 @@ export interface Variant {
 }
 
 export interface AttributeValue {
-  id: string;
+  key: string;
   value: string;
-  color?: string;
 }

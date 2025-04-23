@@ -19,24 +19,24 @@ interface ProductInfoSectionProps {
   setName: (name: string) => void;
   description: string;
   setDescription: (description: string) => void;
-  price: string;
-  setPrice: (price: string) => void;
-  stock: string;
-  setStock: (stock: string) => void;
+  price: number;
+  setPrice: (price: number) => void;
+  stock: number;
+  setStock: (stock: number) => void;
   hasDiscount: boolean;
   setHasDiscount: (hasDiscount: boolean) => void;
-  discountPrice: string;
-  setDiscountPrice: (discountPrice: string) => void;
+  discountPrice: number;
+  setDiscountPrice: (discountPrice: number) => void;
   selectedType: string | null;
   handleTypeChange: (typeId: string) => void;
   productTypes: ProductType[];
   isActive: boolean;
   setIsActive: (isActive: boolean) => void;
   errors?: {
-    name?: string;
-    price?: string;
-    stock?: string;
-    productTypeId?: string;
+    name?: string | undefined;
+    price?: string | undefined;
+    stock?: string | undefined;
+    productTypeId?: string | undefined;
   };
 }
 
@@ -135,7 +135,7 @@ export default function ProductInfoSection({
                   step="0.01"
                   placeholder="0.00"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => setPrice(e.target.valueAsNumber)}
                   required
                   className={errors.price ? "border-red-500" : ""}
                 />
@@ -158,7 +158,7 @@ export default function ProductInfoSection({
                   step="1"
                   placeholder="0"
                   value={stock}
-                  onChange={(e) => setStock(e.target.value)}
+                  onChange={(e) => setStock(e.target.valueAsNumber)}
                   required
                   className={errors.stock ? "border-red-500" : ""}
                 />
@@ -195,7 +195,7 @@ export default function ProductInfoSection({
                   step="0.01"
                   placeholder="0.00"
                   value={discountPrice}
-                  onChange={(e) => setDiscountPrice(e.target.value)}
+                  onChange={(e) => setDiscountPrice(e.target.valueAsNumber)}
                   required={hasDiscount}
                 />
               </div>

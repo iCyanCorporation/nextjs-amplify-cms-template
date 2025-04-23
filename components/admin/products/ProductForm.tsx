@@ -11,17 +11,13 @@ import {
   Plus,
   Edit,
   Trash2,
-  MessageSquare,
-  Clock,
   Tag as TagIcon,
   AlertCircle,
   Save,
-  X,
-  CheckCircle,
+  RefreshCcw,
 } from "lucide-react";
 import {
   ProductType,
-  Product,
   Attribute,
   Variant,
   AttributeValue,
@@ -55,6 +51,7 @@ import ProductImagesSection from "./ProductImagesSection";
 import CombinedAttributesSection from "./ProductAttributesSection";
 import VariantForm from "./ProductVariantForm";
 import ProductTypeTab from "./ProductTypeTab"; // Import the new component
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 interface ProductFormProps {
   mode: "new" | "edit";
@@ -69,16 +66,17 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
+  const [price, setPrice] = useState(0);
+  const [stock, setStock] = useState(0);
   const [hasDiscount, setHasDiscount] = useState(false);
-  const [discountPrice, setDiscountPrice] = useState("");
+  const [discountPrice, setDiscountPrice] = useState(0);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [formErrors, setFormErrors] = useState<
+    Record<string, string | undefined>
+  >({});
   const [activeTab, setActiveTab] = useState("general");
-  const [comment, setComment] = useState("");
   const [loadingAttributes, setLoadingAttributes] = useState(false);
 
   // New states for the combined attributes management
@@ -101,6 +99,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       try {
         const response = await fetch(`/api/attributes/${attributeIdToRemove}`, {
           method: "DELETE",
+          headers: { Authorization: await getAuthToken() },
         });
 
         if (!response.ok) {
@@ -182,8 +181,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   }
                 })()
               : Array.isArray(attr.options)
-              ? attr.options
-              : [],
+                ? attr.options
+                : [],
         }));
         setSystemAttributes(parsedAttributes);
       } catch (error) {
@@ -203,15 +202,15 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           }
 
           const productData = await response.json();
-          console.log("Product data loaded:", productData);
+          // console.log("Product data loaded:", productData);
 
           // Initialize form with product data
           setName(productData.name || "");
           setDescription(productData.description || "");
-          setPrice(productData.price?.toString() || "");
-          setStock(productData.stock?.toString() || "");
+          setPrice(productData.price || 0);
+          setStock(productData.stock || 0);
           setHasDiscount(!!productData.discountPrice);
-          setDiscountPrice(productData.discountPrice?.toString() || "");
+          setDiscountPrice(productData.discountPrice || 0);
 
           // Make sure to properly set the product type ID
           setSelectedType(productData.productTypeId || "");
@@ -266,8 +265,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               // Add value
               attributeOptionData[attrId] = [
                 {
-                  id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                  value: String(value), // Safely convert unknown value to string
+                  key: String(value),
+                  value: String(value),
                 },
               ];
             });
@@ -293,8 +292,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               // Add value
               attributeOptionData[attrId] = [
                 {
-                  id: `val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                  value: String(value), // Safely convert unknown value to string
+                  key: String(value),
+                  value: String(value),
                 },
               ];
             });
@@ -354,11 +353,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                     const valueName = Object.keys(optObj)[0];
                     const colorCode = optObj[valueName];
                     if (valueName) {
-                      // Ensure the object has a key
                       newOption[attr.id].push({
-                        id: `val_${attr.id}_${valueName}_${index}`, // Unique ID
-                        value: valueName,
-                        color: colorCode,
+                        key: valueName,
+                        value: colorCode,
                       });
                     }
                   }
@@ -368,9 +365,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               // Handle other options (array of strings)
               (attr.options as string[]).forEach((optStr, index) => {
                 if (typeof optStr === "string") {
-                  // Ensure it's a string
                   newOption[attr.id].push({
-                    id: `val_${attr.id}_${optStr}_${index}`, // Unique ID
+                    key: optStr,
                     value: optStr,
                   });
                 }
@@ -409,13 +405,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       name: variant.name || "", // Ensure name is always a string
       sku: variant.sku || "",
       price:
-        typeof variant.price === "number"
-          ? variant.price.toString()
-          : variant.price || "",
+        typeof variant.price === "number" ? variant.price : variant.price || 0,
       stock:
-        typeof variant.stock === "number"
-          ? variant.stock.toString()
-          : variant.stock || "",
+        typeof variant.stock === "number" ? variant.stock : variant.stock || 0,
       color: variant.color || "",
       size: variant.size || "",
       images: variant.images || [],
@@ -467,12 +459,13 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
     // Validate all required fields using the validation utility
     const validationResult = validateProduct({
+      id: productId ?? "",
       name,
       description,
       price,
       stock,
       images,
-      productTypeId: selectedType,
+      productTypeId: selectedType ?? "",
     });
 
     if (!validationResult.isValid) {
@@ -497,13 +490,13 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       const productData = {
         name,
         description,
-        price: parseFloat(price),
-        stock: parseInt(stock || "0", 10),
+        price: price,
+        stock: stock,
         productTypeId: selectedType, // Ensure productTypeId is included
         isActive,
         images: imageArray, // Ensure it's an array
         imgUrl: imageArray.length > 0 ? imageArray[0] : "", // Use first image as primary image
-        discountPrice: hasDiscount ? parseFloat(discountPrice) : null,
+        discountPrice: hasDiscount ? discountPrice : null,
         // Include product attributes for saving to the Attribute table
         Attributes,
         attributeOption,
@@ -537,6 +530,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         method,
         headers: {
           "Content-Type": "application/json",
+          Authorization: await getAuthToken(),
         },
         body: JSON.stringify(productData),
       });
@@ -587,7 +581,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       return <Badge variant="destructive">Archived</Badge>;
     }
 
-    if (parseInt(stock || "0") <= 0) {
+    if (stock <= 0) {
       return <Badge variant="secondary">Out of Stock</Badge>;
     }
 
@@ -639,15 +633,15 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       </div>
 
       {/* Add update and cancel buttons in the header */}
-      <div className="flex gap-2 bg-gray-50/80  border border-gray-50 p-1 rounded-md mb-6 shadow-sm">
+      <div className="flex gap-2 bg-background border border-gray-50/50 p-1 rounded-md mb-6 shadow-sm">
         <Button
           variant="ghost"
           size="icon"
           type="button"
-          onClick={() => router.back()}
-          title="Cancel"
+          onClick={() => window.location.reload()}
+          title="Reload"
         >
-          <X className="h-4 w-4" />
+          <RefreshCcw className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
@@ -699,7 +693,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           className="w-full"
         >
           {/* Update grid columns to 5 */}
-          <TabsList className="grid grid-cols-5 mb-6">
+          <TabsList className="grid grid-cols-5 mb-6 bg-background rounded-md shadow-md">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="images">Images</TabsTrigger>
             <TabsTrigger value="productTypes">Product Types</TabsTrigger>{" "}
@@ -728,10 +722,22 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               isActive={isActive}
               setIsActive={setIsActive}
               errors={{
-                name: formErrors.name,
-                price: formErrors.price,
-                stock: formErrors.stock,
-                productTypeId: formErrors.productTypeId,
+                name:
+                  typeof formErrors.name === "string"
+                    ? formErrors.name
+                    : undefined,
+                price:
+                  typeof formErrors.price === "string"
+                    ? formErrors.price
+                    : undefined,
+                stock:
+                  typeof formErrors.stock === "string"
+                    ? formErrors.stock
+                    : undefined,
+                productTypeId:
+                  typeof formErrors.productTypeId === "string"
+                    ? formErrors.productTypeId
+                    : undefined,
               }}
             />
           </TabsContent>
@@ -740,14 +746,18 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             <ProductImagesSection
               images={images}
               onChange={setImages}
-              error={formErrors.images}
+              error={
+                typeof formErrors.images === "string"
+                  ? formErrors.images
+                  : undefined
+              }
               required={true}
             />
           </TabsContent>
 
           {/* Add new content section for Product Types */}
           <TabsContent value="productTypes" className="space-y-4">
-            <ProductTypeTab />
+            <ProductTypeTab onTypesChange={setProductTypes} />
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-4">
@@ -773,7 +783,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           </TabsContent>
 
           <TabsContent value="variants" className="space-y-4">
-            <div className="p-6 bg-gray-50 rounded-md">
+            <div className="p-6 bg-background rounded-md">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Product Variants</h3>
                 <Button
@@ -887,7 +897,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         defaultPrice={price}
         defaultStock={stock}
         Attributes={Attributes}
-        attributeOptions={attributeOption}
+        AttributeValues={attributeOption}
       />
 
       {/* Delete Variant Confirmation Dialog */}
