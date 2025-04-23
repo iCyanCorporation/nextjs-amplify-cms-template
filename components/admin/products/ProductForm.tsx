@@ -167,7 +167,25 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         const data = await response.json();
         console.log("Attributes loaded:", data);
         // Extract the attributes from the response
-        setSystemAttributes(data.attributes || []);
+        // Parse options if needed
+        const parsedAttributes = (data.attributes || []).map((attr: any) => ({
+          ...attr,
+          options:
+            typeof attr.options === "string"
+              ? (() => {
+                  try {
+                    const parsed = JSON.parse(attr.options);
+                    // Only accept array, otherwise fallback to []
+                    return Array.isArray(parsed) ? parsed : [];
+                  } catch {
+                    return [];
+                  }
+                })()
+              : Array.isArray(attr.options)
+              ? attr.options
+              : [],
+        }));
+        setSystemAttributes(parsedAttributes);
       } catch (error) {
         console.error("Error fetching attributes:", error);
         setSystemAttributes([]);

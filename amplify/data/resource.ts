@@ -47,7 +47,6 @@ const schema = a
       name: a.string().required(),
       type: a.enum(["text", "number", "boolean", "color"]),
       options: a.json(), // Store options for select attributes
-      isRequired: a.boolean().default(false),
     }),
 
     ProductVariant: a.model({

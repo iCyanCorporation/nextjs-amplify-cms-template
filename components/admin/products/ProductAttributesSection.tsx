@@ -50,6 +50,41 @@ export default function CombinedAttributesSection({
   systemAttributes = [],
   loadingAttributes = false,
 }: CombinedAttributesSectionProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Helper: fetch attributes from API and update state
+  const reloadAttributes = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/attributes");
+      if (!response.ok) throw new Error("Failed to fetch attributes");
+      const data = await response.json();
+      // Parse options if needed
+      const parsedAttributes = (data.attributes || []).map((attr: any) => ({
+        ...attr,
+        options:
+          typeof attr.options === "string"
+            ? (() => {
+                try {
+                  const parsed = JSON.parse(attr.options);
+                  return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                  return [];
+                }
+              })()
+            : Array.isArray(attr.options)
+              ? attr.options
+              : [],
+      }));
+      setAttributes(parsedAttributes);
+      // Optionally, update attributeOption state here if needed
+    } catch (error) {
+      console.error("Error reloading attributes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const [isAddingAttribute, setIsAddingAttribute] = useState(false);
   const [isEditingOption, setIsEditingOption] = useState(false);
   const [newAttributeName, setNewAttributeName] = useState("");
@@ -63,6 +98,12 @@ export default function CombinedAttributesSection({
   const [newColorInput, setNewColorInput] = useState("#000000");
   const [selectingSystemAttribute, setSelectingSystemAttribute] =
     useState(false);
+
+  useEffect(() => {
+    // Initial load: fetch attributes from API
+    reloadAttributes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (systemAttributes && systemAttributes.length > 0 && !loadingAttributes) {
@@ -311,16 +352,7 @@ export default function CombinedAttributesSection({
           throw new Error("Failed to save attribute");
         }
 
-        const savedAttribute = await response.json();
-
-        // Update the specific attribute in the main attributes array with DB id
-        setAttributes((prevAttributes) =>
-          prevAttributes.map((attr) =>
-            attr.id === currentAttributeId
-              ? { ...attr, ...savedAttribute }
-              : attr
-          )
-        );
+        await reloadAttributes();
       } catch (error) {
         console.error("Error saving attribute:", error);
         // Optionally show error to user
@@ -329,6 +361,14 @@ export default function CombinedAttributesSection({
 
     setIsEditingOption(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -372,9 +412,9 @@ export default function CombinedAttributesSection({
                       ) : (
                         <span className="text-red-400">Unknown</span>
                       )}
-                      {attr.isRequired && (
+                      {/* {attr.isRequired && (
                         <span className="ml-2 text-red-500">Required</span>
-                      )}
+                      )} */}
                     </div>
                     <div className="text-sm mt-2">
                       Options:{" "}
@@ -458,7 +498,7 @@ export default function CombinedAttributesSection({
               </Select>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <Checkbox
                 id="attribute-required"
                 checked={newAttributeRequired}
@@ -467,7 +507,7 @@ export default function CombinedAttributesSection({
                 }
               />
               <Label htmlFor="attribute-required">Required</Label>
-            </div>
+            </div> */}
           </div>
 
           <DialogFooter>
@@ -598,12 +638,19 @@ export default function CombinedAttributesSection({
                       : { [option.value]: "" }
                 );
                 try {
+                  if (!currentAttr) throw new Error("Attribute not found");
                   const response = await fetch(
-                    `/api/attributes/${currentAttributeId}/options`,
+                    `/api/attributes/${currentAttributeId}`,
                     {
-                      method: "POST",
+                      method: "PUT",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(options),
+                      body: JSON.stringify({
+                        id: currentAttributeId,
+                        name: currentAttr.name,
+                        type: currentAttr.type,
+                        isRequired: currentAttr.isRequired,
+                        options,
+                      }),
                     }
                   );
                   if (!response.ok) throw new Error("Failed to save options");

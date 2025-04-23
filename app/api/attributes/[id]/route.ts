@@ -31,20 +31,33 @@ export async function GET(request: Request, { params }: { params: Params }) {
 }
 
 // PUT /api/attributes/:id - Update a specific attribute
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-  const { name, type, isRequired, options } = await request.json();
+export async function PUT(request: Request, { params }: { params: Params }) {
+  const { id } = await params;
+  const { name, type, options } = await request.json();
   // AWSJSON scalar expects a JSON string
   const formattedOptions = JSON.stringify(options);
-  console.log("Updating attribute:", { id, name, type, isRequired, options: formattedOptions });
+  console.log("Updating attribute:", {
+    id,
+    name,
+    type,
+    options: formattedOptions,
+  });
   try {
-    const result = await amplifyClient.models.Attribute.update({ id, name, type, isRequired, options: formattedOptions });
+    const result = await amplifyClient.models.Attribute.update({
+      id,
+      name,
+      type,
+      options: formattedOptions,
+    });
     console.log("Attribute update result:", result);
     const record = (result as any).data ?? result;
     return NextResponse.json(record);
   } catch (error) {
     console.error("Error updating attribute:", error);
-    return NextResponse.json({ error: "Failed to update attribute" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update attribute" },
+      { status: 500 }
+    );
   }
 }
 
