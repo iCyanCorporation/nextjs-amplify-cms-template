@@ -1,15 +1,12 @@
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-Amplify.configure(outputs, { ssr: true });
-
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
-import { Variant } from "@/types/product";
 
 // GET /api/products - Get all products
 export async function GET() {
   try {
-    const result = await amplifyClient.models.Product.list();
+    const result = await amplifyClient.models.Product.list({
+      authMode: "identityPool",
+    });
 
     if (!result.data) {
       return NextResponse.json({ error: "No products found" }, { status: 404 });
@@ -73,8 +70,12 @@ export async function POST(request: Request) {
       console.log("Creating product with array images:", productData);
 
       // Create the product
-      const productResult =
-        await amplifyClient.models.Product.create(productData);
+      const productResult = await amplifyClient.models.Product.create(
+        productData,
+        {
+          authMode: "userPool",
+        }
+      );
 
       if (!productResult.data) {
         return NextResponse.json(
@@ -104,8 +105,12 @@ export async function POST(request: Request) {
         productData.images = JSON.stringify(imageArray);
 
         console.log("Creating product with stringified images:", productData);
-        const productResult =
-          await amplifyClient.models.Product.create(productData);
+        const productResult = await amplifyClient.models.Product.create(
+          productData,
+          {
+            authMode: "userPool",
+          }
+        );
 
         if (!productResult.data) {
           return NextResponse.json(
@@ -141,8 +146,12 @@ export async function POST(request: Request) {
         productData.customAttributes = JSON.stringify(customAttrs);
 
         console.log("Creating product without images field:", productData);
-        const productResult =
-          await amplifyClient.models.Product.create(productData);
+        const productResult = await amplifyClient.models.Product.create(
+          productData,
+          {
+            authMode: "userPool",
+          }
+        );
 
         if (!productResult.data) {
           return NextResponse.json(
@@ -198,7 +207,9 @@ async function createVariants(
       updatedAt: currentDate,
     };
 
-    return amplifyClient.models.ProductVariant.create(variantData);
+    return amplifyClient.models.ProductVariant.create(variantData, {
+      authMode: "userPool",
+    });
   });
 
   // Wait for all variants to be created
@@ -206,122 +217,3 @@ async function createVariants(
     await Promise.all(variantPromises);
   }
 }
-
-// // PUT /api/products/:id - Update a product
-// export async function PUT(
-//   request: Request,
-//   { params }: { params: Params }
-// ) {
-//   try {
-//     const {id: productId} = await params;
-//     const body = await request.json();
-//     const currentDate = new Date().toISOString();
-
-//     const {
-//       name,
-//       description,
-//       price,
-//       stock,
-//       productTypeId,
-//       isActive,
-//       images,
-//       specs,
-//       customAttributes,
-//       discountPrice,
-//       variants = [],
-//     } = body;
-
-//     // Update the main product
-//     const productData = {
-//       id: productId,
-//       name,
-//       description,
-//       price: parseFloat(price),
-//       stock: parseInt(stock, 10),
-//       imgUrl: images?.length > 0 ? images[0] : "",
-//       images: images || [], // Make sure to include the images array
-//       isActive: isActive !== false,
-//       productTypeId, // Make sure to include productTypeId
-//       discountPrice: discountPrice ? parseFloat(discountPrice) : null,
-//       attributes: specs ? JSON.stringify(specs) : null,
-//       customAttributes: customAttributes
-//         ? JSON.stringify(customAttributes)
-//         : null,
-//       updatedAt: currentDate,
-//     };
-
-//     console.log("Updating product with:", productData);
-
-//     const productResult =
-//       await amplifyClient.models.Product.update(productData);
-
-//     // Handle variants
-//     if (variants && variants.length > 0) {
-//       // Get existing variants
-//       const existingVariantsResult =
-//         await amplifyClient.models.ProductVariant.list({
-//           filter: { productId: { eq: productId } },
-//         });
-//       const existingVariants = existingVariantsResult.data || [];
-//       const existingVariantIds = existingVariants.map((v) => v.id);
-
-//       // Track which existing variants should be kept
-//       const variantIdsToKeep = variants
-//         .filter((v: Variant) => v.id)
-//         .map((v: Variant) => v.id);
-
-//       // Delete variants that are no longer present
-//       const variantsToDelete = existingVariants.filter(
-//         (variant) => !variantIdsToKeep.includes(variant.id)
-//       );
-
-//       const deletePromises = variantsToDelete.map((variant) =>
-//         amplifyClient.models.ProductVariant.delete({ id: variant.id })
-//       );
-
-//       // Update or create variants
-//       const variantPromises = variants.map(async (variant: any) => {
-//         const variantData = {
-//           productId,
-//           name: variant.name,
-//           sku: variant.sku,
-//           price: parseFloat(variant.price || price),
-//           stock: parseInt(variant.stock || stock, 10),
-//           color: variant.color,
-//           size: variant.size,
-//           attributes: variant.attributes
-//             ? JSON.stringify(variant.attributes)
-//             : null,
-//           images: variant.images || [],
-//           isActive: variant.isActive !== false,
-//           updatedAt: currentDate,
-//         };
-
-//         if (variant.id && existingVariantIds.includes(variant.id)) {
-//           // Update existing variant
-//           return amplifyClient.models.ProductVariant.update({
-//             ...variantData,
-//             id: variant.id,
-//           });
-//         } else {
-//           // Create new variant
-//           return amplifyClient.models.ProductVariant.create({
-//             ...variantData,
-//             createdAt: currentDate,
-//           });
-//         }
-//       });
-
-//       // Execute all variant operations
-//       await Promise.all([...deletePromises, ...variantPromises]);
-//     }
-
-//     return NextResponse.json(productResult.data);
-//   } catch (error) {
-//     console.error("Error updating product:", error);
-//     return NextResponse.json(
-//       { error: "Failed to update product" },
-//       { status: 500 }
-//     );
-//   }
-// }

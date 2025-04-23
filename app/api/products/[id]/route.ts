@@ -1,8 +1,5 @@
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-Amplify.configure(outputs, { ssr: true });
-
 import { amplifyClient } from "@/hooks/useAmplifyClient";
+
 import { NextResponse } from "next/server";
 import { type Variant, type Product, type Attribute } from "@/types/product";
 
@@ -14,9 +11,12 @@ export async function GET(request: Request, { params }: { params: Params }) {
     const productId = id;
 
     // Get the product
-    const productResult = await amplifyClient.models.Product.get({
-      id: productId,
-    });
+    const productResult = await amplifyClient.models.Product.get(
+      {
+        id: productId,
+      },
+      { authMode: "identityPool" }
+    );
 
     if (!productResult.data) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -25,10 +25,13 @@ export async function GET(request: Request, { params }: { params: Params }) {
     // Get the product variants
     const variantsResult = await amplifyClient.models.ProductVariant.list({
       filter: { productId: { eq: productId } },
+      authMode: "identityPool",
     });
 
     // Get all attribute definitions from the Attribute table
-    const attributesResult = await amplifyClient.models.Attribute.list({});
+    const attributesResult = await amplifyClient.models.Attribute.list({
+      authMode: "identityPool",
+    });
     const attributes = attributesResult.data || [];
 
     // Extract attribute values from variants
@@ -120,19 +123,26 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     // Get all variants for this product
     const variantsResult = await amplifyClient.models.ProductVariant.list({
       filter: { productId: { eq: productId } },
+      authMode: "identityPool",
     });
 
     // Delete all variants first
     const deleteVariantPromises = (variantsResult.data || []).map((variant) =>
-      amplifyClient.models.ProductVariant.delete({ id: variant.id })
+      amplifyClient.models.ProductVariant.delete(
+        { id: variant.id },
+        { authMode: "userPool" }
+      )
     );
 
     await Promise.all(deleteVariantPromises);
 
     // Delete the product
-    const deleteResult = await amplifyClient.models.Product.delete({
-      id: productId,
-    });
+    const deleteResult = await amplifyClient.models.Product.delete(
+      {
+        id: productId,
+      },
+      { authMode: "userPool" }
+    );
 
     if (!deleteResult.data) {
       return NextResponse.json(
@@ -206,7 +216,8 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     );
 
     const basicUpdateResult = await amplifyClient.models.Product.update(
-      basicProductData as any
+      basicProductData as any,
+      { authMode: "userPool" }
     );
 
     if (!basicUpdateResult.data) {
@@ -220,7 +231,9 @@ export async function PUT(request: Request, { params }: { params: Params }) {
 
         // Get existing Attribute records for this product
         const existingAttributesResult =
-          await amplifyClient.models.Attribute.list({});
+          await amplifyClient.models.Attribute.list({
+            authMode: "userPool",
+          });
 
         const existingAttributes = existingAttributesResult.data || [];
 
@@ -237,6 +250,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             const existingAttrsResult =
               await amplifyClient.models.Attribute.list({
                 filter: { name: { eq: attribute.name } },
+                authMode: "userPool",
               });
 
             if (
@@ -245,14 +259,17 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             ) {
               // Update existing attribute
               attributeId = existingAttrsResult.data[0].id;
-              await amplifyClient.models.Attribute.update({
-                id: attributeId,
-                name: attribute.name,
-                type: attribute.type,
-                options: Array.isArray(attribute.options)
-                  ? attribute.options
-                  : [],
-              });
+              await amplifyClient.models.Attribute.update(
+                {
+                  id: attributeId,
+                  name: attribute.name,
+                  type: attribute.type,
+                  options: Array.isArray(attribute.options)
+                    ? attribute.options
+                    : [],
+                },
+                { authMode: "userPool" }
+              );
               console.log(`Updated existing attribute: ${attribute.name}`);
             } else {
               // Create new attribute
@@ -263,7 +280,8 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                   options: Array.isArray(attribute.options)
                     ? attribute.options
                     : [],
-                }
+                },
+                { authMode: "userPool" }
               );
 
               if (newAttrResult.data) {
@@ -275,14 +293,17 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             }
           } else {
             // This is an existing attribute with a valid ID, update it
-            await amplifyClient.models.Attribute.update({
-              id: attributeId,
-              name: attribute.name,
-              type: attribute.type,
-              options: Array.isArray(attribute.options)
-                ? attribute.options
-                : [],
-            });
+            await amplifyClient.models.Attribute.update(
+              {
+                id: attributeId,
+                name: attribute.name,
+                type: attribute.type,
+                options: Array.isArray(attribute.options)
+                  ? attribute.options
+                  : [],
+              },
+              { authMode: "userPool" }
+            );
             console.log(
               `Updated attribute with ID ${attributeId}: ${attribute.name}`
             );
@@ -303,9 +324,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     if (imageArray.length > 0) {
       try {
         console.log("Step 2: Fetching current product to update images");
-        const currentProduct = await amplifyClient.models.Product.get({
-          id: productId,
-        });
+        const currentProduct = await amplifyClient.models.Product.get(
+          {
+            id: productId,
+          },
+          { authMode: "userPool" }
+        );
 
         if (!currentProduct.data) {
           throw new Error("Product not found for image update");
@@ -317,12 +341,15 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         // Try updating with API-friendly approach - just the ID and images
         try {
           // Method 1: Try updating only the images field
-          const imagesUpdateResult = await amplifyClient.models.Product.update({
-            id: productId,
-            // Use a method that works for your specific GraphQL schema:
-            // Try as array first
-            images: imageArray,
-          });
+          const imagesUpdateResult = await amplifyClient.models.Product.update(
+            {
+              id: productId,
+              // Use a method that works for your specific GraphQL schema:
+              // Try as array first
+              images: imageArray,
+            },
+            { authMode: "userPool" }
+          );
 
           console.log("Successfully updated images as array");
         } catch (arrayError) {
@@ -339,10 +366,13 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             });
 
             const imagesUpdateResult =
-              await amplifyClient.models.Product.update({
-                id: productId,
-                images: imageArray, // Pass the array directly
-              });
+              await amplifyClient.models.Product.update(
+                {
+                  id: productId,
+                  images: imageArray, // Pass the array directly
+                },
+                { authMode: "userPool" }
+              );
 
             console.log("Successfully updated images as string");
           } catch (stringError) {
@@ -351,10 +381,13 @@ export async function PUT(request: Request, { params }: { params: Params }) {
             // Method 3: If all else fails, store the image URLs in custom attributes
             const customAttrsWithImages = { _imageUrls: imageArray };
 
-            const fallbackResult = await amplifyClient.models.Product.update({
-              id: productId,
-              attributes: JSON.stringify(customAttrsWithImages),
-            } as any); // Cast here
+            const fallbackResult = await amplifyClient.models.Product.update(
+              {
+                id: productId,
+                attributes: JSON.stringify(customAttrsWithImages),
+              } as any,
+              { authMode: "userPool" }
+            ); // Cast here
 
             console.log("Stored images in attributes as fallback");
           }
@@ -371,6 +404,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       const existingVariantsResult =
         await amplifyClient.models.ProductVariant.list({
           filter: { productId: { eq: productId } },
+          authMode: "userPool",
         });
       const existingVariants = existingVariantsResult.data || [];
       const existingVariantIds = existingVariants.map((v) => v.id);
@@ -385,7 +419,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       );
 
       const deletePromises = variantsToDelete.map((variant) =>
-        amplifyClient.models.ProductVariant.delete({ id: variant.id })
+        amplifyClient.models.ProductVariant.delete(
+          { id: variant.id },
+          { authMode: "userPool" }
+        )
       );
 
       // Update or create variants
@@ -433,16 +470,22 @@ export async function PUT(request: Request, { params }: { params: Params }) {
           existingVariantIds.includes(variant.id)
         ) {
           // Update existing variant
-          return amplifyClient.models.ProductVariant.update({
-            ...variantData,
-            id: variant.id,
-          });
+          return amplifyClient.models.ProductVariant.update(
+            {
+              ...variantData,
+              id: variant.id,
+            },
+            { authMode: "userPool" }
+          );
         } else {
           // Create new variant
-          return amplifyClient.models.ProductVariant.create({
-            ...variantData,
-            createdAt: currentDate,
-          });
+          return amplifyClient.models.ProductVariant.create(
+            {
+              ...variantData,
+              createdAt: currentDate,
+            },
+            { authMode: "userPool" }
+          );
         }
       });
 
@@ -451,9 +494,12 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     }
 
     // Return the updated product with variants
-    const updatedProductResult = await amplifyClient.models.Product.get({
-      id: productId,
-    });
+    const updatedProductResult = await amplifyClient.models.Product.get(
+      {
+        id: productId,
+      },
+      { authMode: "identityPool" }
+    );
 
     if (!updatedProductResult.data) {
       return NextResponse.json(
@@ -466,6 +512,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     const updatedVariantsResult =
       await amplifyClient.models.ProductVariant.list({
         filter: { productId: { eq: productId } },
+        authMode: "identityPool",
       });
 
     // Parse the images back into an array for the response

@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
 import { amplifyClient } from "@/hooks/useAmplifyClient";
-import { generateClient } from "aws-amplify/api";
-import type { Schema } from "@/amplify/data/resource";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const result = await amplifyClient.models.Attribute.list();
+    const result = await amplifyClient.models.Attribute.list({
+      authMode: "identityPool",
+    });
     // return wrapper for system attributes list
     return NextResponse.json({ attributes: result.data }, { status: 200 });
   } catch (error) {
@@ -18,18 +18,13 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  // Only pick allowed create fields
-  // Enforce Cognito owner auth
-  const authToken = request.headers.get("authorization");
-  if (!authToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  // @ts-ignore: override Amplify client options for Cognito auth
-  const client = generateClient<Schema>({ authMode: "AMAZON_COGNITO_USER_POOLS", jwtToken: authToken });
   const { name, type } = await request.json();
 
   try {
-    const result = await client.models.Attribute.create({ name, type });
+    const result = await amplifyClient.models.Attribute.create(
+      { name, type },
+      { authMode: "userPool" }
+    );
     console.log("Attribute create result:", result);
     // unwrap data if present, else use result directly
     const record = (result as any).data ?? result;

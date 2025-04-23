@@ -1,8 +1,5 @@
+import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextRequest, NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/api";
-import { type Schema } from "@/amplify/data/resource";
-
-const client = generateClient<Schema>();
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,12 +8,17 @@ export async function GET(request: NextRequest) {
 
     // get specific variant for a product
     if (id) {
-      const { data } = await client.models.ProductVariant.get({ id });
+      const { data } = await amplifyClient.models.ProductVariant.get(
+        { id },
+        { authMode: "identityPool" }
+      );
       return NextResponse.json(data);
     }
 
     // get all variants for a product
-    const { data } = await client.models.ProductVariant.list();
+    const { data } = await amplifyClient.models.ProductVariant.list({
+      authMode: "identityPool",
+    });
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
@@ -29,11 +31,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { data } = await client.models.ProductVariant.create({
-      ...body,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    const { data } = await amplifyClient.models.ProductVariant.create(
+      {
+        ...body,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      { authMode: "userPool" }
+    );
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
@@ -52,11 +57,14 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { data } = await client.models.ProductVariant.update({
-      id,
-      ...body,
-      updatedAt: new Date().toISOString(),
-    });
+    const { data } = await amplifyClient.models.ProductVariant.update(
+      {
+        id,
+        ...body,
+        updatedAt: new Date().toISOString(),
+      },
+      { authMode: "userPool" }
+    );
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(
@@ -74,7 +82,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }
 
-    const { data } = await client.models.ProductVariant.delete({ id });
+    const { data } = await amplifyClient.models.ProductVariant.delete(
+      { id },
+      { authMode: "userPool" }
+    );
     return NextResponse.json(data);
   } catch (error) {
     return NextResponse.json(

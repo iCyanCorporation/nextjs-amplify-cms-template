@@ -1,7 +1,3 @@
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-Amplify.configure(outputs, { ssr: true });
-
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
 

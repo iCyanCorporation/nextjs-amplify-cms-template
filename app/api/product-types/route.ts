@@ -1,14 +1,12 @@
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-Amplify.configure(outputs, { ssr: true });
-
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
 
 // GET /api/product-types - Get all product types
 export async function GET() {
   try {
-    const result = await amplifyClient.models.ProductType.list();
+    const result = await amplifyClient.models.ProductType.list({
+      authMode: "identityPool",
+    });
 
     if (!result.data) {
       return NextResponse.json(
@@ -34,11 +32,16 @@ export async function POST(request: Request) {
 
     const currentDate = new Date().toISOString();
 
-    const result = await amplifyClient.models.ProductType.create({
-      ...body,
-      createdAt: currentDate,
-      updatedAt: currentDate,
-    });
+    const result = await amplifyClient.models.ProductType.create(
+      {
+        ...body,
+        createdAt: currentDate,
+        updatedAt: currentDate,
+      },
+      {
+        authMode: "userPool",
+      }
+    );
 
     if (!result.data) {
       return NextResponse.json(

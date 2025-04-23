@@ -107,6 +107,8 @@ const schema = a
     // allow.publicApiKey().to(["read"]),
     allow.guest().to(["read"]),
     allow.owner(),
+    allow.authenticated("identityPool").to(["read"]),
+    allow.authenticated(),
   ]);
 
 export type Schema = ClientSchema<typeof schema>;

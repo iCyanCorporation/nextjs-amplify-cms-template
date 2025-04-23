@@ -1,11 +1,6 @@
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-Amplify.configure(outputs, { ssr: true });
-
 import { amplifyClient } from "@/hooks/useAmplifyClient";
+import { fetchAuthSession } from "aws-amplify/auth";
 import { NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/api";
-import type { Schema } from "@/amplify/data/resource";
 
 type Params = Promise<{ id: string }>;
 
@@ -13,7 +8,10 @@ type Params = Promise<{ id: string }>;
 export async function GET(request: Request, { params }: { params: Params }) {
   try {
     const { id } = await params;
-    const result = await amplifyClient.models.Attribute.get({ id });
+    const result = await amplifyClient.models.Attribute.get(
+      { id },
+      { authMode: "identityPool" }
+    );
 
     if (!result.data) {
       return NextResponse.json(
@@ -38,15 +36,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
   if (!authHeader) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const authToken = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : authHeader;
-  // @ts-ignore override Amplify client options for Cognito auth
-  const client = generateClient<Schema>({
-    authMode: "identityPool",
-    authToken,
-  });
-
   const { id } = await params;
   const { name, type, options } = await request.json();
   // AWSJSON scalar expects a JSON string
@@ -58,12 +47,16 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     options: formattedOptions,
   });
   try {
-    const result = await client.models.Attribute.update({
-      id,
-      name,
-      type,
-      options: formattedOptions,
-    });
+    // const session = await fetchAuthSession();
+    // if (!session) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
+    // const authToken = session.tokens?.accessToken;
+
+    const result = await amplifyClient.models.Attribute.update(
+      { id, name, type, options: formattedOptions },
+      { authMode: "userPool" }
+    );
     console.log("Attribute update result:", result);
     const record = (result as any).data ?? result;
     return NextResponse.json(record);
@@ -82,20 +75,15 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
   if (!authHeader) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const authToken = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : authHeader;
-  // @ts-ignore override Amplify client options for Cognito auth
-  const client = generateClient<Schema>({
-    authMode: "identityPool",
-    authToken,
-  });
 
   try {
     const { id } = await params;
 
     // Check if attribute exists
-    const existingResult = await client.models.Attribute.get({ id });
+    const existingResult = await amplifyClient.models.Attribute.get(
+      { id },
+      { authMode: "identityPool" }
+    );
     if (!existingResult.data) {
       return NextResponse.json(
         { error: "Attribute not found" },
@@ -104,7 +92,10 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     }
 
     // Delete the attribute
-    const result = await client.models.Attribute.delete({ id });
+    const result = await amplifyClient.models.Attribute.delete(
+      { id },
+      { authMode: "userPool" }
+    );
 
     if (!result.data) {
       return NextResponse.json(
