@@ -17,9 +17,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   // Only pick allowed create fields
-  const { name, type, isRequired } = await request.json();
+  const { name, type } = await request.json();
   try {
-    const result = await amplifyClient.models.Attribute.create({ name, type, isRequired });
+    const result = await amplifyClient.models.Attribute.create({ name, type });
     console.log("Attribute create result:", result);
     // unwrap data if present, else use result directly
     const record = (result as any).data ?? result;

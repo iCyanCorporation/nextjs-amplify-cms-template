@@ -83,7 +83,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
       id: attr.id,
       name: attr.name,
       type: attr.type || "text", // Default to text if type is missing
-      required: attr.isRequired || false, // Convert isRequired to required for frontend
+
       options: Array.isArray(attr.options) ? attr.options : [],
     }));
 
@@ -252,7 +252,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                 options: Array.isArray(attribute.options)
                   ? attribute.options
                   : [],
-                isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
               });
               console.log(`Updated existing attribute: ${attribute.name}`);
             } else {
@@ -264,7 +263,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
                   options: Array.isArray(attribute.options)
                     ? attribute.options
                     : [],
-                  isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
                 }
               );
 
@@ -284,7 +282,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
               options: Array.isArray(attribute.options)
                 ? attribute.options
                 : [],
-              isRequired: Boolean(attribute.isRequired), // Use isRequired field from frontend
             });
             console.log(
               `Updated attribute with ID ${attributeId}: ${attribute.name}`

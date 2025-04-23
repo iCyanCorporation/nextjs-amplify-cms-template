@@ -85,7 +85,7 @@ export default function ProductVariantForm({
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState<
     Record<string, string | string[] | boolean>
-  >({});
+  >({}); // For multi-checkbox, store arrays for each attribute id and dropdown values as attributeId_itemId_dropdown
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -104,7 +104,13 @@ export default function ProductVariantForm({
         const initialAttributes: Record<string, string | string[] | boolean> =
           {};
         Attributes.forEach((attr) => {
-          initialAttributes[attr.id] = attr.type === "boolean" ? false : "";
+          if (["text", "number", "color"].includes(attr.type)) {
+            initialAttributes[attr.id] = [];
+          } else if (attr.type === "boolean") {
+            initialAttributes[attr.id] = false;
+          } else {
+            initialAttributes[attr.id] = "";
+          }
         });
         setSelectedAttributes(initialAttributes);
       }
@@ -118,7 +124,13 @@ export default function ProductVariantForm({
       // Create empty selected attributes for new variant
       const initialAttributes: Record<string, string | string[] | boolean> = {};
       Attributes.forEach((attr) => {
-        initialAttributes[attr.id] = attr.type === "boolean" ? false : "";
+        if (["text", "number", "color"].includes(attr.type)) {
+          initialAttributes[attr.id] = [];
+        } else if (attr.type === "boolean") {
+          initialAttributes[attr.id] = false;
+        } else {
+          initialAttributes[attr.id] = "";
+        }
       });
       setSelectedAttributes(initialAttributes);
     }
@@ -166,14 +178,24 @@ export default function ProductVariantForm({
     // Add selected attribute values to the name
     Attributes.forEach((attr) => {
       const selectedValue = selectedAttributes[attr.id];
-
       if (
         selectedValue !== undefined &&
         selectedValue !== null &&
-        selectedValue !== ""
+        ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
+          (typeof selectedValue === "string" && selectedValue !== "") ||
+          (typeof selectedValue === "boolean" && selectedValue === true))
       ) {
-        // For color attributes, add the value name
-        if (attr.type === "color" && typeof selectedValue === "string") {
+        // For color/text/number attributes with multi-select (array)
+        if (["color", "text", "number"].includes(attr.type) && Array.isArray(selectedValue)) {
+          selectedValue.forEach((id) => {
+            const valueObj = attributeOptions[attr.id]?.find((v) => v.id === id);
+            if (valueObj) {
+              nameComponents.push(valueObj.value);
+            }
+          });
+        }
+        // For color attributes, single string fallback (legacy)
+        else if (attr.type === "color" && typeof selectedValue === "string") {
           const colorValue = attributeOptions[attr.id]?.find(
             (v) => v.id === selectedValue
           );
@@ -181,7 +203,6 @@ export default function ProductVariantForm({
             nameComponents.push(colorValue.value);
           }
         }
-
         // For boolean attributes, only add if true
         else if (
           attr.type === "boolean" &&
@@ -242,9 +263,11 @@ export default function ProductVariantForm({
       if (attr.isRequired) {
         const value = selectedAttributes[attr.id];
         if (
-          !value ||
+          value === undefined ||
+          value === null ||
           (Array.isArray(value) && value.length === 0) ||
-          (typeof value === "string" && !value.trim())
+          (typeof value === "string" && !value.trim()) ||
+          (typeof value === "boolean" && value !== true)
         ) {
           newErrors[`attr_${attr.id}`] = `${attr.name} is required`;
         }
@@ -272,96 +295,79 @@ export default function ProductVariantForm({
     onClose();
   };
 
-  // Render a single attribute field
+  // Render a single attribute field (multi-checkbox for items, dropdown per checked)
   const renderAttributeField = (attribute: Attribute) => {
     const attrValues = attributeOptions[attribute.id] || [];
-    const selectedValue = selectedAttributes[attribute.id];
+    // For multi-select, selectedValue is an array of selected item ids
+    const selectedValue: string[] = Array.isArray(selectedAttributes[attribute.id]) ? (selectedAttributes[attribute.id] as string[]) : [];
 
-    switch (attribute.type) {
-      case "text":
-      case "number":
-        return (
-          <Select
-            value={(selectedValue as string) || "none"}
-            onValueChange={(value) =>
-              handleAttributeChange(attribute.id, value === "none" ? "" : value)
+    // Only apply multi-checkbox logic for text, number, color types
+    if (["text", "number", "color"].includes(attribute.type)) {
+      return (
+        <div className="space-y-2">
+          {attrValues.map((item) => {
+            const checked = selectedValue?.includes(item.id) ?? false;
+            return (
+              <div key={item.id} className="flex items-center gap-2 mb-1">
+                <Checkbox
+                  id={`attr-${attribute.id}-item-${item.id}`}
+                  checked={checked}
+                  onCheckedChange={(isChecked) => {
+                    let newSelected: string[] = Array.isArray(selectedValue) ? [...selectedValue] : [];
+                    if (isChecked) {
+                      if (!newSelected.includes(item.id)) newSelected.push(item.id);
+                    } else {
+                      newSelected = newSelected.filter((id) => id !== item.id);
+                    }
+                    handleAttributeChange(attribute.id, newSelected);
+                  }}
+                />
+                <Label htmlFor={`attr-${attribute.id}-item-${item.id}`}>{item.value}</Label>
+                {/* Show dropdown if checked */}
+                {checked && (
+                  <Select
+                    value={typeof selectedAttributes[`${attribute.id}_${item.id}_dropdown`] === "string" ? (selectedAttributes[`${attribute.id}_${item.id}_dropdown`] as string) : ""}
+                    onValueChange={(dropdownValue) => {
+                      setSelectedAttributes((prev) => ({
+                        ...prev,
+                        [`${attribute.id}_${item.id}_dropdown`]: dropdownValue,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger className="ml-2 min-w-[120px]">
+                      <SelectValue placeholder="Select option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="option1">Option 1</SelectItem>
+                      <SelectItem value="option2">Option 2</SelectItem>
+                      {/* Add more as needed or make dynamic */}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            );
+          })}
+          {/* Validation error */}
+          {errors[`attr_${attribute.id}`] && (
+            <p className="text-red-500 text-xs">{errors[`attr_${attribute.id}`]}</p>
+          )}
+        </div>
+      );
+    } else if (attribute.type === "boolean") {
+      return (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id={`attr-${attribute.id}`}
+            checked={!!selectedAttributes[attribute.id]}
+            onCheckedChange={(checked) =>
+              handleAttributeChange(attribute.id, !!checked)
             }
-          >
-            <SelectTrigger
-              className={errors[`attr_${attribute.id}`] ? "border-red-500" : ""}
-            >
-              <SelectValue placeholder={`Select ${attribute.name}`} />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Add 'None' option if not required */}
-              {!attribute.isRequired && (
-                <SelectItem value="none">
-                  <span className="text-gray-500">None</span>
-                </SelectItem>
-              )}
-              {attrValues.map((value) => (
-                <SelectItem key={value.id} value={value.id}>
-                  {value.value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-
-      case "boolean":
-        return (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`attr-${attribute.id}`}
-              checked={!!selectedValue}
-              onCheckedChange={(checked) =>
-                handleAttributeChange(attribute.id, !!checked)
-              }
-            />
-            <Label htmlFor={`attr-${attribute.id}`}>{attribute.name}</Label>
-          </div>
-        );
-
-      case "color":
-        return (
-          <Select
-            value={(selectedValue as string) || "none"}
-            onValueChange={(value) =>
-              handleAttributeChange(attribute.id, value === "none" ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className={errors[`attr_${attribute.id}`] ? "border-red-500" : ""}
-            >
-              <SelectValue placeholder={`Select ${attribute.name}`} />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Add 'None' option if not required */}
-              {!attribute.isRequired && (
-                <SelectItem value="none">
-                  <div className="text-gray-500">None</div>
-                </SelectItem>
-              )}
-              {attrValues.map((value) => (
-                <SelectItem key={value.id} value={value.id}>
-                  <div className="flex items-center gap-2">
-                    {value.color && (
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: value.color }}
-                      />
-                    )}
-                    {value.value}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
-
-      default:
-        return null;
+          />
+          <Label htmlFor={`attr-${attribute.id}`}>{attribute.name}</Label>
+        </div>
+      );
     }
+    return null;
   };
 
   return (
