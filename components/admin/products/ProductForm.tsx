@@ -344,35 +344,20 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           // Initialize or clear the options for the current attribute
           newOption[attr.id] = [];
 
-          if (Array.isArray(attr.options) && attr.options.length > 0) {
-            if (attr.type === "color") {
-              // Handle color options (array of objects: [{ name: code }, ...])
-              (attr.options as Record<string, string>[]).forEach(
-                (optObj, index) => {
-                  if (typeof optObj === "object" && optObj !== null) {
-                    const valueName = Object.keys(optObj)[0];
-                    const colorCode = optObj[valueName];
-                    if (valueName) {
-                      newOption[attr.id].push({
-                        key: valueName,
-                        value: colorCode,
-                      });
-                    }
-                  }
-                }
-              );
-            } else {
-              // Handle other options (array of strings)
-              (attr.options as string[]).forEach((optStr, index) => {
-                if (typeof optStr === "string") {
+          (attr.options as Record<string, string>[]).forEach(
+            (optObj, index) => {
+              if (typeof optObj === "object" && optObj !== null) {
+                const key = Object.keys(optObj)[0];
+                const value = optObj[key];
+                if (key) {
                   newOption[attr.id].push({
-                    key: optStr,
-                    value: optStr,
+                    key: key,
+                    value: value,
                   });
                 }
-              });
+              }
             }
-          }
+          );
           // If attr.options is empty or not an array, newOption[attr.id] remains []
         });
         return newOption;

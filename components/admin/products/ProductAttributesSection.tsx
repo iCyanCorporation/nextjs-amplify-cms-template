@@ -59,19 +59,14 @@ export default function CombinedAttributesSection({
       // Parse options if needed
       const parsedAttributes = (data.attributes || []).map((attr: any) => ({
         ...attr,
-        options:
-          typeof attr.options === "string"
-            ? (() => {
-                try {
-                  const parsed = JSON.parse(attr.options);
-                  return Array.isArray(parsed) ? parsed : [];
-                } catch {
-                  return [];
-                }
-              })()
-            : Array.isArray(attr.options)
-              ? attr.options
-              : [],
+        options: (() => {
+          try {
+            const parsed = JSON.parse(attr.options);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })(),
       }));
       setAttributes(parsedAttributes);
       // Optionally, update attributeOption state here if needed
@@ -91,8 +86,8 @@ export default function CombinedAttributesSection({
   const [currentAttributeId, setCurrentAttributeId] = useState<string | null>(
     null
   );
+  const [newKeyInput, setNewKeyInput] = useState("");
   const [newValueInput, setNewValueInput] = useState("");
-  const [newColorInput, setNewColorInput] = useState("#000000");
   const [selectingSystemAttribute, setSelectingSystemAttribute] =
     useState(false);
 
@@ -192,24 +187,25 @@ export default function CombinedAttributesSection({
   const openOptionEditor = (attributeId: string) => {
     setCurrentAttributeId(attributeId);
     setIsEditingOption(true);
-    setNewValueInput("");
-    setNewColorInput("#000000");
+    setNewKeyInput("");
+    if (attributes.find((attr) => attr.id === attributeId)?.type === "color") {
+      setNewValueInput("#000000");
+    } else {
+      setNewValueInput("");
+    }
   };
 
   // Add a new value for the current attribute
   const addValue = () => {
-    // console.log("[addValue] currentAttributeId:", currentAttributeId);
-    // console.log("[addValue] newValueInput:", newValueInput);
-    // console.log("[addValue] attributeOption before:", attributeOption);
-
-    if (!currentAttributeId || !newValueInput.trim()) return;
+    if (!currentAttributeId || !newKeyInput.trim() || !newValueInput.trim())
+      return;
 
     const attribute = attributes.find((attr) => attr.id === currentAttributeId);
     if (!attribute) return;
 
     const newValue: AttributeValue = {
-      key: newValueInput,
-      value: attribute?.type === "color" ? newColorInput : newValueInput,
+      key: newKeyInput,
+      value: newValueInput,
     };
 
     const currentOption = attributeOption[currentAttributeId] || [];
@@ -227,29 +223,23 @@ export default function CombinedAttributesSection({
                 string
               >[])
             : ([] as Record<string, string>[]);
-          if (attribute.type === "color") {
-            return {
-              ...attr,
-              options: [
-                ...currentOptions,
-                { [newValueInput]: newColorInput },
-              ] as Record<string, string>[],
-            };
-          } else {
-            return {
-              ...attr,
-              options: [
-                ...currentOptions,
-                { [newValueInput]: newValueInput },
-              ] as Record<string, string>[],
-            };
-          }
+          return {
+            ...attr,
+            options: [
+              ...currentOptions,
+              { [newKeyInput]: newValueInput },
+            ] as Record<string, string>[],
+          };
         }
         return attr;
       })
     );
-    setNewValueInput("");
-    setNewColorInput("#000000");
+    setNewKeyInput("");
+    if (attribute.type === "color") {
+      setNewValueInput("#000000");
+    } else {
+      setNewValueInput("");
+    }
   };
 
   // Remove a value
@@ -365,6 +355,41 @@ export default function CombinedAttributesSection({
     }
 
     setIsEditingOption(false);
+  };
+
+  const removeOption = async (attributeId: string, optionKey: string) => {
+    try {
+      // remove option from attributeOption
+      setAttributeOption((prev) => ({
+        ...prev,
+        [attributeId]: prev[attributeId].filter(
+          (option) => option.key !== optionKey
+        ),
+      }));
+
+      // const token = await getAuthToken();
+      // const response = await fetch(`/api/attributes/${attributeId}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     Authorization: token,
+      //   },
+      //   body: JSON.stringify({
+      //     id: attributeId,
+      //     name: getCurrentAttribute()?.name,
+      //     type: getCurrentAttribute()?.type,
+      //     isRequired: getCurrentAttribute()?.isRequired,
+      //     options: attributeOption[attributeId],
+      //   }),
+      // });
+      // if (!response.ok) {
+      //   throw new Error("Failed to delete attribute");
+      // }
+    } catch (error) {
+      console.error("Error deleting attribute:", error);
+      // Optionally show error to user
+    } finally {
+      // await reloadAttributes();
+    }
   };
 
   if (isLoading) {
@@ -552,14 +577,15 @@ export default function CombinedAttributesSection({
                     <Input
                       id="value-name"
                       placeholder="e.g., Red, Blue, Green"
-                      value={newValueInput}
-                      onChange={(e) => setNewValueInput(e.target.value)}
+                      value={newKeyInput}
+                      onChange={(e) => setNewKeyInput(e.target.value)}
                     />
                     <input
                       id="value-color"
                       type="color"
-                      value={newColorInput}
-                      onChange={(e) => setNewColorInput(e.target.value)}
+                      value={newValueInput}
+                      defaultValue="#000000"
+                      onChange={(e) => setNewValueInput(e.target.value)}
                       className="w-8 rounded cursor-pointer aspect-square m-auto"
                     />
                   </div>
@@ -579,8 +605,11 @@ export default function CombinedAttributesSection({
                         ? "number"
                         : "text"
                     }
-                    value={newValueInput}
-                    onChange={(e) => setNewValueInput(e.target.value)}
+                    value={newKeyInput}
+                    onChange={(e) => {
+                      setNewKeyInput(e.target.value);
+                      setNewValueInput(e.target.value);
+                    }}
                   />
                 </div>
               )}
@@ -613,11 +642,7 @@ export default function CombinedAttributesSection({
                         ) : (
                           <></>
                         )}
-                        <span className="text-sm">
-                          {getCurrentAttribute()?.type === "color"
-                            ? item.key
-                            : item.value}
-                        </span>
+                        <span className="text-sm">{item.key}</span>
                       </div>
                       <Button
                         type="button"
@@ -625,7 +650,7 @@ export default function CombinedAttributesSection({
                         size="icon"
                         className="text-red-500"
                         onClick={() =>
-                          removeValue(currentAttributeId!, item.key)
+                          removeOption(currentAttributeId!, item.key)
                         }
                       >
                         <X className="h-4 w-4" />
@@ -640,6 +665,16 @@ export default function CombinedAttributesSection({
           </div>
 
           <DialogFooter>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                reloadAttributes();
+                setIsEditingOption(false);
+              }}
+            >
+              Cancel
+            </Button>
             <Button
               type="button"
               onClick={async () => {
