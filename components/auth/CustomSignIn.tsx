@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 type CustomSignInProps = {
   onSignIn: (username: string, password: string) => Promise<void>;
@@ -29,6 +29,7 @@ export const CustomSignIn = React.forwardRef<HTMLDivElement, CustomSignInProps>(
     const [error, setError] = useState<string | null>(null);
     const [username, setUsername] = useState(defaultEmail || "");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -44,7 +45,7 @@ export const CustomSignIn = React.forwardRef<HTMLDivElement, CustomSignInProps>(
     };
 
     return (
-      <Card className="w-full max-w-md" ref={ref}>
+      <Card className="w-full" ref={ref}>
         <CardHeader className="text-center">
           <CardTitle>Sign In</CardTitle>
           <CardDescription>Access your account</CardDescription>
@@ -70,18 +71,34 @@ export const CustomSignIn = React.forwardRef<HTMLDivElement, CustomSignInProps>(
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                required
-                disabled={isPending}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  required
+                  disabled={isPending}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  disabled={isPending}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button
+              variant="default"
+              type="submit"
+              className="w-full"
+              disabled={isPending}
+            >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>

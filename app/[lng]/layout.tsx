@@ -24,7 +24,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lng} dir={dir(lng)} suppressHydrationWarning>
-      <body className={`${inter.className} bg-white`}>
+      <body className={`${inter.className} bg-background`}>
         <main>
           {children}
           <ScrollToTop />

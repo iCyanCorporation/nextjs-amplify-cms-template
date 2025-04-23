@@ -32,7 +32,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 bg-background border-b border-neutral-200 dark:border-white/50 rounded-b-none">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="tax">Tax</TabsTrigger>

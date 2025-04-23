@@ -38,7 +38,7 @@ export default function SidebarNav() {
   };
 
   return (
-    <Sidebar className="fixed left-0 top-0 h-screen z-50 flex flex-col justify-between bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white">
+    <Sidebar className="fixed left-0 top-0 h-screen z-50 flex flex-col justify-between border-r-2 border-neutral-200 dark:border-neutral-800">
       <SidebarHeader className="flex flex-col gap-2 px-4 py-4 border-b border-neutral-200 dark:border-neutral-800">
         {/* Organization Info */}
         <div className="flex flex-col mb-2">
@@ -120,16 +120,10 @@ export default function SidebarNav() {
               </div>
               <div className="flex flex-col py-1">
                 <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
-                  <span>⚡</span> Upgrade to Pro
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
-                  <span>⚙️</span> Account
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
-                  <span>💳</span> Billing
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
-                  <span>🔔</span> Notifications
+                  <span>
+                    <FaHome />
+                  </span>{" "}
+                  Homepage
                 </button>
               </div>
               <div className="flex items-center justify-between px-4 py-2 border-t border-neutral-200 dark:border-neutral-800">

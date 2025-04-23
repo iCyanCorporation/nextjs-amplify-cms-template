@@ -50,7 +50,7 @@ export const CustomSignUp = React.forwardRef<HTMLDivElement, CustomSignUpProps>(
     };
 
     return (
-      <Card className="w-full max-w-md" ref={ref}>
+      <Card className="w-full" ref={ref}>
         <CardHeader className="text-center">
           <CardTitle>Create Account</CardTitle>
           <CardDescription>Sign up for a new account</CardDescription>

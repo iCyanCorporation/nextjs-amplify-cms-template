@@ -161,11 +161,16 @@ export default function AuthClientWrapper({
       );
       break;
     case "authenticated":
-      content = <div className="">{children}</div>;
-      break;
+      content = <div>{children}</div>;
+      return <div className="p-4">{content}</div>;
+
     default:
       content = null;
   }
 
-  return <div className="p-4">{content}</div>;
+  return (
+    <div className="flex items-center justify-center w-full h-screen">
+      <div className="p-4 max-w-[500px] w-full m-auto">{content}</div>
+    </div>
+  );
 }

@@ -31,54 +31,20 @@ export async function GET(request: Request, { params }: { params: Params }) {
 }
 
 // PUT /api/attributes/:id - Update a specific attribute
-export async function PUT(request: Request, { params }: { params: Params }) {
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
+  const { name, type, isRequired, options } = await request.json();
+  // AWSJSON scalar expects a JSON string
+  const formattedOptions = JSON.stringify(options);
+  console.log("Updating attribute:", { id, name, type, isRequired, options: formattedOptions });
   try {
-    const { id } = await params;
-    const body = await request.json();
-
-    // Check if attribute exists
-    const existingResult = await amplifyClient.models.Attribute.get({ id });
-    if (!existingResult.data) {
-      return NextResponse.json(
-        { error: "Attribute not found" },
-        { status: 404 }
-      );
-    }
-
-    // Handle both frontend format (required) and backend format (isRequired)
-    const isRequired =
-      body.isRequired !== undefined
-        ? body.isRequired
-        : body.required !== undefined
-          ? body.required
-          : false;
-
-    // Ensure options is an array
-    const options = Array.isArray(body.options) ? body.options : [];
-
-    // Update the attribute
-    const result = await amplifyClient.models.Attribute.update({
-      id,
-      name: body.name,
-      type: body.type,
-      options: options,
-      isRequired: Boolean(isRequired),
-    });
-
-    if (!result.data) {
-      return NextResponse.json(
-        { error: "Failed to update attribute" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(result.data);
+    const result = await amplifyClient.models.Attribute.update({ id, name, type, isRequired, options: formattedOptions });
+    console.log("Attribute update result:", result);
+    const record = (result as any).data ?? result;
+    return NextResponse.json(record);
   } catch (error) {
     console.error("Error updating attribute:", error);
-    return NextResponse.json(
-      { error: "Failed to update attribute" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update attribute" }, { status: 500 });
   }
 }
 

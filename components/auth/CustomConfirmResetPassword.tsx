@@ -47,7 +47,7 @@ export const CustomConfirmResetPassword = React.forwardRef<
   };
 
   return (
-    <Card className="w-full max-w-md" ref={ref}>
+    <Card className="w-full" ref={ref}>
       <CardHeader className="text-center">
         <CardTitle>Set New Password</CardTitle>
         <CardDescription>

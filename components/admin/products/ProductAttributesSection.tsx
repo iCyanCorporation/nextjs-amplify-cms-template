@@ -104,7 +104,6 @@ export default function CombinedAttributesSection({
       name: newAttributeName,
       type: newAttributeType,
       isRequired: newAttributeRequired,
-      options: [],
     };
     try {
       const response = await fetch("/api/attributes", {
@@ -113,11 +112,19 @@ export default function CombinedAttributesSection({
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("Failed to add attribute");
-      const savedAttribute = await response.json();
-      setAttributes((prev) => [...prev, savedAttribute]);
+      const result = await response.json();
+      // API may wrap created item in data property
+      const saved = (result && (result as any).data) ? (result as any).data : result;
+      // Ensure options and isRequired defaults
+      const newAttr: Attribute = {
+        ...saved,
+        options: Array.isArray((saved as any).options) ? (saved as any).options : [],
+        isRequired: (saved as any).isRequired ?? false,
+      };
+      setAttributes((prev) => [...prev, newAttr]);
       setAttributeOption((prev) => ({
         ...prev,
-        [savedAttribute.id]: [],
+        [newAttr.id]: [],
       }));
       // Reset form only after DB returns
       setNewAttributeName("");
