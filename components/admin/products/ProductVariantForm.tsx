@@ -183,22 +183,23 @@ export default function VariantForm({
           Array.isArray(selectedValue)
         ) {
           selectedValue.forEach((id) => {
-            const valueObj = AttributeValues[attr.id]?.find(
-              (v) => v.key === id
-            );
-            if (valueObj) {
-              nameComponents.push(valueObj.value);
+            if (attr.type === "color") {
+              // Use key for color
+              nameComponents.push(id);
+            } else {
+              const valueObj = AttributeValues[attr.id]?.find(
+                (v) => v.key === id
+              );
+              if (valueObj) {
+                nameComponents.push(valueObj.value);
+              }
             }
           });
         }
         // For color attributes, single string fallback (legacy)
         else if (attr.type === "color" && typeof selectedValue === "string") {
-          const colorValue = AttributeValues[attr.id]?.find(
-            (v) => v.key === selectedValue
-          );
-          if (colorValue) {
-            nameComponents.push(colorValue.value);
-          }
+          // Use key for color
+          nameComponents.push(selectedValue);
         }
         // For boolean attributes, only add if true
         else if (
@@ -257,7 +258,8 @@ export default function VariantForm({
 
     // Validate required attributes
     Attributes.forEach((attr) => {
-      if (attr.isRequired) {
+      // Only validate if attribute is selected
+      if (selectedAttributes.hasOwnProperty(attr.id)) {
         const value = selectedAttributes[attr.id];
         if (
           value === undefined ||
@@ -292,100 +294,138 @@ export default function VariantForm({
     onClose();
   };
 
-  // Render a single attribute field (multi-checkbox for items, dropdown per checked)
+  // Render a single attribute field with attribute-level selection
   const renderAttributeField = (attribute: Attribute) => {
     const attrValues = AttributeValues[attribute.id] || [];
-    // For multi-select, selectedValue is an array of selected item ids
-    const selectedValue: string[] = Array.isArray(
-      selectedAttributes[attribute.id]
-    )
-      ? (selectedAttributes[attribute.id] as string[])
-      : [];
+    // Determine if attribute is selected
+    // Attribute is selected if it exists in selectedAttributes
+    const isSelected = selectedAttributes.hasOwnProperty(attribute.id);
 
-    // Only apply multi-checkbox logic for text, number, color types
-    if (["text", "number", "color"].includes(attribute.type)) {
-      return (
-        <div className="space-y-2">
-          {attrValues.map((item) => {
-            const checked = selectedValue?.includes(item.key) ?? false;
-            return (
-              <div key={item.key} className="flex items-center gap-2 mb-1">
-                <Checkbox
-                  id={`attr-${attribute.id}-item-${item.key}`}
-                  checked={checked}
-                  onCheckedChange={(isChecked) => {
-                    let newSelected: string[] = Array.isArray(selectedValue)
-                      ? [...selectedValue]
-                      : [];
-                    if (isChecked) {
-                      if (!newSelected.includes(item.key))
-                        newSelected.push(item.key);
-                    } else {
-                      newSelected = newSelected.filter(
-                        (key) => key !== item.key
-                      );
-                    }
-                    handleAttributeChange(attribute.id, newSelected);
-                  }}
-                />
-                <Label htmlFor={`attr-${attribute.id}-item-${item.key}`}>
-                  {item.value}
-                </Label>
-                {/* Show dropdown if checked */}
-                {checked && (
-                  <Select
-                    value={
-                      typeof selectedAttributes[
-                        `${attribute.id}_${item.key}_dropdown`
-                      ] === "string"
-                        ? (selectedAttributes[
-                            `${attribute.id}_${item.key}_dropdown`
-                          ] as string)
-                        : ""
-                    }
-                    onValueChange={(dropdownValue) => {
-                      setSelectedAttributes((prev) => ({
-                        ...prev,
-                        [`${attribute.id}_${item.key}_dropdown`]: dropdownValue,
-                      }));
-                    }}
-                  >
-                    <SelectTrigger className="ml-2 min-w-[120px]">
-                      <SelectValue placeholder="Select option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="option1">Option 1</SelectItem>
-                      <SelectItem value="option2">Option 2</SelectItem>
-                      {/* Add more as needed or make dynamic */}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            );
-          })}
-          {/* Validation error */}
-          {errors[`attr_${attribute.id}`] && (
-            <p className="text-red-500 text-xs">
-              {errors[`attr_${attribute.id}`]}
-            </p>
-          )}
-        </div>
-      );
-    } else if (attribute.type === "boolean") {
-      return (
-        <div className="flex items-center space-x-2">
+    // Attribute select checkbox
+    return (
+      <div>
+        <div className="flex items-center gap-2">
           <Checkbox
-            id={`attr-${attribute.id}`}
-            checked={!!selectedAttributes[attribute.id]}
-            onCheckedChange={(checked) =>
-              handleAttributeChange(attribute.id, !!checked)
-            }
+            id={`attr-enable-${attribute.id}`}
+            checked={isSelected}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                // Set default value for attribute type
+                if (["text", "number", "color"].includes(attribute.type)) {
+                  handleAttributeChange(attribute.id, []);
+                } else if (attribute.type === "boolean") {
+                  handleAttributeChange(attribute.id, false);
+                } else {
+                  handleAttributeChange(attribute.id, "");
+                }
+              } else {
+                // Remove value from selectedAttributes
+                setSelectedAttributes((prev) => {
+                  const newAttrs = { ...prev };
+                  delete newAttrs[attribute.id];
+                  // Remove any dropdowns for this attribute
+                  if (["text", "number", "color"].includes(attribute.type)) {
+                    (AttributeValues[attribute.id] || []).forEach((item) => {
+                      delete newAttrs[`${attribute.id}_${item.key}_dropdown`];
+                    });
+                  }
+                  return newAttrs;
+                });
+              }
+            }}
           />
-          <Label htmlFor={`attr-${attribute.id}`}>{attribute.name}</Label>
+          <Label htmlFor={`attr-enable-${attribute.id}`}>
+            {attribute.name}
+          </Label>
         </div>
-      );
-    }
-    return null;
+        {/* Show options only if selected */}
+        {isSelected && (
+          <div className="pl-6 pt-2">
+            {(() => {
+              if (["text", "number", "color"].includes(attribute.type)) {
+                const selectedValue: string[] = Array.isArray(
+                  selectedAttributes[attribute.id]
+                )
+                  ? (selectedAttributes[attribute.id] as string[])
+                  : [];
+                return (
+                  <div className="space-y-2">
+                    {attrValues.map((item) => {
+                      const checked =
+                        selectedValue?.includes(item.key) ?? false;
+                      return (
+                        <div
+                          key={item.key}
+                          className="flex items-center gap-2 mb-1"
+                        >
+                          <Checkbox
+                            id={`attr-${attribute.id}-item-${item.key}`}
+                            checked={checked}
+                            onCheckedChange={(isChecked) => {
+                              let newSelected: string[] = Array.isArray(
+                                selectedValue
+                              )
+                                ? [...selectedValue]
+                                : [];
+                              if (isChecked) {
+                                if (!newSelected.includes(item.key))
+                                  newSelected.push(item.key);
+                              } else {
+                                newSelected = newSelected.filter(
+                                  (key) => key !== item.key
+                                );
+                              }
+                              handleAttributeChange(attribute.id, newSelected);
+                            }}
+                          />
+                          <Label
+                            htmlFor={`attr-${attribute.id}-item-${item.key}`}
+                          >
+                            {attribute.type === "color" ? (
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-4 h-4 rounded-full"
+                                  style={{ backgroundColor: item.value }}
+                                />
+                                <span>{item.key}</span>
+                              </div>
+                            ) : (
+                              item.value
+                            )}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                    {/* Validation error */}
+                    {errors[`attr_${attribute.id}`] && (
+                      <p className="text-red-500 text-xs">
+                        {errors[`attr_${attribute.id}`]}
+                      </p>
+                    )}
+                  </div>
+                );
+              } else if (attribute.type === "boolean") {
+                return (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`attr-${attribute.id}`}
+                      checked={!!selectedAttributes[attribute.id]}
+                      onCheckedChange={(checked) =>
+                        handleAttributeChange(attribute.id, !!checked)
+                      }
+                    />
+                    <Label htmlFor={`attr-${attribute.id}`}>
+                      {attribute.name}
+                    </Label>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -409,6 +449,7 @@ export default function VariantForm({
                     value={form.name ?? ""}
                     onChange={handleChange}
                     className={errors.name ? "border-red-500" : ""}
+                    disabled={true}
                   />
                   {errors.name && (
                     <p className="text-red-500 text-xs">{errors.name}</p>
@@ -473,11 +514,8 @@ export default function VariantForm({
 
                   <div className="space-y-4">
                     {Attributes.map((attribute) => (
-                      <div key={attribute.id} className="space-y-2">
-                        <Label>
-                          {attribute.name}
-                          {attribute.isRequired ? " *" : ""}
-                        </Label>
+                      <div key={attribute.id}>
+                        {/* <Label>{attribute.name}</Label> */}
                         {renderAttributeField(attribute)}
                       </div>
                     ))}

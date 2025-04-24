@@ -6,6 +6,7 @@ import { stripHtml } from "@/lib/common";
 import { Blog } from "@/types/blog";
 import { useTranslation } from "@/app/i18n/client";
 import { homepageData } from "@/data/homepage";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 export function LatestBlogs({ lng }: { lng: string }) {
   const { t } = useTranslation(lng, "homepage");
@@ -14,19 +15,25 @@ export function LatestBlogs({ lng }: { lng: string }) {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await fetch('/api/blogs/list?limit=3');
+        const response = await fetch("/api/blogs?limit=3", {
+          headers: {
+            Authorization: `Bearer ${await getAuthToken()}`,
+          },
+        });
         const data = await response.json();
 
         // sort data by createdAt
         data.sort((a: Blog, b: Blog) => {
           if (a.createdAt && b.createdAt) {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
           }
           return 0;
         });
         setLatestBlogs(data);
       } catch (error) {
-        console.error('Error fetching blogs:', error);
+        console.error("Error fetching blogs:", error);
       }
     };
 
@@ -63,10 +70,14 @@ export function LatestBlogs({ lng }: { lng: string }) {
                 title: blog.title ?? "",
                 content: stripHtml(blog.content ?? ""),
                 category: blog.category ?? "other",
-                createdAt: blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "",
+                createdAt: blog.createdAt
+                  ? new Date(blog.createdAt).toLocaleDateString()
+                  : "",
                 tags: blog.tags ?? [],
                 owner: blog.owner ?? "",
-                updatedAt: blog.updatedAt ? new Date(blog.updatedAt).toLocaleDateString() : "",
+                updatedAt: blog.updatedAt
+                  ? new Date(blog.updatedAt).toLocaleDateString()
+                  : "",
               }}
             />
           ))

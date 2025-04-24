@@ -4,7 +4,7 @@ export interface Attribute {
   id: string;
   name: string;
   type: AttributeType;
-  isRequired: boolean;
+  // isRequired: boolean;
   // For text/number/boolean: string[]
   // For color: Record<string, string>[] (e.g. [{red: "#00ff66"}])
   options?: string[] | Record<string, string>[];

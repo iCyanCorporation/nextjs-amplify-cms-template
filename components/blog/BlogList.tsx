@@ -9,6 +9,7 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { EmptyState } from "@/components/ui/empty-state";
 import { stripHtml } from "@/lib/common";
 import type { Blog } from "@/types/blog";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 export function BlogList() {
   const [blogs, setBlogs] = useState<Array<Schema["Blog"]["type"]>>([]);
@@ -19,13 +20,16 @@ export function BlogList() {
 
   async function getBlogs() {
     try {
-      const response = await fetch(`/api/blogs/list`, {
-        cache: 'no-cache'
+      const response = await fetch(`/api/blogs/`, {
+        cache: "no-cache",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-      if (!response.ok) throw new Error('Failed to fetch blogs');
+      if (!response.ok) throw new Error("Failed to fetch blogs");
       return response.json();
     } catch (error) {
-      console.error('Error loading blogs:', error);
+      console.error("Error loading blogs:", error);
       return [];
     }
   }
@@ -52,7 +56,9 @@ export function BlogList() {
       // sort data by createdAt
       data.sort((a: Blog, b: Blog) => {
         if (a.createdAt && b.createdAt) {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
         }
         return 0;
       });
@@ -68,9 +74,11 @@ export function BlogList() {
   const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
   const totalPages = Math.ceil(blogs.length / blogsPerPage);
 
-  if (isLoading) return <LoadingSpinner className="w-10 h-10" text="Loading..." />;
+  if (isLoading)
+    return <LoadingSpinner className="w-10 h-10" text="Loading..." />;
   if (error) return <ErrorMessage message={error} />;
-  if (blogs.length === 0) return <EmptyState message="No blogs found" icon="box" />;
+  if (blogs.length === 0)
+    return <EmptyState message="No blogs found" icon="box" />;
 
   return (
     <div className="mt-6">
@@ -85,8 +93,12 @@ export function BlogList() {
               content: stripHtml(blog.content ?? ""),
               category: blog.category ?? "other",
               owner: blog.owner ?? "",
-              createdAt: blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "",
-              updatedAt: blog.updatedAt ? new Date(blog.updatedAt).toLocaleDateString() : "",
+              createdAt: blog.createdAt
+                ? new Date(blog.createdAt).toLocaleDateString()
+                : "",
+              updatedAt: blog.updatedAt
+                ? new Date(blog.updatedAt).toLocaleDateString()
+                : "",
               tags: blog.tags ?? [],
             }}
           />

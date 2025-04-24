@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { BlogContent } from "./components/BlogContent";
 import type { Metadata, ResolvingMetadata } from "next";
 import type { Blog } from "@/types/blog";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 type Params = Promise<{ id: string }>;
 
@@ -14,7 +15,7 @@ export async function generateMetadata(
 
   const blog: Blog | null = await getBlog(id);
   if (!blog) {
-    return {}; // Return empty metadata instead of calling notFound()
+    return {};
   }
 
   return {
@@ -44,7 +45,7 @@ async function getBlog(id: string): Promise<Blog | null> {
       return null;
     }
 
-    const response = await fetch(`${url}/api/blogs?id=${id}`, {
+    const response = await fetch(`${url}/api/blogs/${id}`, {
       cache: "no-cache",
       headers: {
         "Content-Type": "application/json",
