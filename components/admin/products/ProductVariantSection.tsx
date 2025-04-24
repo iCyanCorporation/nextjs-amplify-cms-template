@@ -20,25 +20,15 @@ import VariantForm from "./ProductVariantForm";
 
 interface ProductVariantsSectionProps {
   productId: string;
-  // variants: Variant[];
-  // setVariants: React.Dispatch<React.SetStateAction<Variant[]>>;
   attributes: Attribute[];
   attributeOption: Record<string, AttributeValue[]>;
-  // loadingAttributes: boolean;
-  // openVariantForm: (variant?: Variant) => void;
-  // handleDeleteVariant: (variantId: string) => void;
   setActiveTab: (tab: string) => void;
 }
 
 const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
   productId,
-  // variants,
-  // setVariants,
   attributes,
   attributeOption,
-  // loadingAttributes,
-  // openVariantForm,
-  // handleDeleteVariant,
   setActiveTab,
 }) => {
   const [price, setPrice] = useState(0);
