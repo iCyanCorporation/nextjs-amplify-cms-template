@@ -34,7 +34,7 @@ interface CombinedAttributesSectionProps {
     React.SetStateAction<Record<string, AttributeValue[]>>
   >;
   onRemoveAttribute: (attributeId: string) => void; // Add this prop
-  systemAttributes?: Attribute[];
+  Attributes?: Attribute[];
   loadingAttributes?: boolean;
 }
 
@@ -44,7 +44,7 @@ export default function CombinedAttributesSection({
   attributeOption,
   setAttributeOption,
   onRemoveAttribute, // Destructure the new prop
-  systemAttributes = [],
+  Attributes = [],
   loadingAttributes = false,
 }: CombinedAttributesSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -98,34 +98,39 @@ export default function CombinedAttributesSection({
   }, []);
 
   useEffect(() => {
-    if (systemAttributes && systemAttributes.length > 0 && !loadingAttributes) {
+    if (Attributes && Attributes.length > 0 && !loadingAttributes) {
       setAttributes((prevAttributes) => {
-        // Merge prevAttributes and systemAttributes, keeping only one per name+type (case-insensitive)
-        const unique: Attribute[] = [];
-        [...prevAttributes, ...systemAttributes].forEach((attr) => {
+        // Only merge if new system attributes are not already present
+        const unique = [...prevAttributes];
+        let changed = false;
+        Attributes.forEach((sysAttr) => {
           const exists = unique.some(
             (u) =>
-              u.name.trim().toLowerCase() === attr.name.trim().toLowerCase() &&
-              u.type === attr.type
+              u.name.trim().toLowerCase() ===
+                sysAttr.name.trim().toLowerCase() && u.type === sysAttr.type
           );
           if (!exists) {
-            unique.push({ ...attr });
+            unique.push({ ...sysAttr });
+            changed = true;
           }
         });
-        return unique;
+        // Only update if changed
+        if (changed) return unique;
+        return prevAttributes;
       });
-
-      // Initialize empty Option array for each new attribute
-      const newOption = { ...attributeOption };
-      systemAttributes.forEach((attr) => {
-        // Only initialize if not already present (double check)
-        if (!newOption[attr.id]) {
-          newOption[attr.id] = [];
-        }
+      setAttributeOption((prevOption) => {
+        const newOption = { ...prevOption };
+        let changed = false;
+        Attributes.forEach((attr) => {
+          if (!newOption[attr.id]) {
+            newOption[attr.id] = [];
+            changed = true;
+          }
+        });
+        return changed ? newOption : prevOption;
       });
-      setAttributeOption(newOption);
     }
-  }, [systemAttributes, loadingAttributes, setAttributes, setAttributeOption]);
+  }, [Attributes, loadingAttributes]);
 
   // Add a new attribute
   // Add a new attribute and upload to DB, then update state with DB id
@@ -361,24 +366,6 @@ export default function CombinedAttributesSection({
           (option) => option.key !== optionKey
         ),
       }));
-
-      // const token = await getAuthToken();
-      // const response = await fetch(`/api/attributes/${attributeId}`, {
-      //   method: "PUT",
-      //   headers: {
-      //     Authorization: token,
-      //   },
-      //   body: JSON.stringify({
-      //     id: attributeId,
-      //     name: getCurrentAttribute()?.name,
-      //     type: getCurrentAttribute()?.type,
-      //     isRequired: getCurrentAttribute()?.isRequired,
-      //     options: attributeOption[attributeId],
-      //   }),
-      // });
-      // if (!response.ok) {
-      //   throw new Error("Failed to delete attribute");
-      // }
     } catch (error) {
       console.error("Error deleting attribute:", error);
       // Optionally show error to user
@@ -629,8 +616,8 @@ export default function CombinedAttributesSection({
                         {getCurrentAttribute()?.type === "color" ? (
                           item.value && (
                             <div
-                              className="w-5 h-5 rounded-full border border-gray-300"
-                              style={{ backgroundColor: item.value }}
+                              className="w-5 h-5 rounded-full"
+                              style={{ backgroundColor: item.value as string }}
                               title={item.key}
                             />
                           )
@@ -728,9 +715,9 @@ export default function CombinedAttributesSection({
 
           <div className="py-4">
             <div className="border rounded-md p-4 max-h-80 overflow-y-auto">
-              {systemAttributes && systemAttributes.length > 0 ? (
+              {Attributes && Attributes.length > 0 ? (
                 <div className="space-y-3">
-                  {systemAttributes.map((attr) => {
+                  {Attributes.map((attr) => {
                     // Check if attribute is already added to the product
                     const isAdded = attributes.some(
                       (a) => a.id === attr.id || a.name === attr.name

@@ -13,21 +13,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ProductImagesSection from "./ProductImagesSection";
 import { Attribute } from "@/types/data";
 import { ImagePicker } from "@/components/image/ImagePicker";
 import { AttributeValue, Variant } from "@/types/data";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
+import { toast } from "@/hooks/use-toast";
+import { v4 as uuid } from "uuid";
 
 interface VariantFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (variant: Variant) => void;
+  productId: string;
   variant?: Variant;
   defaultPrice?: number;
   defaultStock?: number;
@@ -43,14 +40,14 @@ const DEFAULT_VARIANT: Variant = {
   discountPrice: 0,
   stock: 0,
   images: [],
-  attributes: [],
+  attributes: "",
   isActive: true,
 };
 
 export default function VariantForm({
   isOpen,
   onClose,
-  onSave,
+  productId,
   variant,
   defaultPrice = 0,
   defaultStock = 0,
@@ -62,78 +59,94 @@ export default function VariantForm({
     price: defaultPrice,
     stock: defaultStock,
   });
+
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState<
-    Record<string, string | string[] | boolean>
+    Record<string, string | number | boolean | string[]>
   >({}); // For multi-checkbox, store arrays for each attribute id and dropdown values as attributeId_itemId_dropdown
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // useEffect(() => {
+  //   setMounted(true);
+  // }, []);
 
-  useEffect(() => {
-    if (variant) {
-      setForm(variant);
+  // useEffect(() => {
+  //   if (variant) {
+  //     setForm(variant);
 
-      // Initialize selected attributes from variant
-      if (variant.attributes) {
-        // Convert AttributeValue[] to Record<string, string | boolean | string[]>
-        const attributesRecord: Record<string, string | boolean | string[]> =
-          {};
-        (variant.attributes as AttributeValue[]).forEach((attr) => {
-          // Simple logic: treat 'true'/'false' as booleans, comma-separated as arrays
-          if (attr.value === "true" || attr.value === "false") {
-            attributesRecord[attr.key] = attr.value === "true";
-          } else if (attr.value.includes(",")) {
-            attributesRecord[attr.key] = attr.value.split(",");
-          } else {
-            attributesRecord[attr.key] = attr.value;
-          }
-        });
-        setSelectedAttributes(attributesRecord);
-      } else {
-        // Create empty selected attributes
-        const initialAttributes: Record<string, string | string[] | boolean> =
-          {};
-        Attributes.forEach((attr) => {
-          if (["text", "number", "color"].includes(attr.type)) {
-            initialAttributes[attr.id] = [];
-          } else if (attr.type === "boolean") {
-            initialAttributes[attr.id] = false;
-          } else {
-            initialAttributes[attr.id] = "";
-          }
-        });
-        setSelectedAttributes(initialAttributes);
-      }
-    } else {
-      setForm({
-        ...DEFAULT_VARIANT,
-        price: defaultPrice,
-        stock: defaultStock,
-      });
+  //     // Initialize selected attributes from variant
+  //     if (variant.attributes && Object.keys(variant.attributes).length > 0) {
+  //       setSelectedAttributes(
+  //         Object.entries(variant.attributes).reduce<
+  //           Record<string, string | number | string[] | boolean>
+  //         >((acc, [key, value]) => {
+  //           acc[key] = value;
+  //           return acc;
+  //         }, {})
+  //       );
+  //     } else {
+  //       // Create empty selected attributes
+  //       const initialAttributes: Record<
+  //         string,
+  //         string | number | string[] | boolean
+  //       > = {};
+  //       Attributes.forEach((attr) => {
+  //         if (["text", "number", "color"].includes(attr.type)) {
+  //           initialAttributes[attr.id] = [];
+  //         } else if (attr.type === "boolean") {
+  //           initialAttributes[attr.id] = false;
+  //         } else {
+  //           initialAttributes[attr.id] = "";
+  //         }
+  //       });
+  //       setSelectedAttributes(initialAttributes);
+  //     }
+  //   } else {
+  //     setForm({
+  //       ...DEFAULT_VARIANT,
+  //       price: defaultPrice,
+  //       stock: defaultStock,
+  //     });
 
-      // Create empty selected attributes for new variant
-      const initialAttributes: Record<string, string | string[] | boolean> = {};
-      Attributes.forEach((attr) => {
-        if (["text", "number", "color"].includes(attr.type)) {
-          initialAttributes[attr.id] = [];
-        } else if (attr.type === "boolean") {
-          initialAttributes[attr.id] = false;
-        } else {
-          initialAttributes[attr.id] = "";
-        }
-      });
-      setSelectedAttributes(initialAttributes);
-    }
-  }, [variant, isOpen, defaultPrice, defaultStock, Attributes]);
+  //     // Create empty selected attributes for new variant
+  //     const initialAttributes: Record<string, string | string[] | boolean> = {};
+  //     Attributes.forEach((attr) => {
+  //       if (["text", "number", "color"].includes(attr.type)) {
+  //         initialAttributes[attr.id] = [];
+  //       } else if (attr.type === "boolean") {
+  //         initialAttributes[attr.id] = false;
+  //       } else {
+  //         initialAttributes[attr.id] = "";
+  //       }
+  //     });
+  //     setSelectedAttributes(initialAttributes);
+  //   }
+  // }, [variant, isOpen, defaultPrice, defaultStock, Attributes]);
 
   // Update variant name whenever selected attributes change
+  // useEffect(() => {
+  //   updateVariantNameBasedOnAttributes();
+  // }, [selectedAttributes, Attributes, AttributeValues]);
+
+  const reloadVariant = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/product-variant");
+      if (!response.ok) throw new Error("Failed to fetch variants");
+      const data = await response.json();
+      setForm(data);
+    } catch (error) {
+      console.error("Error reloading variant:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    updateVariantNameBasedOnAttributes();
-  }, [selectedAttributes, Attributes, AttributeValues]);
+    reloadVariant();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -175,68 +188,115 @@ export default function VariantForm({
   };
 
   // Update variant name based on selected attributes
-  const updateVariantNameBasedOnAttributes = () => {
-    const nameComponents: string[] = [];
+  // const updateVariantNameBasedOnAttributes = () => {
+  //   const nameComponents: string[] = [];
 
-    // Add selected attribute values to the name
-    Attributes.forEach((attr) => {
-      const selectedValue = selectedAttributes[attr.id];
-      if (
-        selectedValue !== undefined &&
-        selectedValue !== null &&
-        ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
-          (typeof selectedValue === "string" && selectedValue !== "") ||
-          (typeof selectedValue === "boolean" && selectedValue === true))
-      ) {
-        // For color/text/number attributes with multi-select (array)
-        if (
-          ["color", "text", "number"].includes(attr.type) &&
-          Array.isArray(selectedValue)
-        ) {
-          selectedValue.forEach((id) => {
-            if (attr.type === "color") {
-              // Use key for color
-              nameComponents.push(id);
-            } else {
-              const valueObj = AttributeValues[attr.id]?.find(
-                (v) => v.key === id
-              );
-              if (valueObj) {
-                nameComponents.push(valueObj.value);
-              }
-            }
-          });
-        }
-        // For color attributes, single string fallback (legacy)
-        else if (attr.type === "color" && typeof selectedValue === "string") {
-          // Use key for color
-          nameComponents.push(selectedValue);
-        }
-        // For boolean attributes, only add if true
-        else if (
-          attr.type === "boolean" &&
-          typeof selectedValue === "boolean" &&
-          selectedValue === true
-        ) {
-          nameComponents.push(attr.name);
-        }
-        // For other attributes, add the selected value
-        else if (typeof selectedValue === "string" && selectedValue) {
-          const value = AttributeValues[attr.id]?.find(
-            (v) => v.key === selectedValue
-          );
-          if (value) {
-            nameComponents.push(value.value);
-          }
-        }
+  //   // Add selected attribute values to the name
+  //   Attributes.forEach((attr) => {
+  //     const selectedValue = selectedAttributes[attr.id];
+  //     if (
+  //       selectedValue !== undefined &&
+  //       selectedValue !== null &&
+  //       ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
+  //         (typeof selectedValue === "string" && selectedValue !== "") ||
+  //         (typeof selectedValue === "boolean" && selectedValue === true))
+  //     ) {
+  //       // For color/text/number attributes with multi-select (array)
+  //       if (
+  //         ["color", "text", "number"].includes(attr.type) &&
+  //         Array.isArray(selectedValue)
+  //       ) {
+  //         selectedValue.forEach((id) => {
+  //           if (attr.type === "color") {
+  //             // Use key for color
+  //             nameComponents.push(id);
+  //           } else {
+  //             const valueObj = AttributeValues[attr.id]?.find(
+  //               (v) => v.key === id
+  //             );
+  //             if (valueObj) {
+  //               nameComponents.push(valueObj.value.toString());
+  //             }
+  //           }
+  //         });
+  //       }
+  //       // For color attributes, single string fallback (legacy)
+  //       else if (attr.type === "color" && typeof selectedValue === "string") {
+  //         // Use key for color
+  //         nameComponents.push(selectedValue);
+  //       }
+  //       // For boolean attributes, only add if true
+  //       else if (
+  //         attr.type === "boolean" &&
+  //         typeof selectedValue === "boolean" &&
+  //         selectedValue === true
+  //       ) {
+  //         nameComponents.push(attr.name);
+  //       }
+  //       // For other attributes, add the selected value
+  //       else if (typeof selectedValue === "string" && selectedValue) {
+  //         const value = AttributeValues[attr.id]?.find(
+  //           (v) => v.key === selectedValue
+  //         );
+  //         if (value) {
+  //           nameComponents.push(value.value.toString());
+  //         }
+  //       }
+  //     }
+  //   });
+
+  //   if (nameComponents.length > 0) {
+  //     setForm((prev) => ({
+  //       ...prev,
+  //       name: nameComponents.join(" - "),
+  //     }));
+  //   }
+  // };
+
+  const handleImagesChange = (newImages: string[]) => {
+    // console.log("newImages", newImages);
+    setForm((prev) => ({ ...prev, images: newImages }));
+  };
+
+  const handleUpdateVariant = async (variant: Variant) => {
+    try {
+      variant.productId = productId;
+      if (variant.id) {
+        // Update existing variant
+        await fetch(`/api/product-variant/${variant.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: await getAuthToken(),
+          },
+          body: JSON.stringify(variant),
+        });
+      } else {
+        // Add new variant
+        variant.id = uuid();
+        await fetch(`/api/product-variant/${variant.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: await getAuthToken(),
+          },
+          body: JSON.stringify(variant),
+        });
       }
-    });
-
-    if (nameComponents.length > 0) {
-      setForm((prev) => ({
-        ...prev,
-        name: nameComponents.join(" - "),
-      }));
+      toast({
+        title: "Success",
+        description: "Variant updated successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error updating variant:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update variant",
+        variant: "destructive",
+      });
+    } finally {
+      onClose();
     }
   };
 
@@ -291,26 +351,24 @@ export default function VariantForm({
       return;
     }
 
-    // Convert selectedAttributes (Record<string, string | boolean | string[]>) to AttributeValue[]
-    const attributesArray: AttributeValue[] = Object.entries(
-      selectedAttributes
-    ).flatMap(([key, value]) => {
+    // Convert selectedAttributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
+    const attributes: Record<string, string[]> = {};
+    Object.entries(selectedAttributes).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        return value.map((v) => ({ key, value: String(v) }));
+        attributes[key] = value.map(String).filter((v) => v.trim() !== "");
       } else if (typeof value === "boolean") {
-        return value ? [{ key, value: "true" }] : [];
+        if (value) attributes[key] = ["true"];
       } else if (typeof value === "string" && value.trim() !== "") {
-        return [{ key, value }];
+        attributes[key] = [value];
       }
-      return [];
     });
 
     const formWithAttributes = {
       ...form,
-      attributes: attributesArray,
+      attributes: JSON.stringify(attributes), // Store as JSON string for DB
     };
 
-    onSave(formWithAttributes);
+    handleUpdateVariant(formWithAttributes);
     onClose();
   };
 
@@ -405,7 +463,9 @@ export default function VariantForm({
                               <div className="flex items-center gap-2">
                                 <div
                                   className="w-4 h-4 rounded-full"
-                                  style={{ backgroundColor: item.value }}
+                                  style={{
+                                    backgroundColor: item.value.toString(),
+                                  }}
                                 />
                                 <span>{item.key}</span>
                               </div>
@@ -447,6 +507,14 @@ export default function VariantForm({
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -536,6 +604,18 @@ export default function VariantForm({
                     onCheckedChange={handleSwitchChange}
                   />
                   <Label htmlFor="isActive">Active</Label>
+                </div>
+              </div>
+
+              {/* Image Picker */}
+              <div className="space-y-2">
+                <Label>Variant Images</Label>
+                <div className="flex flex-col space-y-2">
+                  <ProductImagesSection
+                    images={form.images ?? []}
+                    onChange={handleImagesChange}
+                    required={false}
+                  />
                 </div>
               </div>
 

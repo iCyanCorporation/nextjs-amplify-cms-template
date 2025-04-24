@@ -55,16 +55,17 @@ export interface Variant {
   price?: number | null;
   discountPrice?: number | null;
   stock?: number | null;
-  attributes?: AttributeValue[];
+  attributes?: string;
   images?: string[];
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
 
+// Type 'AttributeValue' is not assignable to type 'string | boolean | string[]'.ts(2322)
 export interface AttributeValue {
   key: string;
-  value: string;
+  value: string | number | boolean | string[];
 }
 
 export enum OrderStatus {

@@ -176,63 +176,7 @@ export default function ProductInfoSection({
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price" className="flex justify-between">
-                      <span>Price ($) *</span>
-                      {errors.price && (
-                        <span className="text-red-500 text-sm flex items-center gap-1">
-                          <AlertCircle size={16} />
-                          {errors.price}
-                        </span>
-                      )}
-                    </Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.valueAsNumber)}
-                      required
-                      className={errors.price ? "border-red-500" : ""}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="stock" className="flex justify-between">
-                      <span>Stock Quantity *</span>
-                      {errors.stock && (
-                        <span className="text-red-500 text-sm flex items-center gap-1">
-                          <AlertCircle size={16} />
-                          {errors.stock}
-                        </span>
-                      )}
-                    </Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="0"
-                      value={stock}
-                      onChange={(e) => setStock(e.target.valueAsNumber)}
-                      required
-                      className={errors.stock ? "border-red-500" : ""}
-                    />
-                  </div>
-                </div>
                 <div className="flex items-center justify-between gap-2 pt-2">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="discount-switch"
-                      checked={hasDiscount}
-                      onCheckedChange={setHasDiscount}
-                    />
-                    <Label htmlFor="discount-switch">Apply Discount</Label>
-                  </div>
-
                   <div className="flex items-center gap-2">
                     <Switch
                       id="active-switch"

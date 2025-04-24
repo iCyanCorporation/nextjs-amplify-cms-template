@@ -37,6 +37,7 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import Image from "next/image";
 
 export default function ProductsPage() {
   const { getProductTypeName } = useProductContext();
@@ -191,8 +192,8 @@ export default function ProductsPage() {
                   <TableRow>
                     <TableHead>NAME</TableHead>
                     <TableHead>TYPE</TableHead>
-                    <TableHead>PRICE</TableHead>
-                    <TableHead>STOCK</TableHead>
+                    {/* <TableHead>PRICE</TableHead> */}
+                    {/* <TableHead>STOCK</TableHead> */}
                     <TableHead>ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -201,13 +202,17 @@ export default function ProductsPage() {
                     <TableRow key={product.id}>
                       <TableCell>
                         <div className="flex items-center">
-                          {product.thumbnailImageUrl && (
-                            <img
-                              src={product.thumbnailImageUrl}
-                              alt={product.name}
-                              className="w-10 h-10 rounded object-cover mr-3"
-                            />
-                          )}
+                          <Image
+                            src={
+                              product.thumbnailImageUrl || "/images/noimage.jpg"
+                            }
+                            alt={"Product Thumbnail"}
+                            width={50}
+                            height={50}
+                            className="aspect-square rounded object-cover mr-3"
+                            quality={100}
+                          />
+
                           <div>
                             <p className="font-medium">{product.name}</p>
                             <p className="text-sm text-gray-500">

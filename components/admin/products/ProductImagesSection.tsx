@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Upload, Image as ImageIcon } from "lucide-react";
 import { ImagePickerButton } from "@/components/image/ImagePicker";
+import Image from "next/image";
 
 interface ProductImagesSectionProps {
   images: string[];
@@ -106,6 +107,11 @@ export default function ProductImagesSection({
 
   return (
     <div className="space-y-4">
+      <ImagePickerButton
+        onSelect={handleSelectImage}
+        buttonText="Choose from gallery"
+        multiSelect={true}
+      />
       <div className="flex space-x-2">
         <Input
           type="url"
@@ -139,10 +145,12 @@ export default function ProductImagesSection({
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
               >
-                <img
+                <Image
                   src={image}
                   alt={`Product image ${index + 1}`}
-                  className="w-full h-40 object-cover cursor-move"
+                  width={200}
+                  height={200}
+                  className="object-cover cursor-move aspect-square"
                 />
                 {index === 0 && (
                   <div className="absolute top-0 left-0 bg-primary text-white text-xs px-2 py-1">
@@ -175,27 +183,6 @@ export default function ProductImagesSection({
 
         {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       </div>
-
-      {/* <div className="space-y-3">
-        <div className="flex space-x-2">
-          <Input
-            type="url"
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder="Enter image URL"
-            className="flex-1"
-          />
-          <Button type="button" onClick={handleAddImage}>
-            Add URL
-          </Button>
-        </div>
-
-        <ImagePickerButton
-          onSelect={handleSelectImage}
-          buttonText="Choose from gallery"
-          multiSelect={true}
-        />
-      </div> */}
     </div>
   );
 }

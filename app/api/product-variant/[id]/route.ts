@@ -36,8 +36,11 @@ export async function PUT(request: Request, { params }: { params: Params }) {
   const { id } = await params;
   const body = await request.json();
   try {
+    // remove createdAt and updatedAt
+    const { createdAt, updatedAt, owner, ...rest } = body;
+    console.log("Updating product variant with ID:", id, rest);
     const result = await amplifyClient.models.ProductVariant.update(
-      { id, ...body, updatedAt: new Date().toISOString() },
+      { id, ...rest },
       { authMode: "identityPool", authToken }
     );
     const record = (result as any).data ?? result;
@@ -46,6 +49,28 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     console.error("Error updating product variant:", error);
     return NextResponse.json(
       { error: "Failed to update product variant" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const authToken = request.headers.get("Authorization");
+    if (!authToken) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await request.json();
+    const result = await amplifyClient.models.ProductVariant.create(
+      { ...body },
+      { authMode: "identityPool", authToken }
+    );
+    const record = (result as any).data ?? result;
+    return NextResponse.json(record);
+  } catch (error) {
+    console.error("Error creating product variant:", error);
+    return NextResponse.json(
+      { error: "Failed to create product variant" },
       { status: 500 }
     );
   }

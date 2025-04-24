@@ -47,6 +47,7 @@ import CombinedAttributesSection from "./ProductAttributesSection";
 import VariantForm from "./ProductVariantForm";
 import ProductTypeTab from "./ProductTypeTab"; // Import the new component
 import { getAuthToken } from "@/hooks/useAmplifyClient";
+import Image from "next/image";
 
 interface ProductFormProps {
   mode: "new" | "edit";
@@ -80,7 +81,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [attributeOption, setAttributeOption] = useState<
     Record<string, AttributeValue[]>
   >({});
-  const [systemAttributes, setSystemAttributes] = useState<Attribute[]>([]);
 
   // Variants states
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -131,40 +131,44 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   );
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+    loadData();
+  }, [mode, productId]);
 
-      // Fetch product types from API
-      try {
-        const response = await fetch("/api/product-types");
-        if (!response.ok) {
-          throw new Error("Failed to fetch product types");
-        }
-        const data = await response.json();
-        console.log("Product types loaded:", data);
-        setProductTypes(data);
+  const loadData = async () => {
+    setLoading(true);
 
-        // If we're creating a new product, select the first type by default
-        if (mode === "new" && data.length > 0) {
-          setSelectedType(data[0].id);
-        }
-      } catch (error) {
-        console.error("Error fetching product types:", error);
-        setProductTypes([]);
+    // Fetch product types from API
+    try {
+      const response = await fetch("/api/product-types");
+      if (!response.ok) {
+        throw new Error("Failed to fetch product types");
       }
+      const data = await response.json();
+      console.log("Product types loaded:", data);
+      setProductTypes(data);
 
-      // Fetch attributes from the Attribute table
-      try {
-        setLoadingAttributes(true);
-        const response = await fetch("/api/attributes");
-        if (!response.ok) {
-          throw new Error("Failed to fetch attributes");
-        }
-        const data = await response.json();
-        console.log("Attributes loaded:", data);
-        // Extract the attributes from the response
-        // Parse options if needed
-        const parsedAttributes = (data.attributes || []).map((attr: any) => ({
+      // If we're creating a new product, select the first type by default
+      if (mode === "new" && data.length > 0) {
+        setSelectedType(data[0].id);
+      }
+    } catch (error) {
+      console.error("Error fetching product types:", error);
+      setProductTypes([]);
+    }
+
+    // Fetch attributes from the Attribute table
+    try {
+      setLoadingAttributes(true);
+      const response = await fetch("/api/attributes");
+      if (!response.ok) {
+        throw new Error("Failed to fetch attributes");
+      }
+      const data = await response.json();
+
+      // Extract the attributes from the response
+      // Parse options if needed
+      const parsedAttributes = await (data.attributes || []).map(
+        (attr: Attribute) => ({
           ...attr,
           options:
             typeof attr.options === "string"
@@ -180,147 +184,168 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               : Array.isArray(attr.options)
                 ? attr.options
                 : [],
-        }));
-        setSystemAttributes(parsedAttributes);
-      } catch (error) {
-        console.error("Error fetching attributes:", error);
-        setSystemAttributes([]);
-      } finally {
-        setLoadingAttributes(false);
+        })
+      );
+      await setAttributes(parsedAttributes);
+      setupAttributeOption();
+    } catch (error) {
+      console.error("Error fetching attributes:", error);
+      // Only clear attributes if not already loaded
+      if (Attributes.length > 0) {
+        console.warn(
+          "Clearing attributes due to error. Previous attributes:",
+          Attributes
+        );
       }
+      setAttributes([]);
+    } finally {
+      setLoadingAttributes(false);
+    }
 
-      // If editing, fetch the product data
-      if (mode === "edit" && productId) {
-        try {
-          const response = await fetch(`/api/products/${productId}`);
+    // Fetch variants
+    await fetchVariants();
+    // try {
+    //   const response = await fetch(
+    //     `/api/product-variant?productId=${productId}`
+    //   );
+    //   if (!response.ok) {
+    //     throw new Error("Failed to fetch variants");
+    //   }
+    //   const data = await response.json();
+    //   console.log("Variants loaded:", data);
+    //   setVariants(data);
+    // } catch (error) {
+    //   console.error("Error fetching variants:", error);
+    //   setVariants([]);
+    // }
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch product");
-          }
+    // If editing, fetch the product data
+    if (mode === "edit" && productId) {
+      try {
+        const response = await fetch(`/api/products/${productId}`);
 
-          const productData = await response.json();
-          // console.log("Product data loaded:", productData);
-
-          // Initialize form with product data
-          setName(productData.name || "");
-          setSku(productData.sku || "");
-          setDescription(productData.description || "");
-          setPrice(productData.price || 0);
-          setStock(productData.stock || 0);
-          setHasDiscount(!!productData.discountPrice);
-          setDiscountPrice(productData.discountPrice || 0);
-
-          // Make sure to properly set the product type ID
-          setSelectedType(productData.productTypeId || "");
-
-          // Handle thumbnailImageUrl properly
-          setThumbnailImageUrl(productData.thumbnailImageUrl || "");
-
-          setIsActive(productData.isActive !== false);
-
-          // Initialize attributes if they exist
-          let attributesData: Attribute[] = [];
-          let attributeOptionData: Record<string, AttributeValue[]> = {};
-
-          // Try to load attributes from specs or existing attributes
-          if (productData.specs && typeof productData.specs === "object") {
-            // Convert existing specs to our new format
-            Object.entries(productData.specs).forEach(([key, value]) => {
-              const attrId = `attr_${key}`;
-              const attributeType =
-                typeof value === "boolean"
-                  ? "boolean"
-                  : typeof value === "number"
-                    ? "number"
-                    : (typeof value === "string" &&
-                          /^#([0-9A-F]{3}){1,2}$/i.test(value)) ||
-                        key.toLowerCase().includes("color")
-                      ? "color"
-                      : "text";
-
-              // Add attribute
-              attributesData.push({
-                id: attrId,
-                name:
-                  key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
-                type: attributeType,
-                options: [], // Specs don't have predefined options
-              });
-
-              // Add value
-              attributeOptionData[attrId] = [
-                {
-                  key: String(value),
-                  value: String(value),
-                },
-              ];
-            });
-          }
-
-          // Load custom attributes if they exist
-          const customAttrs = productData.customAttributes || {};
-          if (typeof customAttrs === "object" && !Array.isArray(customAttrs)) {
-            Object.entries(customAttrs).forEach(([name, value]) => {
-              const attrId = `attr_custom_${name}`;
-
-              // Add attribute
-              attributesData.push({
-                id: attrId,
-                name:
-                  name.charAt(0).toUpperCase() +
-                  name.slice(1).replace(/_/g, " "),
-                type: "text", // Assuming custom attributes are text
-                options: [],
-              });
-
-              // Add value
-              attributeOptionData[attrId] = [
-                {
-                  key: String(value),
-                  value: String(value),
-                },
-              ];
-            });
-          }
-
-          setAttributes(attributesData);
-          setAttributeOption(attributeOptionData);
-
-          // Initialize variants if they exist
-          if (productData.variants && Array.isArray(productData.variants)) {
-            setVariants(
-              productData.variants.map((variant: any) => ({
-                id: variant.id,
-                name: variant.name || "",
-                sku: variant.sku || "",
-                price: variant.price?.toString() || "",
-                stock: variant.stock?.toString() || "",
-                color: variant.color || "",
-                size: variant.size || "",
-                attributes: variant.attributes
-                  ? typeof variant.attributes === "string"
-                    ? JSON.parse(variant.attributes)
-                    : variant.attributes
-                  : {},
-
-                isActive: variant.isActive !== false,
-              }))
-            );
-          }
-        } catch (error) {
-          console.error("Failed to load product data:", error);
-          alert("Failed to load product data. Please try again.");
+        if (!response.ok) {
+          throw new Error("Failed to fetch product");
         }
+
+        const productData = await response.json();
+        // console.log("Product data loaded:", productData);
+
+        // Initialize form with product data
+        setName(productData.name || "");
+        setSku(productData.sku || "");
+        setDescription(productData.description || "");
+        setPrice(productData.price || 0);
+        setStock(productData.stock || 0);
+        setHasDiscount(!!productData.discountPrice);
+        setDiscountPrice(productData.discountPrice || 0);
+
+        // Make sure to properly set the product type ID
+        setSelectedType(productData.productTypeId || "");
+
+        // Handle thumbnailImageUrl properly
+        setThumbnailImageUrl(productData.thumbnailImageUrl || "");
+
+        setIsActive(productData.isActive !== false);
+
+        // Initialize attributes if they exist
+        let attributesData: Attribute[] = [];
+        let attributeOptionData: Record<string, AttributeValue[]> = {};
+
+        // Try to load attributes from specs or existing attributes
+        if (productData.specs && typeof productData.specs === "object") {
+          // Convert existing specs to our new format
+          Object.entries(productData.specs).forEach(([key, value]) => {
+            const attrId = `attr_${key}`;
+            const attributeType =
+              typeof value === "boolean"
+                ? "boolean"
+                : typeof value === "number"
+                  ? "number"
+                  : (typeof value === "string" &&
+                        /^#([0-9A-F]{3}){1,2}$/i.test(value)) ||
+                      key.toLowerCase().includes("color")
+                    ? "color"
+                    : "text";
+
+            // Add attribute
+            attributesData.push({
+              id: attrId,
+              name:
+                key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
+              type: attributeType,
+              options: [], // Specs don't have predefined options
+            });
+
+            // Add value
+            attributeOptionData[attrId] = [
+              {
+                key: String(value),
+                value: String(value),
+              },
+            ];
+          });
+        }
+
+        // Load custom attributes if they exist
+        const customAttrs = productData.customAttributes || {};
+        if (typeof customAttrs === "object" && !Array.isArray(customAttrs)) {
+          Object.entries(customAttrs).forEach(([name, value]) => {
+            const attrId = `attr_custom_${name}`;
+
+            // Add attribute
+            attributesData.push({
+              id: attrId,
+              name:
+                name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, " "),
+              type: "text", // Assuming custom attributes are text
+              options: [],
+            });
+
+            // Add value
+            attributeOptionData[attrId] = [
+              {
+                key: String(value),
+                value: String(value),
+              },
+            ];
+          });
+        }
+
+        // Initialize variants if they exist
+        if (productData.variants && Array.isArray(productData.variants)) {
+          setVariants(
+            productData.variants.map((variant: Variant) => ({
+              id: variant.id,
+              name: variant.name || "",
+              price: variant.price?.toString() || "",
+              stock: variant.stock?.toString() || "",
+              attributes: variant.attributes
+                ? typeof variant.attributes === "string"
+                  ? JSON.parse(variant.attributes)
+                  : variant.attributes
+                : {},
+
+              isActive: variant.isActive !== false,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load product data:", error);
+        alert("Failed to load product data. Please try again.");
       }
+    }
 
-      setLoading(false);
-    };
+    setLoading(false);
+  };
 
-    loadData();
-  }, [mode, productId]);
+  // Debug: Log Attributes state whenever it changes
+  // useEffect(() => {
+  //   console.log("Attributes state:", Attributes);
+  // }, [Attributes]);
 
-  useEffect(() => {
-    if (Attributes.length > 0) {
+  const setupAttributeOption = () => {
+    try {
       setAttributeOption((prev) => {
         const newOption: Record<string, AttributeValue[]> = { ...prev }; // Start with previous state
 
@@ -346,8 +371,10 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         });
         return newOption;
       });
+    } catch (error) {
+      console.error("Error setting up attribute options:", error);
     }
-  }, [Attributes]);
+  };
 
   const handleTypeChange = (typeId: string) => {
     setSelectedType(typeId);
@@ -384,27 +411,24 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const closeVariantForm = () => {
     setCurrentVariant(undefined);
     setVariantFormOpen(false);
+    // reload variants
+    fetchVariants();
   };
 
-  const handleSaveVariant = (variant: Variant) => {
-    if (variant.id) {
-      // Update existing variant
-      setVariants(variants.map((v) => (v.id === variant.id ? variant : v)));
-    } else {
-      // Add new variant
-      setVariants([...variants, { ...variant, id: `temp-${Date.now()}` }]);
+  const fetchVariants = async () => {
+    try {
+      setLoading(true);
+      if (!productId) return;
+      const response = await fetch(
+        `/api/product-variant?productId=${productId}`
+      );
+      const data = await response.json();
+      setVariants(data);
+    } catch (error) {
+      console.error("Failed to fetch variants:", error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  // Adapter function to handle type conversion between ProductVariant and Variant
-  const handleSaveVariantAdapter = (productVariant: any) => {
-    // Convert from ProductVariant to Variant (ensuring price is a string)
-    const variant: Variant = {
-      ...productVariant,
-      price: productVariant.price?.toString() || "",
-      stock: productVariant.stock?.toString() || "",
-    };
-    handleSaveVariant(variant);
   };
 
   const confirmDeleteVariant = (variantId: string) => {
@@ -598,7 +622,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           variant="ghost"
           size="icon"
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={() => loadData()}
           title="Reload"
         >
           <RefreshCcw className="h-4 w-4" />
@@ -733,7 +757,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   attributeOption={attributeOption}
                   setAttributeOption={setAttributeOption}
                   onRemoveAttribute={handleRemoveAttribute}
-                  systemAttributes={systemAttributes}
+                  Attributes={Attributes}
                   loadingAttributes={loadingAttributes}
                 />
               </CardContent>
@@ -758,7 +782,11 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 </Button>
               </div>
 
-              {Attributes.length === 0 ? (
+              {loadingAttributes ? (
+                <div className="text-center py-8 text-gray-500">
+                  Loading attributes...
+                </div>
+              ) : Attributes.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="font-medium">
                     You need to define attributes first
@@ -787,7 +815,19 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                            <PackageIcon className="text-gray-400 h-6 w-6" />
+                            {/* <PackageIcon className="text-gray-400 h-6 w-6" /> */}
+
+                            <Image
+                              src={
+                                variant.images
+                                  ? variant.images[0]
+                                  : "/images/noimage.jpg"
+                              }
+                              alt={`Variant image ${variant.name}`}
+                              width={200}
+                              height={200}
+                              className="object-cover aspect-square"
+                            />
                           </div>
                           <div>
                             <h4 className="font-medium">{variant.name}</h4>
@@ -835,7 +875,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       <VariantForm
         isOpen={variantFormOpen}
         onClose={closeVariantForm}
-        onSave={handleSaveVariantAdapter}
+        productId={productId!}
         variant={convertToProductVariant(currentVariant)}
         defaultPrice={price}
         defaultStock={stock}
