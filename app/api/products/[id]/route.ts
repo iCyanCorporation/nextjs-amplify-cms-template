@@ -183,6 +183,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       description,
       price,
       stock,
+      sku,
       productTypeId,
       isActive,
       images,
@@ -208,6 +209,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       description: description || "",
       price: typeof price === "number" ? price : parseFloat(price || "0"),
       stock: typeof stock === "number" ? stock : parseInt(stock || "0", 10),
+      sku: sku || "", // <-- add sku to productData
       productTypeId: productTypeId,
       imgUrl: imageArray.length > 0 ? imageArray[0] : "",
       isActive: isActive !== false,

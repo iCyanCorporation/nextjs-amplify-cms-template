@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       description,
       price,
       stock,
+      sku, // <-- extract sku
       productTypeId,
       isActive,
       images,
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
       price: parseFloat(price),
       stock: parseInt(stock, 10),
       imgUrl: imageArray.length > 0 ? imageArray[0] : "",
+      sku, // <-- add sku to productData
       isActive: isActive !== false,
       productTypeId,
       discountPrice: discountPrice ? parseFloat(discountPrice) : null,
