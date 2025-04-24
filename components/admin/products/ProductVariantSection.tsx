@@ -204,6 +204,7 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
                     <Button
                       size="icon"
                       variant="ghost"
+                      type="button"
                       onClick={() => openVariantForm(variant)}
                       title="Edit Variant"
                     >
@@ -212,6 +213,7 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
                     <Button
                       size="icon"
                       variant="ghost"
+                      type="button"
                       onClick={() => handleDeleteVariant(variant.id)}
                       title="Delete Variant"
                     >

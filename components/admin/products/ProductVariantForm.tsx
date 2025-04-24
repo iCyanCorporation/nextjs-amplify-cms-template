@@ -350,7 +350,6 @@ export default function VariantForm({
     };
 
     handleUpdateVariant(formWithAttributes);
-    onClose();
   };
 
   // Render a single attribute field with attribute-level selection

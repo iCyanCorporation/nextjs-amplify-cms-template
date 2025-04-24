@@ -676,11 +676,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           <TabsContent value="variants">
             <ProductVariantsSection
               productId={productId ?? ""}
-              // variants={variants}
-              // setVariants={setVariants}
               attributes={attributes}
               attributeOption={attributeOption}
-              // loadingAttributes={loadingAttributes}
               setActiveTab={setActiveTab}
             />
           </TabsContent>
