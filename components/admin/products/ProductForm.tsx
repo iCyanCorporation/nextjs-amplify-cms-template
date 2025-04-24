@@ -29,25 +29,15 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 import { toast } from "@/hooks/use-toast";
 
 import ProductInfoSection from "./ProductInfoSection";
 
 import CombinedAttributesSection from "./ProductAttributesSection";
-import VariantForm from "./ProductVariantForm";
-import ProductTypeTab from "./ProductTypeTab"; // Import the new component
+import ProductTypeTab from "./ProductTypeTab";
+import ProductVariantsSection from "./ProductVariantSection"; // Import the new component
 import { getAuthToken } from "@/hooks/useAmplifyClient";
-import Image from "next/image";
 
 interface ProductFormProps {
   mode: "new" | "edit";
@@ -58,7 +48,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(mode === "edit");
   const [submitting, setSubmitting] = useState(false);
-  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
 
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
@@ -76,18 +65,17 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [activeTab, setActiveTab] = useState("general");
   const [loadingAttributes, setLoadingAttributes] = useState(false);
 
-  // New states for the combined attributes management
-  const [Attributes, setAttributes] = useState<Attribute[]>([]);
+  // product types
+  const [productTypes, setProductTypes] = useState<ProductType[]>([]);
+
+  // attributes
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributeOption, setAttributeOption] = useState<
     Record<string, AttributeValue[]>
   >({});
 
-  // Variants states
+  // variants
   const [variants, setVariants] = useState<Variant[]>([]);
-  const [variantFormOpen, setVariantFormOpen] = useState(false);
-  const [currentVariant, setCurrentVariant] = useState<Variant | undefined>();
-  const [deleteVariantDialogOpen, setDeleteVariantDialogOpen] = useState(false);
-  const [variantToDelete, setVariantToDelete] = useState<string | null>(null);
 
   // Callback function to handle attribute removal from the child component
   const handleRemoveAttribute = useCallback(
@@ -191,10 +179,10 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     } catch (error) {
       console.error("Error fetching attributes:", error);
       // Only clear attributes if not already loaded
-      if (Attributes.length > 0) {
+      if (attributes.length > 0) {
         console.warn(
           "Clearing attributes due to error. Previous attributes:",
-          Attributes
+          attributes
         );
       }
       setAttributes([]);
@@ -203,21 +191,20 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     }
 
     // Fetch variants
-    await fetchVariants();
-    // try {
-    //   const response = await fetch(
-    //     `/api/product-variant?productId=${productId}`
-    //   );
-    //   if (!response.ok) {
-    //     throw new Error("Failed to fetch variants");
-    //   }
-    //   const data = await response.json();
-    //   console.log("Variants loaded:", data);
-    //   setVariants(data);
-    // } catch (error) {
-    //   console.error("Error fetching variants:", error);
-    //   setVariants([]);
-    // }
+    try {
+      if (productId) {
+        const response = await fetch(
+          `/api/product-variant?productId=${productId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch variants");
+        }
+        const data = await response.json();
+        setVariants(data);
+      }
+    } catch (error) {
+      console.error("Error fetching variants:", error);
+    }
 
     // If editing, fetch the product data
     if (mode === "edit" && productId) {
@@ -313,23 +300,23 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         }
 
         // Initialize variants if they exist
-        if (productData.variants && Array.isArray(productData.variants)) {
-          setVariants(
-            productData.variants.map((variant: Variant) => ({
-              id: variant.id,
-              name: variant.name || "",
-              price: variant.price?.toString() || "",
-              stock: variant.stock?.toString() || "",
-              attributes: variant.attributes
-                ? typeof variant.attributes === "string"
-                  ? JSON.parse(variant.attributes)
-                  : variant.attributes
-                : {},
+        // if (productData.variants && Array.isArray(productData.variants)) {
+        //   setVariants(
+        //     productData.variants.map((variant: Variant) => ({
+        //       id: variant.id,
+        //       name: variant.name || "",
+        //       price: variant.price?.toString() || "",
+        //       stock: variant.stock?.toString() || "",
+        //       attributes: variant.attributes
+        //         ? typeof variant.attributes === "string"
+        //           ? JSON.parse(variant.attributes)
+        //           : variant.attributes
+        //         : {},
 
-              isActive: variant.isActive !== false,
-            }))
-          );
-        }
+        //       isActive: variant.isActive !== false,
+        //     }))
+        //   );
+        // }
       } catch (error) {
         console.error("Failed to load product data:", error);
         alert("Failed to load product data. Please try again.");
@@ -339,17 +326,12 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     setLoading(false);
   };
 
-  // Debug: Log Attributes state whenever it changes
-  // useEffect(() => {
-  //   console.log("Attributes state:", Attributes);
-  // }, [Attributes]);
-
   const setupAttributeOption = () => {
     try {
       setAttributeOption((prev) => {
         const newOption: Record<string, AttributeValue[]> = { ...prev }; // Start with previous state
 
-        Attributes.forEach((attr) => {
+        attributes.forEach((attr) => {
           // Initialize or clear the options for the current attribute
           newOption[attr.id] = [];
 
@@ -378,70 +360,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
   const handleTypeChange = (typeId: string) => {
     setSelectedType(typeId);
-  };
-
-  // Variant Handlers
-  const openVariantForm = (variant?: Variant) => {
-    if (Attributes.length === 0) {
-      alert("Please define attributes before creating variants.");
-      setActiveTab("attributes");
-      return;
-    }
-
-    setCurrentVariant(variant);
-    setVariantFormOpen(true);
-  };
-
-  // Convert Variant to ProductVariant type for compatibility with VariantForm
-  const convertToProductVariant = (variant?: Variant) => {
-    if (!variant) return undefined;
-
-    return {
-      ...variant,
-      name: variant.name || "", // Ensure name is always a string
-      price:
-        typeof variant.price === "number" ? variant.price : variant.price || 0,
-      stock:
-        typeof variant.stock === "number" ? variant.stock : variant.stock || 0,
-
-      isActive: variant.isActive !== false,
-    };
-  };
-
-  const closeVariantForm = () => {
-    setCurrentVariant(undefined);
-    setVariantFormOpen(false);
-    // reload variants
-    fetchVariants();
-  };
-
-  const fetchVariants = async () => {
-    try {
-      setLoading(true);
-      if (!productId) return;
-      const response = await fetch(
-        `/api/product-variant?productId=${productId}`
-      );
-      const data = await response.json();
-      setVariants(data);
-    } catch (error) {
-      console.error("Failed to fetch variants:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const confirmDeleteVariant = (variantId: string) => {
-    setVariantToDelete(variantId);
-    setDeleteVariantDialogOpen(true);
-  };
-
-  const handleDeleteVariant = () => {
-    if (variantToDelete) {
-      setVariants(variants.filter((v) => v.id !== variantToDelete));
-      setDeleteVariantDialogOpen(false);
-      setVariantToDelete(null);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -484,18 +402,18 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         thumbnailImageUrl,
         discountPrice: hasDiscount ? discountPrice : null,
         // Include product attributes for saving to the Attribute table
-        Attributes,
+        attributes,
         attributeOption,
-        variants: variants.map((variant) => ({
-          id: variant.id?.startsWith("temp-") ? undefined : variant.id,
-          name: variant.name,
-          price: variant.price || price,
-          stock: variant.stock || stock,
+        // variants: variants.map((variant) => ({
+        //   id: variant.id?.startsWith("temp-") ? undefined : variant.id,
+        //   name: variant.name,
+        //   price: variant.price || price,
+        //   stock: variant.stock || stock,
 
-          attributes: variant.attributes || {},
+        //   attributes: variant.attributes || {},
 
-          isActive: variant.isActive,
-        })),
+        //   isActive: variant.isActive,
+        // })),
       };
 
       // For edit mode, include the ID
@@ -685,14 +603,14 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               Product Types
             </TabsTrigger>
             <TabsTrigger className="w-auto" value="attributes">
-              Attributes
+              attributes
             </TabsTrigger>
             <TabsTrigger className="w-auto" value="variants">
               Variants
             </TabsTrigger>
           </TabsList>
 
-          {/* General Info, Product Types, and Attributes TabsContent blocks go here, outside of TabsList */}
+          {/* General Info */}
           <TabsContent value="general" className="space-y-4">
             <ProductInfoSection
               name={name}
@@ -737,175 +655,37 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             />
           </TabsContent>
 
-          {/* Add new content section for Product Types */}
-          <TabsContent value="productTypes" className="space-y-4">
+          {/* Product Types */}
+          <TabsContent value="productTypes">
             <ProductTypeTab onTypesChange={setProductTypes} />
           </TabsContent>
 
-          <TabsContent value="attributes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Attributes</CardTitle>
-                <CardDescription>
-                  Define product attributes like size, color, material etc.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CombinedAttributesSection
-                  attributes={Attributes}
-                  setAttributes={setAttributes}
-                  attributeOption={attributeOption}
-                  setAttributeOption={setAttributeOption}
-                  onRemoveAttribute={handleRemoveAttribute}
-                  Attributes={Attributes}
-                  loadingAttributes={loadingAttributes}
-                />
-              </CardContent>
-            </Card>
+          {/* Attributes */}
+          <TabsContent value="attributes">
+            <CombinedAttributesSection
+              attributes={attributes}
+              setAttributes={setAttributes}
+              attributeOption={attributeOption}
+              setAttributeOption={setAttributeOption}
+              onRemoveAttribute={handleRemoveAttribute}
+              loadingAttributes={loadingAttributes}
+            />
           </TabsContent>
 
-          <TabsContent value="variants" className="space-y-4">
-            <div className="p-6 bg-background rounded-md">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Product Variants</h3>
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent form submission
-                    e.stopPropagation(); // Stop event bubbling
-                    openVariantForm();
-                  }}
-                  className="flex items-center gap-2"
-                  type="button" // Explicitly set type to button to prevent form submission
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Variant
-                </Button>
-              </div>
-
-              {loadingAttributes ? (
-                <div className="text-center py-8 text-gray-500">
-                  Loading attributes...
-                </div>
-              ) : Attributes.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="font-medium">
-                    You need to define attributes first
-                  </p>
-                  <p className="mt-2">
-                    Go to the Attributes tab to define attributes like color,
-                    size, etc.
-                  </p>
-                  <Button
-                    className="mt-4"
-                    variant="outline"
-                    onClick={() => setActiveTab("attributes")}
-                  >
-                    Go to Attributes
-                  </Button>
-                </div>
-              ) : variants.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No variants created yet. Add variants to offer different
-                  options like sizes or colors.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {variants.map((variant) => (
-                    <Card key={variant.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                            {/* <PackageIcon className="text-gray-400 h-6 w-6" /> */}
-
-                            <Image
-                              src={
-                                variant.images
-                                  ? variant.images[0]
-                                  : "/images/noimage.jpg"
-                              }
-                              alt={`Variant image ${variant.name}`}
-                              width={200}
-                              height={200}
-                              className="object-cover aspect-square"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{variant.name}</h4>
-                            <div className="flex gap-4 text-sm text-gray-500">
-                              <span>${variant.price}</span>
-                              <span>Stock: {variant.stock}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.preventDefault(); // Prevent form submission
-                              e.stopPropagation(); // Stop event bubbling
-                              openVariantForm(variant);
-                            }}
-                          >
-                            <Edit className="h-4 w-4 text-gray-500" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.preventDefault(); // Prevent form submission
-                              e.stopPropagation(); // Stop event bubbling
-                              confirmDeleteVariant(variant.id!);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Variants */}
+          <TabsContent value="variants">
+            <ProductVariantsSection
+              productId={productId ?? ""}
+              // variants={variants}
+              // setVariants={setVariants}
+              attributes={attributes}
+              attributeOption={attributeOption}
+              // loadingAttributes={loadingAttributes}
+              setActiveTab={setActiveTab}
+            />
           </TabsContent>
         </Tabs>
       </form>
-
-      {/* Variant Form Dialog */}
-      <VariantForm
-        isOpen={variantFormOpen}
-        onClose={closeVariantForm}
-        productId={productId!}
-        variant={convertToProductVariant(currentVariant)}
-        defaultPrice={price}
-        defaultStock={stock}
-        Attributes={Attributes}
-        AttributeValues={attributeOption}
-      />
-
-      {/* Delete Variant Confirmation Dialog */}
-      <AlertDialog
-        open={deleteVariantDialogOpen}
-        onOpenChange={setDeleteVariantDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will delete the variant. This action cannot be undone
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteVariant}
-              className="bg-red-500 text-white hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

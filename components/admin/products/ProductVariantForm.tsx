@@ -60,7 +60,6 @@ export default function VariantForm({
     stock: defaultStock,
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [selectedAttributes, setSelectedAttributes] = useState<
@@ -68,85 +67,67 @@ export default function VariantForm({
   >({}); // For multi-checkbox, store arrays for each attribute id and dropdown values as attributeId_itemId_dropdown
   const [mounted, setMounted] = useState(false);
 
-  // useEffect(() => {
-  //   setMounted(true);
-  // }, []);
-
-  // useEffect(() => {
-  //   if (variant) {
-  //     setForm(variant);
-
-  //     // Initialize selected attributes from variant
-  //     if (variant.attributes && Object.keys(variant.attributes).length > 0) {
-  //       setSelectedAttributes(
-  //         Object.entries(variant.attributes).reduce<
-  //           Record<string, string | number | string[] | boolean>
-  //         >((acc, [key, value]) => {
-  //           acc[key] = value;
-  //           return acc;
-  //         }, {})
-  //       );
-  //     } else {
-  //       // Create empty selected attributes
-  //       const initialAttributes: Record<
-  //         string,
-  //         string | number | string[] | boolean
-  //       > = {};
-  //       Attributes.forEach((attr) => {
-  //         if (["text", "number", "color"].includes(attr.type)) {
-  //           initialAttributes[attr.id] = [];
-  //         } else if (attr.type === "boolean") {
-  //           initialAttributes[attr.id] = false;
-  //         } else {
-  //           initialAttributes[attr.id] = "";
-  //         }
-  //       });
-  //       setSelectedAttributes(initialAttributes);
-  //     }
-  //   } else {
-  //     setForm({
-  //       ...DEFAULT_VARIANT,
-  //       price: defaultPrice,
-  //       stock: defaultStock,
-  //     });
-
-  //     // Create empty selected attributes for new variant
-  //     const initialAttributes: Record<string, string | string[] | boolean> = {};
-  //     Attributes.forEach((attr) => {
-  //       if (["text", "number", "color"].includes(attr.type)) {
-  //         initialAttributes[attr.id] = [];
-  //       } else if (attr.type === "boolean") {
-  //         initialAttributes[attr.id] = false;
-  //       } else {
-  //         initialAttributes[attr.id] = "";
-  //       }
-  //     });
-  //     setSelectedAttributes(initialAttributes);
-  //   }
-  // }, [variant, isOpen, defaultPrice, defaultStock, Attributes]);
-
-  // Update variant name whenever selected attributes change
-  // useEffect(() => {
-  //   updateVariantNameBasedOnAttributes();
-  // }, [selectedAttributes, Attributes, AttributeValues]);
-
-  const reloadVariant = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("/api/product-variant");
-      if (!response.ok) throw new Error("Failed to fetch variants");
-      const data = await response.json();
-      setForm(data);
-    } catch (error) {
-      console.error("Error reloading variant:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    reloadVariant();
-  }, []);
+    if (variant) {
+      setForm(variant);
+
+      // Initialize selected attributes from variant
+      if (variant.attributes && Object.keys(variant.attributes).length > 0) {
+        setSelectedAttributes(
+          Object.entries(variant.attributes).reduce<
+            Record<string, string | number | string[] | boolean>
+          >((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {})
+        );
+      } else {
+        // Create empty selected attributes
+        const initialAttributes: Record<
+          string,
+          string | number | string[] | boolean
+        > = {};
+        Attributes.forEach((attr) => {
+          if (["text", "number", "color"].includes(attr.type)) {
+            initialAttributes[attr.id] = [];
+          } else if (attr.type === "boolean") {
+            initialAttributes[attr.id] = false;
+          } else {
+            initialAttributes[attr.id] = "";
+          }
+        });
+        setSelectedAttributes(initialAttributes);
+      }
+    } else {
+      setForm({
+        ...DEFAULT_VARIANT,
+        price: defaultPrice,
+        stock: defaultStock,
+      });
+
+      // Create empty selected attributes for new variant
+      const initialAttributes: Record<string, string | string[] | boolean> = {};
+      Attributes.forEach((attr) => {
+        if (["text", "number", "color"].includes(attr.type)) {
+          initialAttributes[attr.id] = [];
+        } else if (attr.type === "boolean") {
+          initialAttributes[attr.id] = false;
+        } else {
+          initialAttributes[attr.id] = "";
+        }
+      });
+      setSelectedAttributes(initialAttributes);
+    }
+  }, [variant, isOpen, defaultPrice, defaultStock, Attributes]);
+
+  // Update variant name whenever selected attributes change
+  useEffect(() => {
+    updateVariantNameBasedOnAttributes();
+  }, [selectedAttributes, Attributes, AttributeValues]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -188,70 +169,70 @@ export default function VariantForm({
   };
 
   // Update variant name based on selected attributes
-  // const updateVariantNameBasedOnAttributes = () => {
-  //   const nameComponents: string[] = [];
+  const updateVariantNameBasedOnAttributes = () => {
+    const nameComponents: string[] = [];
 
-  //   // Add selected attribute values to the name
-  //   Attributes.forEach((attr) => {
-  //     const selectedValue = selectedAttributes[attr.id];
-  //     if (
-  //       selectedValue !== undefined &&
-  //       selectedValue !== null &&
-  //       ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
-  //         (typeof selectedValue === "string" && selectedValue !== "") ||
-  //         (typeof selectedValue === "boolean" && selectedValue === true))
-  //     ) {
-  //       // For color/text/number attributes with multi-select (array)
-  //       if (
-  //         ["color", "text", "number"].includes(attr.type) &&
-  //         Array.isArray(selectedValue)
-  //       ) {
-  //         selectedValue.forEach((id) => {
-  //           if (attr.type === "color") {
-  //             // Use key for color
-  //             nameComponents.push(id);
-  //           } else {
-  //             const valueObj = AttributeValues[attr.id]?.find(
-  //               (v) => v.key === id
-  //             );
-  //             if (valueObj) {
-  //               nameComponents.push(valueObj.value.toString());
-  //             }
-  //           }
-  //         });
-  //       }
-  //       // For color attributes, single string fallback (legacy)
-  //       else if (attr.type === "color" && typeof selectedValue === "string") {
-  //         // Use key for color
-  //         nameComponents.push(selectedValue);
-  //       }
-  //       // For boolean attributes, only add if true
-  //       else if (
-  //         attr.type === "boolean" &&
-  //         typeof selectedValue === "boolean" &&
-  //         selectedValue === true
-  //       ) {
-  //         nameComponents.push(attr.name);
-  //       }
-  //       // For other attributes, add the selected value
-  //       else if (typeof selectedValue === "string" && selectedValue) {
-  //         const value = AttributeValues[attr.id]?.find(
-  //           (v) => v.key === selectedValue
-  //         );
-  //         if (value) {
-  //           nameComponents.push(value.value.toString());
-  //         }
-  //       }
-  //     }
-  //   });
+    // Add selected attribute values to the name
+    Attributes.forEach((attr) => {
+      const selectedValue = selectedAttributes[attr.id];
+      if (
+        selectedValue !== undefined &&
+        selectedValue !== null &&
+        ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
+          (typeof selectedValue === "string" && selectedValue !== "") ||
+          (typeof selectedValue === "boolean" && selectedValue === true))
+      ) {
+        // For color/text/number attributes with multi-select (array)
+        if (
+          ["color", "text", "number"].includes(attr.type) &&
+          Array.isArray(selectedValue)
+        ) {
+          selectedValue.forEach((id) => {
+            if (attr.type === "color") {
+              // Use key for color
+              nameComponents.push(id);
+            } else {
+              const valueObj = AttributeValues[attr.id]?.find(
+                (v) => v.key === id
+              );
+              if (valueObj) {
+                nameComponents.push(valueObj.value.toString());
+              }
+            }
+          });
+        }
+        // For color attributes, single string fallback (legacy)
+        else if (attr.type === "color" && typeof selectedValue === "string") {
+          // Use key for color
+          nameComponents.push(selectedValue);
+        }
+        // For boolean attributes, only add if true
+        else if (
+          attr.type === "boolean" &&
+          typeof selectedValue === "boolean" &&
+          selectedValue === true
+        ) {
+          nameComponents.push(attr.name);
+        }
+        // For other attributes, add the selected value
+        else if (typeof selectedValue === "string" && selectedValue) {
+          const value = AttributeValues[attr.id]?.find(
+            (v) => v.key === selectedValue
+          );
+          if (value) {
+            nameComponents.push(value.value.toString());
+          }
+        }
+      }
+    });
 
-  //   if (nameComponents.length > 0) {
-  //     setForm((prev) => ({
-  //       ...prev,
-  //       name: nameComponents.join(" - "),
-  //     }));
-  //   }
-  // };
+    if (nameComponents.length > 0) {
+      setForm((prev) => ({
+        ...prev,
+        name: nameComponents.join(" - "),
+      }));
+    }
+  };
 
   const handleImagesChange = (newImages: string[]) => {
     // console.log("newImages", newImages);
@@ -507,14 +488,6 @@ export default function VariantForm({
       </div>
     );
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-10">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
     <>

@@ -56,14 +56,6 @@ export default function ProductInfoSection({
   setSku,
   description,
   setDescription,
-  price,
-  setPrice,
-  stock,
-  setStock,
-  hasDiscount,
-  setHasDiscount,
-  discountPrice,
-  setDiscountPrice,
   selectedType,
   handleTypeChange,
   productTypes,
@@ -74,6 +66,11 @@ export default function ProductInfoSection({
   const handleThumbnailImageUrl = (url: string | string[]) => {
     setThumbnailImageUrl(url as string);
   };
+
+  if (!productTypes || !name || !sku || !description) {
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -188,22 +185,6 @@ export default function ProductInfoSection({
                 </div>
               </div>
             </div>
-
-            {hasDiscount && (
-              <div className="space-y-2">
-                <Label htmlFor="discount-price">Discount Price ($)</Label>
-                <Input
-                  id="discount-price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={discountPrice}
-                  onChange={(e) => setDiscountPrice(e.target.valueAsNumber)}
-                  required={hasDiscount}
-                />
-              </div>
-            )}
           </div>
 
           <div className="space-y-2">
