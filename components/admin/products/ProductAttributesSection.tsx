@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AttributeType, Attribute, AttributeValue } from "@/types/product";
+import { AttributeType, Attribute, AttributeValue } from "@/types/data";
 
 interface CombinedAttributesSectionProps {
   attributes: Attribute[];

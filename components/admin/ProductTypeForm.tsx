@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Minus } from "lucide-react";
-import { ProductType, Attribute, AttributeType } from "@/types/product";
+import { ProductType, Attribute, AttributeType } from "@/types/data";
 
 interface ProductTypeFormProps {
   initialData: ProductType | null;

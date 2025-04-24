@@ -20,9 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Attribute } from "@/types/product";
+import { Attribute } from "@/types/data";
 import { ImagePicker } from "@/components/image/ImagePicker";
-import { AttributeValue, Variant } from "@/types/product";
+import { AttributeValue, Variant } from "@/types/data";
 
 interface VariantFormProps {
   isOpen: boolean;
@@ -36,8 +36,11 @@ interface VariantFormProps {
 }
 
 const DEFAULT_VARIANT: Variant = {
+  id: "",
+  productId: "",
   name: "",
   price: 0,
+  discountPrice: 0,
   stock: 0,
   images: [],
   attributes: [],

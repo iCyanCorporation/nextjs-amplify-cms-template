@@ -3,7 +3,7 @@
  * @param productData The product data to validate
  * @returns An object containing validation results
  */
-import { Product } from "@/types/product";
+import { Product } from "@/types/data";
 export const validateProduct = (productData: Product) => {
   const errors: Record<string, string> = {};
 

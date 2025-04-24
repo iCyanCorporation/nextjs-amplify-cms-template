@@ -1,6 +1,6 @@
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
-import { Variant } from "@/types/product";
+import { Variant } from "@/types/data";
 
 // GET /api/products - Get all products
 export async function GET(request: Request) {

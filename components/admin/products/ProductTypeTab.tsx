@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ProductType } from "@/types/product";
+import { ProductType } from "@/types/data";
 import { PlusIcon, PencilIcon, TrashIcon } from "lucide-react";
 import ProductTypeForm from "@/components/admin/ProductTypeForm"; // Assuming this path is correct relative to the new component
 import { Button } from "@/components/ui/button";

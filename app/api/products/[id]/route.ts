@@ -1,7 +1,7 @@
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 
 import { NextResponse } from "next/server";
-import { type Variant, type Product, type Attribute } from "@/types/product";
+import { type Variant, type Product, type Attribute } from "@/types/data";
 
 type Params = Promise<{ id: string }>;
 // GET /api/products/:id - Get a specific product with variants

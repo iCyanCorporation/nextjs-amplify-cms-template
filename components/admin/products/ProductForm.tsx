@@ -16,12 +16,7 @@ import {
   Save,
   RefreshCcw,
 } from "lucide-react";
-import {
-  ProductType,
-  Attribute,
-  Variant,
-  AttributeValue,
-} from "@/types/product";
+import { ProductType, Attribute, Variant, AttributeValue } from "@/types/data";
 import { Button } from "@/components/ui/button";
 import { validateProduct } from "@/utils/productValidation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

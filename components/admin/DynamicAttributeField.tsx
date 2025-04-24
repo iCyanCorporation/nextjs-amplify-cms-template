@@ -4,7 +4,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Attribute } from "@/types/product";
+import { Attribute } from "@/types/data";
 
 interface DynamicAttributeFieldProps {
   attribute: Attribute;
