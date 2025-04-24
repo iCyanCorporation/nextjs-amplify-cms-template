@@ -201,9 +201,9 @@ export default function ProductsPage() {
                     <TableRow key={product.id}>
                       <TableCell>
                         <div className="flex items-center">
-                          {product.images && product.images.length > 0 && (
+                          {product.thumbnailImageUrl && (
                             <img
-                              src={product.images[0]}
+                              src={product.thumbnailImageUrl}
                               alt={product.name}
                               className="w-10 h-10 rounded object-cover mr-3"
                             />
@@ -225,29 +225,7 @@ export default function ProductsPage() {
                           <span className="text-gray-400">None</span>
                         )}
                       </TableCell>
-                      <TableCell>
-                        {product.discountPrice ? (
-                          <div>
-                            <p className="text-sm line-through text-gray-500">
-                              ${product.price.toFixed(2)}
-                            </p>
-                            <p className="font-medium text-red-600">
-                              ${product.discountPrice.toFixed(2)}
-                            </p>
-                          </div>
-                        ) : (
-                          <p>${product.price.toFixed(2)}</p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            product.stock > 10 ? "success" : "destructive"
-                          }
-                        >
-                          {product.stock}
-                        </Badge>
-                      </TableCell>
+
                       <TableCell>
                         <div className="flex gap-2">
                           <Link href={`/admin/products/edit/${product.id}`}>

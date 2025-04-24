@@ -214,8 +214,8 @@ export async function POST(request: Request) {
 async function createVariants(
   variants: any[],
   productId: string,
-  price: string,
-  stock: string,
+  price: number,
+  stock: number,
   currentDate: string,
   authToken: string
 ) {
@@ -223,10 +223,8 @@ async function createVariants(
     const variantData = {
       productId,
       name: variant.name,
-      price: Number(variant.price ?? price),
-      stock: Number(variant.stock ?? stock),
-      color: variant.color,
-      size: variant.size,
+      price: variant.price ?? price,
+      stock: variant.stock ?? stock,
       attributes: variant.attributes
         ? JSON.stringify(variant.attributes)
         : null,

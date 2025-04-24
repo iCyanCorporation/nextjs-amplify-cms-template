@@ -28,12 +28,9 @@ const schema = a
     Product: a.model({
       name: a.string().required(),
       description: a.string(),
-      price: a.float().required(),
-      stock: a.integer().required(),
       sku: a.string(), // Stock keeping unit
       thumbnailImageUrl: a.string(),
       isActive: a.boolean().default(true),
-      discountPrice: a.float(), // Add discount price
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),
@@ -54,6 +51,7 @@ const schema = a
       product: a.belongsTo("Product", "productId"),
       name: a.string(), // Variant name
       price: a.float(), // Variant-specific price
+      discountPrice: a.float(), // Add discount price
       stock: a.integer(), // Variant-specific stock
       attributes: a.string(), // JSON stringified variant attributes
       images: a.string().array(),

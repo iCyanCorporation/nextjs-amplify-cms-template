@@ -434,8 +434,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       name,
       sku,
       description,
-      price,
-      stock,
       thumbnailImageUrl,
       productTypeId: selectedType ?? "",
     });

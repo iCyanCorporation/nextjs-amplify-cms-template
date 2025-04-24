@@ -39,7 +39,7 @@ const DEFAULT_VARIANT: Variant = {
   name: "",
   price: 0,
   stock: 0,
-  thumbnailImageUrl: "",
+  images: [],
   attributes: [],
   isActive: true,
 };
@@ -77,8 +77,9 @@ export default function VariantForm({
       // Initialize selected attributes from variant
       if (variant.attributes) {
         // Convert AttributeValue[] to Record<string, string | boolean | string[]>
-        const attributesRecord: Record<string, string | boolean | string[]> = {};
-        (variant.attributes as AttributeValue[]).forEach(attr => {
+        const attributesRecord: Record<string, string | boolean | string[]> =
+          {};
+        (variant.attributes as AttributeValue[]).forEach((attr) => {
           // Simple logic: treat 'true'/'false' as booleans, comma-separated as arrays
           if (attr.value === "true" || attr.value === "false") {
             attributesRecord[attr.key] = attr.value === "true";
@@ -259,10 +260,6 @@ export default function VariantForm({
       newErrors.stock = "Stock must be a valid integer";
     }
 
-    if (!form.thumbnailImageUrl || !form.thumbnailImageUrl.trim()) {
-      newErrors.thumbnailImageUrl = "Thumbnail image is required";
-    }
-
     // Validate required attributes
     Attributes.forEach((attr) => {
       // Only validate if attribute is selected
@@ -292,17 +289,18 @@ export default function VariantForm({
     }
 
     // Convert selectedAttributes (Record<string, string | boolean | string[]>) to AttributeValue[]
-    const attributesArray: AttributeValue[] = Object.entries(selectedAttributes)
-      .flatMap(([key, value]) => {
-        if (Array.isArray(value)) {
-          return value.map((v) => ({ key, value: String(v) }));
-        } else if (typeof value === "boolean") {
-          return value ? [{ key, value: "true" }] : [];
-        } else if (typeof value === "string" && value.trim() !== "") {
-          return [{ key, value }];
-        }
-        return [];
-      });
+    const attributesArray: AttributeValue[] = Object.entries(
+      selectedAttributes
+    ).flatMap(([key, value]) => {
+      if (Array.isArray(value)) {
+        return value.map((v) => ({ key, value: String(v) }));
+      } else if (typeof value === "boolean") {
+        return value ? [{ key, value: "true" }] : [];
+      } else if (typeof value === "string" && value.trim() !== "") {
+        return [{ key, value }];
+      }
+      return [];
+    });
 
     const formWithAttributes = {
       ...form,
@@ -535,32 +533,6 @@ export default function VariantForm({
                     onCheckedChange={handleSwitchChange}
                   />
                   <Label htmlFor="isActive">Active</Label>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Variant Thumbnail Image</Label>
-                <div className="flex flex-col space-y-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex items-center gap-2 w-full"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setImagePickerOpen(true);
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Select Thumbnail Image
-                  </Button>
-                  {form.thumbnailImageUrl && (
-                    <img
-                      src={form.thumbnailImageUrl}
-                      alt={form.name}
-                      className="w-full h-48 object-cover object-center"
-                    />
-                  )}
                 </div>
               </div>
 

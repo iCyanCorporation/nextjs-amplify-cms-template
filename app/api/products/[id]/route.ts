@@ -186,20 +186,11 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       sku,
       productTypeId,
       isActive,
-      images,
+      thumbnailImageUrl,
       Attributes, // Use the correct property name that's being sent from the frontend
       discountPrice,
       variants = [],
     } = body;
-
-    // Ensure images is an array
-    const imageArray = Array.isArray(images) ? images : [];
-
-    // console.log("Updating product with data:", {
-    //   id: productId,
-    //   productTypeId,
-    //   images: imageArray,
-    // });
 
     // Split the update into two steps to work around the GraphQL schema limitation
     // Step 1: Update basic product info without images
@@ -211,7 +202,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       stock: typeof stock === "number" ? stock : parseInt(stock || "0", 10),
       sku: sku || "", // <-- add sku to productData
       productTypeId: productTypeId,
-      imgUrl: imageArray.length > 0 ? imageArray[0] : "",
+      thumbnailImageUrl: thumbnailImageUrl || "",
       isActive: isActive !== false,
     };
 
@@ -333,7 +324,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     }
 
     // Step 2: Handle images separately using a get-then-update approach
-    if (imageArray.length > 0) {
+    if (thumbnailImageUrl) {
       try {
         console.log("Step 2: Fetching current product to update images");
         const currentProduct = await amplifyClient.models.Product.get(
@@ -351,59 +342,15 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         console.log("Updating product images field");
 
         // Try updating with API-friendly approach - just the ID and images
-        try {
-          // Method 1: Try updating only the images field
-          await amplifyClient.models.Product.update(
-            {
-              id: productId,
-              // Use a method that works for your specific GraphQL schema:
-              // Try as array first
-              images: imageArray,
-            },
-            { authMode: "identityPool", authToken }
-          );
+        await amplifyClient.models.Product.update(
+          {
+            id: productId,
+            thumbnailImageUrl: thumbnailImageUrl,
+          },
+          { authMode: "identityPool", authToken }
+        );
 
-          console.log("Successfully updated images as array");
-        } catch (arrayError) {
-          console.log(
-            "Failed to update images as array, trying with string",
-            arrayError
-          );
-
-          try {
-            // Method 2: Try with individual image strings
-            const imagesObject: Record<string, string> = {};
-            imageArray.forEach((img, index) => {
-              imagesObject[`image${index}`] = img;
-            });
-
-            const imagesUpdateResult =
-              await amplifyClient.models.Product.update(
-                {
-                  id: productId,
-                  images: imageArray, // Pass the array directly
-                },
-                { authMode: "identityPool", authToken }
-              );
-
-            console.log("Successfully updated images as string");
-          } catch (stringError) {
-            console.log("Failed to update images as string", stringError);
-
-            // Method 3: If all else fails, store the image URLs in custom attributes
-            const customAttrsWithImages = { _imageUrls: imageArray };
-
-            await amplifyClient.models.Product.update(
-              {
-                id: productId,
-                attributes: JSON.stringify(customAttrsWithImages),
-              } as any,
-              { authMode: "identityPool", authToken }
-            ); // Cast here
-
-            console.log("Stored images in attributes as fallback");
-          }
-        }
+        console.log("Successfully updated thumbnailImageUrl");
       } catch (imageUpdateError) {
         console.error("Error updating product images:", imageUpdateError);
         // Continue with the API response even if image update fails
@@ -465,8 +412,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
           name: variant.name || "",
           price: parseFloat(variantPriceStr),
           stock: parseInt(variantStockStr, 10),
-          color: variant.color || "",
-          size: variant.size || "",
+
           attributes: variant.attributes
             ? JSON.stringify(variant.attributes)
             : null,
@@ -526,39 +472,10 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         authMode: "identityPool",
       });
 
-    // Parse the images back into an array for the response
-    let parsedImages = [];
-    try {
-      if (updatedProductResult.data.images) {
-        if (typeof updatedProductResult.data.images === "string") {
-          parsedImages = JSON.parse(updatedProductResult.data.images);
-        } else if (Array.isArray(updatedProductResult.data.images)) {
-          parsedImages = updatedProductResult.data.images;
-        }
-      }
-
-      // If we stored images in attributes as a fallback, retrieve them
-      if (
-        parsedImages.length === 0 &&
-        (updatedProductResult.data as any).attributes
-      ) {
-        const customAttrs = JSON.parse(
-          (updatedProductResult.data as any).attributes as string
-        );
-        if (customAttrs._imageUrls && Array.isArray(customAttrs._imageUrls)) {
-          parsedImages = customAttrs._imageUrls;
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing images:", error);
-      // If we can't parse images, use the original array
-      parsedImages = imageArray;
-    }
-
     // Build the complete response
     const updatedProduct = {
       ...updatedProductResult.data,
-      images: parsedImages,
+      thumbnailImageUrl: updatedProductResult.data.thumbnailImageUrl,
       variants: updatedVariantsResult.data || [],
     };
 
