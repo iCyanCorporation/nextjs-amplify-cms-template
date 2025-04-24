@@ -151,30 +151,12 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       if (!response.ok) {
         throw new Error("Failed to fetch attributes");
       }
-      const data = await response.json();
+      const data: { attributes: Attribute[] } = await response.json();
+      if (!data.attributes) {
+        throw new Error("Failed to fetch attributes");
+      }
 
-      // Extract the attributes from the response
-      // Parse options if needed
-      const parsedAttributes = await (data.attributes || []).map(
-        (attr: Attribute) => ({
-          ...attr,
-          options:
-            typeof attr.options === "string"
-              ? (() => {
-                  try {
-                    const parsed = JSON.parse(attr.options);
-                    // Only accept array, otherwise fallback to []
-                    return Array.isArray(parsed) ? parsed : [];
-                  } catch {
-                    return [];
-                  }
-                })()
-              : Array.isArray(attr.options)
-                ? attr.options
-                : [],
-        })
-      );
-      await setAttributes(parsedAttributes);
+      setAttributes(data.attributes);
       setupAttributeOption();
     } catch (error) {
       console.error("Error fetching attributes:", error);

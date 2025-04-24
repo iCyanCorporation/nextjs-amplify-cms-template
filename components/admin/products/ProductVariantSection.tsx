@@ -73,7 +73,6 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
     setVariantFormOpen(true);
   };
 
-
   const closeVariantForm = () => {
     setCurrentVariant(undefined);
     setVariantFormOpen(false);
@@ -235,8 +234,8 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
         variant={convertToProductVariant(currentVariant)}
         defaultPrice={price}
         defaultStock={stock}
-        Attributes={attributes}
-        AttributeValues={attributeOption}
+        attributeList={attributes}
+        attributeOption={attributeOption}
       />
 
       {/* Delete Variant Confirmation Dialog */}

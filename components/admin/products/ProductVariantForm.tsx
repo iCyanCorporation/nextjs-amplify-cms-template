@@ -28,8 +28,8 @@ interface VariantFormProps {
   variant?: Variant;
   defaultPrice?: number;
   defaultStock?: number;
-  Attributes: Attribute[];
-  AttributeValues: Record<string, AttributeValue[]>;
+  attributeList: Attribute[];
+  attributeOption: Record<string, AttributeValue[]>;
 }
 
 const DEFAULT_VARIANT: Variant = {
@@ -40,7 +40,7 @@ const DEFAULT_VARIANT: Variant = {
   discountPrice: 0,
   stock: 0,
   images: [],
-  attributes: "",
+  attributes: "", // a json string. ex: {"056bc171-4a64-443c-b686-9b7501bad77e":["black","red"],"65d94de9-d85e-4196-9f8b-1463772dfddc":["M"]}
   isActive: true,
 };
 
@@ -51,8 +51,8 @@ export default function VariantForm({
   variant,
   defaultPrice = 0,
   defaultStock = 0,
-  Attributes,
-  AttributeValues,
+  attributeList,
+  attributeOption,
 }: VariantFormProps) {
   const [form, setForm] = useState<Variant>({
     ...DEFAULT_VARIANT,
@@ -62,7 +62,7 @@ export default function VariantForm({
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
-  const [selectedAttributes, setSelectedAttributes] = useState<
+  const [selectedattributes, setSelectedattributes] = useState<
     Record<string, string | number | boolean | string[]>
   >({}); // For multi-checkbox, store arrays for each attribute id and dropdown values as attributeId_itemId_dropdown
   const [mounted, setMounted] = useState(false);
@@ -77,7 +77,7 @@ export default function VariantForm({
 
       // Initialize selected attributes from variant
       if (variant.attributes && Object.keys(variant.attributes).length > 0) {
-        setSelectedAttributes(
+        setSelectedattributes(
           Object.entries(variant.attributes).reduce<
             Record<string, string | number | string[] | boolean>
           >((acc, [key, value]) => {
@@ -87,20 +87,20 @@ export default function VariantForm({
         );
       } else {
         // Create empty selected attributes
-        const initialAttributes: Record<
+        const initialattributes: Record<
           string,
           string | number | string[] | boolean
         > = {};
-        Attributes.forEach((attr) => {
+        attributeList.forEach((attr) => {
           if (["text", "number", "color"].includes(attr.type)) {
-            initialAttributes[attr.id] = [];
+            initialattributes[attr.id] = [];
           } else if (attr.type === "boolean") {
-            initialAttributes[attr.id] = false;
+            initialattributes[attr.id] = false;
           } else {
-            initialAttributes[attr.id] = "";
+            initialattributes[attr.id] = "";
           }
         });
-        setSelectedAttributes(initialAttributes);
+        setSelectedattributes(initialattributes);
       }
     } else {
       setForm({
@@ -110,24 +110,24 @@ export default function VariantForm({
       });
 
       // Create empty selected attributes for new variant
-      const initialAttributes: Record<string, string | string[] | boolean> = {};
-      Attributes.forEach((attr) => {
+      const initialattributes: Record<string, string | string[] | boolean> = {};
+      attributeList.forEach((attr) => {
         if (["text", "number", "color"].includes(attr.type)) {
-          initialAttributes[attr.id] = [];
+          initialattributes[attr.id] = [];
         } else if (attr.type === "boolean") {
-          initialAttributes[attr.id] = false;
+          initialattributes[attr.id] = false;
         } else {
-          initialAttributes[attr.id] = "";
+          initialattributes[attr.id] = "";
         }
       });
-      setSelectedAttributes(initialAttributes);
+      setSelectedattributes(initialattributes);
     }
-  }, [variant, isOpen, defaultPrice, defaultStock, Attributes]);
+  }, [variant, isOpen, defaultPrice, defaultStock, attributeList]);
 
   // Update variant name whenever selected attributes change
   useEffect(() => {
-    updateVariantNameBasedOnAttributes();
-  }, [selectedAttributes, Attributes, AttributeValues]);
+    updateVariantNameBasedOnattributes();
+  }, [selectedattributes, attributeList, attributeOption]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -162,19 +162,19 @@ export default function VariantForm({
     attributeId: string,
     value: string | string[] | boolean
   ) => {
-    setSelectedAttributes((prev) => ({
+    setSelectedattributes((prev) => ({
       ...prev,
       [attributeId]: value,
     }));
   };
 
   // Update variant name based on selected attributes
-  const updateVariantNameBasedOnAttributes = () => {
+  const updateVariantNameBasedOnattributes = () => {
     const nameComponents: string[] = [];
 
     // Add selected attribute values to the name
-    Attributes.forEach((attr) => {
-      const selectedValue = selectedAttributes[attr.id];
+    attributeList.forEach((attr) => {
+      const selectedValue = selectedattributes[attr.id];
       if (
         selectedValue !== undefined &&
         selectedValue !== null &&
@@ -192,7 +192,7 @@ export default function VariantForm({
               // Use key for color
               nameComponents.push(id);
             } else {
-              const valueObj = AttributeValues[attr.id]?.find(
+              const valueObj = attributeOption[attr.id]?.find(
                 (v) => v.key === id
               );
               if (valueObj) {
@@ -216,7 +216,7 @@ export default function VariantForm({
         }
         // For other attributes, add the selected value
         else if (typeof selectedValue === "string" && selectedValue) {
-          const value = AttributeValues[attr.id]?.find(
+          const value = attributeOption[attr.id]?.find(
             (v) => v.key === selectedValue
           );
           if (value) {
@@ -305,10 +305,10 @@ export default function VariantForm({
     }
 
     // Validate required attributes
-    Attributes.forEach((attr) => {
+    attributeList.forEach((attr) => {
       // Only validate if attribute is selected
-      if (selectedAttributes.hasOwnProperty(attr.id)) {
-        const value = selectedAttributes[attr.id];
+      if (selectedattributes.hasOwnProperty(attr.id)) {
+        const value = selectedattributes[attr.id];
         if (
           value === undefined ||
           value === null ||
@@ -332,9 +332,9 @@ export default function VariantForm({
       return;
     }
 
-    // Convert selectedAttributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
+    // Convert selectedattributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
     const attributes: Record<string, string[]> = {};
-    Object.entries(selectedAttributes).forEach(([key, value]) => {
+    Object.entries(selectedattributes).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         attributes[key] = value.map(String).filter((v) => v.trim() !== "");
       } else if (typeof value === "boolean") {
@@ -344,148 +344,20 @@ export default function VariantForm({
       }
     });
 
-    const formWithAttributes = {
+    const formWithattributes = {
       ...form,
       attributes: JSON.stringify(attributes), // Store as JSON string for DB
     };
 
-    handleUpdateVariant(formWithAttributes);
+    handleUpdateVariant(formWithattributes);
   };
 
   // Render a single attribute field with attribute-level selection
   const renderAttributeField = (attribute: Attribute) => {
-    const attrValues = AttributeValues[attribute.id] || [];
-    // Determine if attribute is selected
-    // Attribute is selected if it exists in selectedAttributes
-    const isSelected = selectedAttributes.hasOwnProperty(attribute.id);
-
-    // Attribute select checkbox
-    return (
-      <div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`attr-enable-${attribute.id}`}
-            checked={isSelected}
-            onCheckedChange={(checked) => {
-              if (checked) {
-                // Set default value for attribute type
-                if (["text", "number", "color"].includes(attribute.type)) {
-                  handleAttributeChange(attribute.id, []);
-                } else if (attribute.type === "boolean") {
-                  handleAttributeChange(attribute.id, false);
-                } else {
-                  handleAttributeChange(attribute.id, "");
-                }
-              } else {
-                // Remove value from selectedAttributes
-                setSelectedAttributes((prev) => {
-                  const newAttrs = { ...prev };
-                  delete newAttrs[attribute.id];
-                  // Remove any dropdowns for this attribute
-                  if (["text", "number", "color"].includes(attribute.type)) {
-                    (AttributeValues[attribute.id] || []).forEach((item) => {
-                      delete newAttrs[`${attribute.id}_${item.key}_dropdown`];
-                    });
-                  }
-                  return newAttrs;
-                });
-              }
-            }}
-          />
-          <Label htmlFor={`attr-enable-${attribute.id}`}>
-            {attribute.name}
-          </Label>
-        </div>
-        {/* Show options only if selected */}
-        {isSelected && (
-          <div className="pl-6 pt-2">
-            {(() => {
-              if (["text", "number", "color"].includes(attribute.type)) {
-                const selectedValue: string[] = Array.isArray(
-                  selectedAttributes[attribute.id]
-                )
-                  ? (selectedAttributes[attribute.id] as string[])
-                  : [];
-                return (
-                  <div className="space-y-2">
-                    {attrValues.map((item) => {
-                      const checked =
-                        selectedValue?.includes(item.key) ?? false;
-                      return (
-                        <div
-                          key={item.key}
-                          className="flex items-center gap-2 mb-1"
-                        >
-                          <Checkbox
-                            id={`attr-${attribute.id}-item-${item.key}`}
-                            checked={checked}
-                            onCheckedChange={(isChecked) => {
-                              let newSelected: string[] = Array.isArray(
-                                selectedValue
-                              )
-                                ? [...selectedValue]
-                                : [];
-                              if (isChecked) {
-                                if (!newSelected.includes(item.key))
-                                  newSelected.push(item.key);
-                              } else {
-                                newSelected = newSelected.filter(
-                                  (key) => key !== item.key
-                                );
-                              }
-                              handleAttributeChange(attribute.id, newSelected);
-                            }}
-                          />
-                          <Label
-                            htmlFor={`attr-${attribute.id}-item-${item.key}`}
-                          >
-                            {attribute.type === "color" ? (
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-4 h-4 rounded-full"
-                                  style={{
-                                    backgroundColor: item.value.toString(),
-                                  }}
-                                />
-                                <span>{item.key}</span>
-                              </div>
-                            ) : (
-                              item.value
-                            )}
-                          </Label>
-                        </div>
-                      );
-                    })}
-                    {/* Validation error */}
-                    {errors[`attr_${attribute.id}`] && (
-                      <p className="text-red-500 text-xs">
-                        {errors[`attr_${attribute.id}`]}
-                      </p>
-                    )}
-                  </div>
-                );
-              } else if (attribute.type === "boolean") {
-                return (
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`attr-${attribute.id}`}
-                      checked={!!selectedAttributes[attribute.id]}
-                      onCheckedChange={(checked) =>
-                        handleAttributeChange(attribute.id, !!checked)
-                      }
-                    />
-                    <Label htmlFor={`attr-${attribute.id}`}>
-                      {attribute.name}
-                    </Label>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-          </div>
-        )}
-      </div>
-    );
+    const attrValues = attributeOption[attribute.id] || [];
+    const isSelected = selectedattributes.hasOwnProperty(attribute.id);
+    console.log("isSelected", attributeList, attrValues, isSelected);
+    return null;
   };
 
   return (
@@ -553,12 +425,12 @@ export default function VariantForm({
               </div>
 
               {/* Attribute Fields */}
-              {Attributes.length > 0 && (
+              {attributeList.length > 0 && (
                 <div className="space-y-4 border-t pt-4 mt-4">
-                  <h3 className="font-medium">Variant Attributes</h3>
+                  <h3 className="font-medium">Variant attributes</h3>
 
                   <div className="space-y-4">
-                    {Attributes.map((attribute) => (
+                    {attributeList.map((attribute) => (
                       <div key={attribute.id}>
                         {/* <Label>{attribute.name}</Label> */}
                         {renderAttributeField(attribute)}
