@@ -64,14 +64,15 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
 
   // Variant Handlers
   const openVariantForm = (variant?: Variant) => {
-    // if (attributes.length === 0) {
-    //   alert("Please define attributes before creating variants.");
-    //   setActiveTab("attributes");
-    //   return;
-    // }
-    // setCurrentVariant(variant);
-    // setVariantFormOpen(true);
+    if (attributes.length === 0) {
+      alert("Please define attributes before creating variants.");
+      setActiveTab("attributes");
+      return;
+    }
+    setCurrentVariant(variant);
+    setVariantFormOpen(true);
   };
+
 
   const closeVariantForm = () => {
     setCurrentVariant(undefined);
