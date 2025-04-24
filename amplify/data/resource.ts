@@ -30,6 +30,7 @@ const schema = a
       description: a.string(),
       price: a.float().required(),
       stock: a.integer().required(),
+      sku: a.string(), // Stock keeping unit
       imgUrl: a.string(),
       images: a.string().array(), // Store multiple images
       isActive: a.boolean().default(true),
@@ -53,7 +54,6 @@ const schema = a
       productId: a.id(),
       product: a.belongsTo("Product", "productId"),
       name: a.string(), // Variant name
-      sku: a.string(), // Stock keeping unit
       price: a.float(), // Variant-specific price
       stock: a.integer(), // Variant-specific stock
       color: a.string(),

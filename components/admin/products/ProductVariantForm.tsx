@@ -449,7 +449,6 @@ export default function VariantForm({
                     value={form.name ?? ""}
                     onChange={handleChange}
                     className={errors.name ? "border-red-500" : ""}
-                    disabled={true}
                   />
                   {errors.name && (
                     <p className="text-red-500 text-xs">{errors.name}</p>

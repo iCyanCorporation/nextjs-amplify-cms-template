@@ -106,6 +106,18 @@ export default function ProductImagesSection({
 
   return (
     <div className="space-y-4">
+      <div className="flex space-x-2">
+        <Input
+          type="url"
+          value={newImageUrl}
+          onChange={(e) => setNewImageUrl(e.target.value)}
+          placeholder="Enter image URL"
+          className="flex-1"
+        />
+        <Button type="button" onClick={handleAddImage}>
+          Add URL
+        </Button>
+      </div>
       <div>
         <div className="flex justify-between mb-2">
           <Label htmlFor="images">
@@ -164,7 +176,7 @@ export default function ProductImagesSection({
         {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       </div>
 
-      <div className="space-y-3">
+      {/* <div className="space-y-3">
         <div className="flex space-x-2">
           <Input
             type="url"
@@ -183,7 +195,7 @@ export default function ProductImagesSection({
           buttonText="Choose from gallery"
           multiSelect={true}
         />
-      </div>
+      </div> */}
     </div>
   );
 }
