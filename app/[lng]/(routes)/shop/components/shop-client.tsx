@@ -8,7 +8,7 @@ interface Product {
   title: string;
   description?: string;
   price: number;
-  images?: string[];
+  thumbnailImageUrl?: string;
   category?: string;
   [key: string]: any;
 }
@@ -94,7 +94,7 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
                   id: product.id,
                   name: product.title || "",
                   price: product.price,
-                  images: product.images || [],
+                  thumbnailImageUrl: product.thumbnailImageUrl || "",
                   category: product.category || "",
                   description: product.description || "",
                   specs: product.specs || {},

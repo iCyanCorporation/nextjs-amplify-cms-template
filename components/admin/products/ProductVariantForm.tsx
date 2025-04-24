@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Attribute } from "@/types/product";
-import ProductImagesSection from "./ProductImagesSection";
 import { ImagePicker } from "@/components/image/ImagePicker";
 import { AttributeValue, Variant } from "@/types/product";
 
@@ -38,14 +37,10 @@ interface VariantFormProps {
 
 const DEFAULT_VARIANT: Variant = {
   name: "",
-  // sku removed from variant form, now only on product
-
   price: 0,
   stock: 0,
-  color: "",
-  size: "",
-  attributes: {},
-  images: [],
+  thumbnailImageUrl: "",
+  attributes: [],
   isActive: true,
 };
 
@@ -81,9 +76,19 @@ export default function VariantForm({
 
       // Initialize selected attributes from variant
       if (variant.attributes) {
-        setSelectedAttributes(
-          variant.attributes as Record<string, string | boolean | string[]>
-        );
+        // Convert AttributeValue[] to Record<string, string | boolean | string[]>
+        const attributesRecord: Record<string, string | boolean | string[]> = {};
+        (variant.attributes as AttributeValue[]).forEach(attr => {
+          // Simple logic: treat 'true'/'false' as booleans, comma-separated as arrays
+          if (attr.value === "true" || attr.value === "false") {
+            attributesRecord[attr.key] = attr.value === "true";
+          } else if (attr.value.includes(",")) {
+            attributesRecord[attr.key] = attr.value.split(",");
+          } else {
+            attributesRecord[attr.key] = attr.value;
+          }
+        });
+        setSelectedAttributes(attributesRecord);
       } else {
         // Create empty selected attributes
         const initialAttributes: Record<string, string | string[] | boolean> =
@@ -149,8 +154,9 @@ export default function VariantForm({
     setForm((prev) => ({ ...prev, isActive: checked }));
   };
 
-  const handleImagesChange = (newImages: string[]) => {
-    setForm((prev) => ({ ...prev, images: newImages }));
+  // Handler for selecting a single image URL for the variant thumbnail
+  const handleThumbnailChange = (url: string) => {
+    setForm((prev) => ({ ...prev, thumbnailImageUrl: url }));
   };
 
   // Handle attribute selection
@@ -237,8 +243,6 @@ export default function VariantForm({
       newErrors.name = "Variant name is required";
     }
 
-    
-
     if (!form.price) {
       newErrors.price = "Price is required";
     } else if (isNaN(Number(form.price)) || Number(form.price) < 0) {
@@ -253,6 +257,10 @@ export default function VariantForm({
       Number(form.stock) < 0
     ) {
       newErrors.stock = "Stock must be a valid integer";
+    }
+
+    if (!form.thumbnailImageUrl || !form.thumbnailImageUrl.trim()) {
+      newErrors.thumbnailImageUrl = "Thumbnail image is required";
     }
 
     // Validate required attributes
@@ -283,10 +291,22 @@ export default function VariantForm({
       return;
     }
 
-    // Include selected attributes in the variant
+    // Convert selectedAttributes (Record<string, string | boolean | string[]>) to AttributeValue[]
+    const attributesArray: AttributeValue[] = Object.entries(selectedAttributes)
+      .flatMap(([key, value]) => {
+        if (Array.isArray(value)) {
+          return value.map((v) => ({ key, value: String(v) }));
+        } else if (typeof value === "boolean") {
+          return value ? [{ key, value: "true" }] : [];
+        } else if (typeof value === "string" && value.trim() !== "") {
+          return [{ key, value }];
+        }
+        return [];
+      });
+
     const formWithAttributes = {
       ...form,
-      attributes: selectedAttributes,
+      attributes: attributesArray,
     };
 
     onSave(formWithAttributes);
@@ -453,8 +473,6 @@ export default function VariantForm({
                     <p className="text-red-500 text-xs">{errors.name}</p>
                   )}
                 </div>
-
-                
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -521,7 +539,7 @@ export default function VariantForm({
               </div>
 
               <div className="space-y-2">
-                <Label>Variant Images</Label>
+                <Label>Variant Thumbnail Image</Label>
                 <div className="flex flex-col space-y-2">
                   <Button
                     type="button"
@@ -534,13 +552,15 @@ export default function VariantForm({
                     }}
                   >
                     <Plus className="h-4 w-4" />
-                    Select Images
+                    Select Thumbnail Image
                   </Button>
-                  <ProductImagesSection
-                    images={form.images ?? []}
-                    onChange={handleImagesChange}
-                    required={false}
-                  />
+                  {form.thumbnailImageUrl && (
+                    <img
+                      src={form.thumbnailImageUrl}
+                      alt={form.name}
+                      className="w-full h-48 object-cover object-center"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -562,25 +582,19 @@ export default function VariantForm({
         <Dialog open={imagePickerOpen} onOpenChange={setImagePickerOpen}>
           <DialogContent className="sm:max-w-[800px]">
             <DialogHeader>
-              <DialogTitle>Select Image</DialogTitle>
+              <DialogTitle>Select Thumbnail Image</DialogTitle>
             </DialogHeader>
             <ImagePicker
               open={imagePickerOpen}
               onSelect={(imageUrl) => {
                 if (typeof imageUrl === "string") {
-                  setForm((prev) => ({
-                    ...prev,
-                    images: [...(prev.images ?? []), imageUrl],
-                  }));
+                  handleThumbnailChange(imageUrl);
                 } else if (
                   Array.isArray(imageUrl) &&
                   imageUrl.length > 0 &&
                   typeof imageUrl[0] === "string"
                 ) {
-                  setForm((prev) => ({
-                    ...prev,
-                    images: [...(prev.images ?? []), imageUrl[0]],
-                  }));
+                  handleThumbnailChange(imageUrl[0]);
                 } else {
                   console.warn(
                     "Expected single image URL, received array:",

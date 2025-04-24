@@ -31,8 +31,7 @@ const schema = a
       price: a.float().required(),
       stock: a.integer().required(),
       sku: a.string(), // Stock keeping unit
-      imgUrl: a.string(),
-      images: a.string().array(), // Store multiple images
+      thumbnailImageUrl: a.string(),
       isActive: a.boolean().default(true),
       discountPrice: a.float(), // Add discount price
       productTypeId: a.id(),
@@ -56,8 +55,6 @@ const schema = a
       name: a.string(), // Variant name
       price: a.float(), // Variant-specific price
       stock: a.integer(), // Variant-specific stock
-      color: a.string(),
-      size: a.string(), // Common variant attribute
       attributes: a.string(), // JSON stringified variant attributes
       images: a.string().array(),
       isActive: a.boolean().default(true),

@@ -47,7 +47,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 
 import ProductInfoSection from "./ProductInfoSection";
-import ProductImagesSection from "./ProductImagesSection";
+
 import CombinedAttributesSection from "./ProductAttributesSection";
 import VariantForm from "./ProductVariantForm";
 import ProductTypeTab from "./ProductTypeTab"; // Import the new component
@@ -72,7 +72,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [hasDiscount, setHasDiscount] = useState(false);
   const [discountPrice, setDiscountPrice] = useState(0);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [images, setImages] = useState<string[]>([]);
+  const [thumbnailImageUrl, setThumbnailImageUrl] = useState<string>("");
   const [isActive, setIsActive] = useState(true);
   const [formErrors, setFormErrors] = useState<
     Record<string, string | undefined>
@@ -113,7 +113,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           prevAttributes.filter((attr) => attr.id !== attributeIdToRemove)
         );
         setAttributeOption((prevOption) => {
-          const newOption = { ...prevOption };
+          const newOption: Record<string, AttributeValue[]> = { ...prevOption }; // Start with previous state
+
           delete newOption[attributeIdToRemove];
           return newOption;
         });
@@ -217,20 +218,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           // Make sure to properly set the product type ID
           setSelectedType(productData.productTypeId || "");
 
-          // Handle images properly
-          let imageArray = [];
-          if (productData.images) {
-            if (Array.isArray(productData.images)) {
-              imageArray = productData.images;
-            } else if (typeof productData.images === "string") {
-              try {
-                imageArray = JSON.parse(productData.images);
-              } catch (e) {
-                console.error("Failed to parse images JSON:", e);
-              }
-            }
-          }
-          setImages(imageArray);
+          // Handle thumbnailImageUrl properly
+          setThumbnailImageUrl(productData.thumbnailImageUrl || "");
 
           setIsActive(productData.isActive !== false);
 
@@ -318,7 +307,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                     ? JSON.parse(variant.attributes)
                     : variant.attributes
                   : {},
-                images: variant.images || [],
+
                 isActive: variant.isActive !== false,
               }))
             );
@@ -392,9 +381,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         typeof variant.price === "number" ? variant.price : variant.price || 0,
       stock:
         typeof variant.stock === "number" ? variant.stock : variant.stock || 0,
-      color: variant.color || "",
-      size: variant.size || "",
-      images: variant.images || [],
+
       isActive: variant.isActive !== false,
     };
   };
@@ -449,7 +436,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       description,
       price,
       stock,
-      images,
+      thumbnailImageUrl,
       productTypeId: selectedType ?? "",
     });
 
@@ -468,9 +455,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     setSubmitting(true);
 
     try {
-      // Ensure images is always an array
-      const imageArray = Array.isArray(images) ? images : [];
-
       // Create the product data object - match the Amplify schema structure
       const productData = {
         name,
@@ -480,8 +464,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         stock: stock,
         productTypeId: selectedType, // Ensure productTypeId is included
         isActive,
-        images: imageArray, // Ensure it's an array
-        imgUrl: imageArray.length > 0 ? imageArray[0] : "", // Use first image as primary image
+        thumbnailImageUrl,
         discountPrice: hasDiscount ? discountPrice : null,
         // Include product attributes for saving to the Attribute table
         Attributes,
@@ -491,10 +474,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           name: variant.name,
           price: variant.price || price,
           stock: variant.stock || stock,
-          color: variant.color,
-          size: variant.size,
+
           attributes: variant.attributes || {},
-          images: Array.isArray(variant.images) ? variant.images : [],
+
           isActive: variant.isActive,
         })),
       };
@@ -678,19 +660,28 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           className="w-full"
         >
           {/* Update grid columns to 5 */}
-          <TabsList className="grid grid-cols-5 mb-6 bg-background rounded-md shadow-md">
-            <TabsTrigger value="general">General Info</TabsTrigger>
-            <TabsTrigger value="images">Images</TabsTrigger>
-            <TabsTrigger value="productTypes">Product Types</TabsTrigger>{" "}
-            {/* Add new trigger */}
-            <TabsTrigger value="attributes">Attributes</TabsTrigger>
-            <TabsTrigger value="variants">Variants</TabsTrigger>
+          <TabsList className="flex flex-row gap-2 overflow-x-auto max-w-[440px]">
+            <TabsTrigger className="w-auto" value="general">
+              General Info
+            </TabsTrigger>
+            <TabsTrigger className="w-auto" value="productTypes">
+              Product Types
+            </TabsTrigger>
+            <TabsTrigger className="w-auto" value="attributes">
+              Attributes
+            </TabsTrigger>
+            <TabsTrigger className="w-auto" value="variants">
+              Variants
+            </TabsTrigger>
           </TabsList>
 
+          {/* General Info, Product Types, and Attributes TabsContent blocks go here, outside of TabsList */}
           <TabsContent value="general" className="space-y-4">
             <ProductInfoSection
               name={name}
               setName={setName}
+              thumbnailImageUrl={thumbnailImageUrl}
+              setThumbnailImageUrl={setThumbnailImageUrl}
               sku={sku}
               setSku={setSku}
               description={description}
@@ -726,19 +717,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                     ? formErrors.productTypeId
                     : undefined,
               }}
-            />
-          </TabsContent>
-
-          <TabsContent value="images" className="space-y-4">
-            <ProductImagesSection
-              images={images}
-              onChange={setImages}
-              error={
-                typeof formErrors.images === "string"
-                  ? formErrors.images
-                  : undefined
-              }
-              required={true}
             />
           </TabsContent>
 
@@ -815,28 +793,14 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                     <Card key={variant.id} className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          {variant.images && variant.images.length > 0 ? (
-                            <img
-                              src={variant.images[0]}
-                              alt={variant.name}
-                              className="w-12 h-12 object-cover rounded-md"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                              <PackageIcon className="text-gray-400 h-6 w-6" />
-                            </div>
-                          )}
+                          <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                            <PackageIcon className="text-gray-400 h-6 w-6" />
+                          </div>
                           <div>
                             <h4 className="font-medium">{variant.name}</h4>
                             <div className="flex gap-4 text-sm text-gray-500">
                               <span>${variant.price}</span>
                               <span>Stock: {variant.stock}</span>
-                              {variant.color && (
-                                <span>Color: {variant.color}</span>
-                              )}
-                              {variant.size && (
-                                <span>Size: {variant.size}</span>
-                              )}
                             </div>
                           </div>
                         </div>

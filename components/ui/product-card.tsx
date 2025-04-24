@@ -9,7 +9,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  images: string[];
+  thumbnailImageUrl: string;
   category: string;
   description: string;
   specs: Record<string, string>;
@@ -28,9 +28,9 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:shadow-md dark:hover:shadow-indigo-900/20  dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
         {/* Product image */}
         <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900">
-          {product.images && product.images.length > 0 ? (
+          {product.thumbnailImageUrl ? (
             <Image
-              src={product.images[0]}
+              src={product.thumbnailImageUrl}
               alt={product.name}
               width={300}
               height={300}

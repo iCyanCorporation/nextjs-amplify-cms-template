@@ -24,11 +24,10 @@ export interface Product {
   stock: number;
   sku: string;
   discountPrice?: number | null;
-  imgUrl?: string;
+  thumbnailImageUrl?: string;
   isActive?: boolean;
   productTypeId: string;
   productType?: string;
-  images?: string[];
   specs?: { [key: string]: any };
   createdAt?: string;
   updatedAt?: string;
@@ -40,11 +39,11 @@ export interface Variant {
   name?: string;
   price?: number | null;
   stock?: number | null;
-  color?: string;
-  size?: string;
-  attributes?: Record<string, unknown>;
-  images?: string[];
+  attributes?: AttributeValue[];
+  thumbnailImageUrl?: string;
   isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AttributeValue {
