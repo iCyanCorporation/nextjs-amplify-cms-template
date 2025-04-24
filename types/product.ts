@@ -22,6 +22,7 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
+  sku: string;
   discountPrice?: number | null;
   imgUrl?: string;
   isActive?: boolean;
@@ -37,7 +38,6 @@ export interface Product {
 export interface Variant {
   id?: string;
   name?: string;
-  sku?: string;
   price?: number | null;
   stock?: number | null;
   color?: string;

@@ -461,7 +461,6 @@ export async function PUT(request: Request, { params }: { params: Params }) {
         const variantData = {
           productId: productId,
           name: variant.name || "",
-          sku: variant.sku || "",
           price: parseFloat(variantPriceStr),
           stock: parseInt(variantStockStr, 10),
           color: variant.color || "",

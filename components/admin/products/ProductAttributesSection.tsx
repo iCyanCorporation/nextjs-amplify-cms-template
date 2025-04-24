@@ -109,7 +109,7 @@ export default function CombinedAttributesSection({
               u.type === attr.type
           );
           if (!exists) {
-            unique.push({ ...attr, isRequired: attr.isRequired || false });
+            unique.push({ ...attr });
           }
         });
         return unique;
@@ -136,7 +136,6 @@ export default function CombinedAttributesSection({
     const payload = {
       name: newAttributeName,
       type: newAttributeType,
-      isRequired: newAttributeRequired,
     };
     try {
       const token = await getAuthToken();
@@ -156,7 +155,6 @@ export default function CombinedAttributesSection({
         options: Array.isArray((saved as any).options)
           ? (saved as any).options
           : [],
-        isRequired: (saved as any).isRequired ?? false,
       };
       setAttributes((prev) => [...prev, newAttr]);
       setAttributeOption((prev) => ({
@@ -275,8 +273,6 @@ export default function CombinedAttributesSection({
       ...attributes,
       {
         ...attribute,
-        // Convert isRequired to required for frontend compatibility
-        isRequired: attribute.isRequired || false,
       },
     ]);
 
@@ -313,7 +309,6 @@ export default function CombinedAttributesSection({
         name: attribute.name,
         type: attribute.type,
         options: updatedOptions,
-        isRequired: attribute.isRequired || false,
       };
 
       try {
@@ -700,7 +695,7 @@ export default function CombinedAttributesSection({
                         id: currentAttributeId,
                         name: currentAttr.name,
                         type: currentAttr.type,
-                        isRequired: currentAttr.isRequired,
+
                         options,
                       }),
                     }

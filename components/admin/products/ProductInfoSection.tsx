@@ -17,6 +17,8 @@ import {
 interface ProductInfoSectionProps {
   name: string;
   setName: (name: string) => void;
+  sku: string;
+  setSku: (sku: string) => void;
   description: string;
   setDescription: (description: string) => void;
   price: number;
@@ -34,6 +36,7 @@ interface ProductInfoSectionProps {
   setIsActive: (isActive: boolean) => void;
   errors?: {
     name?: string | undefined;
+    sku?: string | undefined;
     price?: string | undefined;
     stock?: string | undefined;
     productTypeId?: string | undefined;
@@ -43,6 +46,8 @@ interface ProductInfoSectionProps {
 export default function ProductInfoSection({
   name,
   setName,
+  sku,
+  setSku,
   description,
   setDescription,
   price,
@@ -85,6 +90,25 @@ export default function ProductInfoSection({
                 onChange={(e) => setName(e.target.value)}
                 required
                 className={errors.name ? "border-red-500" : ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sku" className="flex justify-between">
+                <span>SKU *</span>
+                {errors.sku && (
+                  <span className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle size={16} />
+                    {errors.sku}
+                  </span>
+                )}
+              </Label>
+              <Input
+                id="sku"
+                placeholder="Enter SKU (Stock Keeping Unit)"
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                required
+                className={errors.sku ? "border-red-500" : ""}
               />
             </div>
 

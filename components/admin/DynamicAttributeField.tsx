@@ -25,7 +25,6 @@ export default function DynamicAttributeField({
             placeholder={`Enter ${attribute.name}`}
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            required={attribute.isRequired}
           />
         );
 
@@ -36,7 +35,6 @@ export default function DynamicAttributeField({
             placeholder={`Enter ${attribute.name}`}
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            required={attribute.isRequired}
           />
         );
 
@@ -59,14 +57,12 @@ export default function DynamicAttributeField({
               type="color"
               value={value || "#000000"}
               onChange={(e) => onChange(e.target.value)}
-              required={attribute.isRequired}
               className="w-10 h-10 rounded cursor-pointer"
             />
             <Input
               placeholder="Color code"
               value={value || ""}
               onChange={(e) => onChange(e.target.value)}
-              required={attribute.isRequired}
             />
           </div>
         );
@@ -77,7 +73,6 @@ export default function DynamicAttributeField({
             placeholder={`Enter ${attribute.name}`}
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            required={attribute.isRequired}
           />
         );
     }
@@ -85,12 +80,7 @@ export default function DynamicAttributeField({
 
   return (
     <div className="space-y-2">
-      {attribute.type !== "boolean" && (
-        <Label>
-          {attribute.name}
-          {attribute.isRequired ? " *" : ""}
-        </Label>
-      )}
+      {attribute.type !== "boolean" && <Label>{attribute.name}</Label>}
       {renderField()}
     </div>
   );

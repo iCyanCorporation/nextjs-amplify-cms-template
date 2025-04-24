@@ -2,7 +2,7 @@ import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
 
 // GET /api/product-types - Get all product types
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const result = await amplifyClient.models.ProductType.list({
       authMode: "identityPool",

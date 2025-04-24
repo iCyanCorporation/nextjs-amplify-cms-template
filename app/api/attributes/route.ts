@@ -1,7 +1,7 @@
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const result = await amplifyClient.models.Attribute.list({
       authMode: "identityPool",

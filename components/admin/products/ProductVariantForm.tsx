@@ -38,7 +38,8 @@ interface VariantFormProps {
 
 const DEFAULT_VARIANT: Variant = {
   name: "",
-  sku: "",
+  // sku removed from variant form, now only on product
+
   price: 0,
   stock: 0,
   color: "",
@@ -236,9 +237,7 @@ export default function VariantForm({
       newErrors.name = "Variant name is required";
     }
 
-    if (!form.sku || !form.sku.toString().trim()) {
-      newErrors.sku = "SKU is required";
-    }
+    
 
     if (!form.price) {
       newErrors.price = "Price is required";
@@ -455,19 +454,7 @@ export default function VariantForm({
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="sku">SKU*</Label>
-                  <Input
-                    id="sku"
-                    name="sku"
-                    value={form.sku ?? ""}
-                    onChange={handleChange}
-                    className={errors.sku ? "border-red-500" : ""}
-                  />
-                  {errors.sku && (
-                    <p className="text-red-500 text-xs">{errors.sku}</p>
-                  )}
-                </div>
+                
               </div>
 
               <div className="grid grid-cols-2 gap-4">

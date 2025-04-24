@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 type Params = Promise<{ id: string }>;
 
 // GET /api/attributes/:id - Get a specific attribute
-export async function GET({ params }: { params: Params }) {
+export async function GET(request: Request, { params }: { params: Params }) {
   try {
     const { id } = await params;
     const result = await amplifyClient.models.Attribute.get(

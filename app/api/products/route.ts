@@ -1,8 +1,9 @@
 import { amplifyClient } from "@/hooks/useAmplifyClient";
 import { NextResponse } from "next/server";
+import { Variant } from "@/types/product";
 
 // GET /api/products - Get all products
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const result = await amplifyClient.models.Product.list({
       authMode: "identityPool",
@@ -216,13 +217,12 @@ async function createVariants(
   currentDate: string,
   authToken: string
 ) {
-  const variantPromises = (variants || []).map(async (variant: any) => {
+  const variantPromises = (variants || []).map(async (variant: Variant) => {
     const variantData = {
       productId,
       name: variant.name,
-      sku: variant.sku,
-      price: parseFloat(variant.price || price),
-      stock: parseInt(variant.stock || stock, 10),
+      price: Number(variant.price ?? price),
+      stock: Number(variant.stock ?? stock),
       color: variant.color,
       size: variant.size,
       attributes: variant.attributes

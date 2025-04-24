@@ -65,6 +65,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
 
   const [name, setName] = useState("");
+  const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -206,6 +207,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
           // Initialize form with product data
           setName(productData.name || "");
+          setSku(productData.sku || "");
           setDescription(productData.description || "");
           setPrice(productData.price || 0);
           setStock(productData.stock || 0);
@@ -258,7 +260,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                 name:
                   key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " "),
                 type: attributeType,
-                isRequired: false, // Assuming specs are not inherently required
                 options: [], // Specs don't have predefined options
               });
 
@@ -285,7 +286,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   name.charAt(0).toUpperCase() +
                   name.slice(1).replace(/_/g, " "),
                 type: "text", // Assuming custom attributes are text
-                isRequired: false,
                 options: [],
               });
 
@@ -388,7 +388,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     return {
       ...variant,
       name: variant.name || "", // Ensure name is always a string
-      sku: variant.sku || "",
       price:
         typeof variant.price === "number" ? variant.price : variant.price || 0,
       stock:
@@ -446,6 +445,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     const validationResult = validateProduct({
       id: productId ?? "",
       name,
+      sku,
       description,
       price,
       stock,
@@ -474,6 +474,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       // Create the product data object - match the Amplify schema structure
       const productData = {
         name,
+        sku,
         description,
         price: price,
         stock: stock,
@@ -488,7 +489,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         variants: variants.map((variant) => ({
           id: variant.id?.startsWith("temp-") ? undefined : variant.id,
           name: variant.name,
-          sku: variant.sku,
           price: variant.price || price,
           stock: variant.stock || stock,
           color: variant.color,
@@ -691,6 +691,8 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             <ProductInfoSection
               name={name}
               setName={setName}
+              sku={sku}
+              setSku={setSku}
               description={description}
               setDescription={setDescription}
               price={price}
@@ -827,7 +829,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                           <div>
                             <h4 className="font-medium">{variant.name}</h4>
                             <div className="flex gap-4 text-sm text-gray-500">
-                              <span>SKU: {variant.sku}</span>
                               <span>${variant.price}</span>
                               <span>Stock: {variant.stock}</span>
                               {variant.color && (
