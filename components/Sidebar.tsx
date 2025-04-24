@@ -107,30 +107,31 @@ export default function SidebarNav() {
           </button>
           {profileMenuOpen && (
             <div className="absolute left-0 bottom-12 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-md shadow-lg z-50">
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full"
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium text-sm">{user.name}</span>
-                  <span className="text-xs text-neutral-400">{user.email}</span>
+              <div className="flex items-center justify-between px-2 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center gap-3 w-full">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">{user.name}</span>
+                    <span className="text-xs text-neutral-400">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col py-1">
-                <button className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
-                  <span>
-                    <FaHome />
-                  </span>{" "}
-                  Homepage
-                </button>
-              </div>
-              <div className="flex items-center justify-between px-4 py-2 border-t border-neutral-200 dark:border-neutral-800">
-                <span className="text-sm">Dark Mode</span>
                 <ThemeToggle />
               </div>
-              <div className="border-t border-neutral-200 dark:border-neutral-800">
+
+              <div className="flex flex-col py-1">
+                <button className="flex items-center gap-2 p-2  hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                  <FaHome className="w-4 h-4" />
+                  <span className="uppercase">Homepage</span>
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between px-2 py-4 border-t border-neutral-200 dark:border-neutral-800">
                 <SignOutButton isCollapsed={false} />
               </div>
             </div>

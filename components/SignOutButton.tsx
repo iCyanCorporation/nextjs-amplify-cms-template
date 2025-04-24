@@ -18,12 +18,12 @@ export default function SignOutButton({
   return (
     <button
       onClick={handleSignOut}
-      className={`flex items-center ${
+      className={`flex items-center gap-2 ${
         isCollapsed ? "justify-center" : "justify-start"
-      } p-4 rounded-lg transition-colors hover:opacity-80`}
+      } p-0 rounded-lg transition-colors hover:opacity-80`}
     >
       <RiLogoutBoxRLine className="w-4 h-4" />
-      {!isCollapsed && <span className="ml-3">Sign out</span>}
+      {!isCollapsed && <span className="text-sm uppercase">Logout</span>}
     </button>
   );
 }
