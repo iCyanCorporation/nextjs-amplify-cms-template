@@ -76,15 +76,18 @@ export default function VariantForm({
       setForm(variant);
 
       // Initialize selected attributes from variant
-      if (variant.attributes && Object.keys(variant.attributes).length > 0) {
-        setSelectedattributes(
-          Object.entries(variant.attributes).reduce<
-            Record<string, string | number | string[] | boolean>
-          >((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-          }, {})
-        );
+      if (variant.attributes) {
+        let parsedAttributes: Record<string, string[]> = {};
+        if (typeof variant.attributes === "string") {
+          try {
+            parsedAttributes = JSON.parse(variant.attributes);
+          } catch {
+            parsedAttributes = {};
+          }
+        } else {
+          parsedAttributes = variant.attributes;
+        }
+        setSelectedattributes(parsedAttributes);
       } else {
         // Create empty selected attributes
         const initialattributes: Record<
@@ -598,8 +601,13 @@ export default function VariantForm({
 
               {/* Attribute Fields */}
               {attributeList.length > 0 && (
-                <div className="space-y-4 border-t pt-4 mt-4">
-                  <h3 className="font-medium">Variant attributes</h3>
+                <div className="space-y-2 border-t pt-4 mt-4">
+                  <div>
+                    <h3 className="font-medium">Variant attributes</h3>
+                    <h4 className="text-sm text-muted-foreground">
+                      Select attributes to add to this variant
+                    </h4>
+                  </div>
                   {/* Attribute Selector: Multi-checkbox */}
                   <div className="flex flex-wrap gap-2 mb-2">
                     {attributeList.map((attribute) => {
@@ -644,6 +652,8 @@ export default function VariantForm({
                       );
                     })}
                   </div>
+                  {/* Divide line */}
+                  <div className="border-b mb-2 w-full border-gray-200"></div>
                   {/* Render fields for selected attributes only */}
                   <div className="space-y-4">
                     {attributeList
