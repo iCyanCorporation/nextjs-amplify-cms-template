@@ -435,7 +435,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
       // Only try to parse successful responses
       const result = await response.json();
-      console.log("API response:", result);
 
       // Show success message but don't redirect in edit mode
       if (mode === "edit") {
