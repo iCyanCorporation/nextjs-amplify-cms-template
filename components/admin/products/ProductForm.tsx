@@ -403,8 +403,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         Object.assign(productData, { id: productId });
       }
 
-      console.log("Submitting product data:", productData);
-
       // Determine API endpoint and method based on mode
       const url =
         mode === "edit" ? `/api/products/${productId}` : "/api/products";

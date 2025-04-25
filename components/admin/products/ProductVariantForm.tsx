@@ -245,6 +245,7 @@ export default function VariantForm({
   const handleUpdateVariant = async (variant: Variant) => {
     try {
       variant.productId = productId;
+      // console.log("variant::", variant);
       if (variant.id) {
         // Update existing variant
         await fetch(`/api/product-variant/${variant.id}`, {
@@ -329,30 +330,103 @@ export default function VariantForm({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
-
-    // Convert selectedattributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
-    const attributes: Record<string, string[]> = {};
-    Object.entries(selectedattributes).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        attributes[key] = value.map(String).filter((v) => v.trim() !== "");
-      } else if (typeof value === "boolean") {
-        if (value) attributes[key] = ["true"];
-      } else if (typeof value === "string" && value.trim() !== "") {
-        attributes[key] = [value];
+      if (!validateForm()) {
+        return;
       }
-    });
 
-    const formWithattributes = {
-      ...form,
-      attributes: JSON.stringify(attributes), // Store as JSON string for DB
-    };
+      // Convert selectedattributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
+      // const attributes: Record<string, string[]> = {};
+      // Object.entries(selectedattributes).forEach(([key, value]) => {
+      //   if (Array.isArray(value)) {
+      //     attributes[key] = value.map(String).filter((v) => v.trim() !== "");
+      //   } else if (typeof value === "boolean") {
+      //     if (value) attributes[key] = ["true"];
+      //   } else if (typeof value === "string" && value.trim() !== "") {
+      //     attributes[key] = [value];
+      //   }
+      // });
 
-    await handleUpdateVariant(formWithattributes);
+      // convert selected attribute values to a json string and group by attribute id
+      const nameComponents: Record<string, string[]> = {};
+      attributeList.forEach((attr) => {
+        const selectedValue = selectedattributes[attr.id];
+        if (
+          selectedValue !== undefined &&
+          selectedValue !== null &&
+          ((Array.isArray(selectedValue) && selectedValue.length > 0) ||
+            (typeof selectedValue === "string" && selectedValue !== "") ||
+            (typeof selectedValue === "boolean" && selectedValue === true))
+        ) {
+          // For color/text/number attributes with multi-select (array)
+          if (
+            ["color", "text", "number"].includes(attr.type) &&
+            Array.isArray(selectedValue)
+          ) {
+            selectedValue.forEach((id) => {
+              if (attr.type === "color") {
+                // Use key for color
+                nameComponents[attr.id] = nameComponents[attr.id] || [];
+                nameComponents[attr.id].push(id);
+              } else {
+                const valueObj = attributeOption[attr.id]?.find(
+                  (v) => v.key === id
+                );
+                if (valueObj) {
+                  nameComponents[attr.id] = nameComponents[attr.id] || [];
+                  nameComponents[attr.id].push(valueObj.value.toString());
+                } else {
+                  // fallback: push id as string
+                  nameComponents[attr.id] = nameComponents[attr.id] || [];
+                  nameComponents[attr.id].push(id.toString());
+                }
+              }
+            });
+          }
+          // For color attributes, single string fallback (legacy)
+          else if (attr.type === "color" && typeof selectedValue === "string") {
+            // Use key for color
+            nameComponents[attr.id] = nameComponents[attr.id] || [];
+            nameComponents[attr.id].push(selectedValue);
+          }
+          // For boolean attributes, only add if true
+          else if (
+            attr.type === "boolean" &&
+            typeof selectedValue === "boolean" &&
+            selectedValue === true
+          ) {
+            nameComponents[attr.id] = nameComponents[attr.id] || [];
+            nameComponents[attr.id].push(attr.name);
+          }
+          // For other attributes, add the selected value
+          else if (typeof selectedValue === "string" && selectedValue) {
+            const value = attributeOption[attr.id]?.find(
+              (v) => v.key === selectedValue
+            );
+            if (value) {
+              nameComponents[attr.id] = nameComponents[attr.id] || [];
+              nameComponents[attr.id].push(value.value.toString());
+            }
+          }
+        }
+      });
+
+      const formWithattributes = {
+        ...form,
+        attributes: JSON.stringify(nameComponents), // Store as JSON string for DB
+      };
+
+      handleUpdateVariant(formWithattributes);
+    } catch (error) {
+      console.error("Error submitting variant:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit variant",
+        variant: "destructive",
+      });
+    }
   };
 
   // Render a single attribute field with attribute-level selection
