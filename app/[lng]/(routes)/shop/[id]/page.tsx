@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 
 import ProductDetailClient from "../components/ProductDetailClient";
 
-type Params = {
+type Params = Promise<{
   id: string;
   lng: string;
-};
+}>;
 
 async function getProduct(id: string) {
   try {

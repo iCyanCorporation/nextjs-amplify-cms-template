@@ -37,7 +37,8 @@ export interface Product {
   sku: string;
   thumbnailImageUrl?: string;
   isActive?: boolean;
-  productTypeId: string;
+  primaryAttributeId?: string;
+  productTypeId?: string;
   productType?: string;
   variants?: Variant[];
   orderProducts?: OrderProduct[];

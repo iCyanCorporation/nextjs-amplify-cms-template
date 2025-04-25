@@ -56,6 +56,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [stock, setStock] = useState(0);
   const [hasDiscount, setHasDiscount] = useState(false);
   const [discountPrice, setDiscountPrice] = useState(0);
+  const [primaryAttributeId, setPrimaryAttributeId] = useState<string | null>(
+    null
+  );
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [thumbnailImageUrl, setThumbnailImageUrl] = useState<string>("");
   const [isActive, setIsActive] = useState(true);
@@ -571,14 +574,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               setSku={setSku}
               description={description}
               setDescription={setDescription}
-              price={price}
-              setPrice={setPrice}
-              stock={stock}
-              setStock={setStock}
-              hasDiscount={hasDiscount}
-              setHasDiscount={setHasDiscount}
-              discountPrice={discountPrice}
-              setDiscountPrice={setDiscountPrice}
+              attributes={attributes}
+              primaryAttributeId={primaryAttributeId}
+              setPrimaryAttributeId={setPrimaryAttributeId}
               selectedType={selectedType}
               handleTypeChange={handleTypeChange}
               productTypes={productTypes}
@@ -589,13 +587,13 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
                   typeof formErrors.name === "string"
                     ? formErrors.name
                     : undefined,
-                price:
-                  typeof formErrors.price === "string"
-                    ? formErrors.price
+                sku:
+                  typeof formErrors.sku === "string"
+                    ? formErrors.sku
                     : undefined,
-                stock:
-                  typeof formErrors.stock === "string"
-                    ? formErrors.stock
+                primaryAttributeId:
+                  typeof formErrors.primaryAttributeId === "string"
+                    ? formErrors.primaryAttributeId
                     : undefined,
                 productTypeId:
                   typeof formErrors.productTypeId === "string"

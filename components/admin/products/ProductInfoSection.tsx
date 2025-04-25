@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { ImagePickerButton } from "@/components/image";
 import Image from "next/image";
+import { Attribute } from "@/types/data";
 
 interface ProductInfoSectionProps {
   name: string;
@@ -25,14 +26,9 @@ interface ProductInfoSectionProps {
   setSku: (sku: string) => void;
   description: string;
   setDescription: (description: string) => void;
-  price: number;
-  setPrice: (price: number) => void;
-  stock: number;
-  setStock: (stock: number) => void;
-  hasDiscount: boolean;
-  setHasDiscount: (hasDiscount: boolean) => void;
-  discountPrice: number;
-  setDiscountPrice: (discountPrice: number) => void;
+  attributes: Attribute[];
+  primaryAttributeId: string | null;
+  setPrimaryAttributeId: (primaryAttributeId: string | null) => void;
   selectedType: string | null;
   handleTypeChange: (typeId: string) => void;
   productTypes: ProductType[];
@@ -41,8 +37,7 @@ interface ProductInfoSectionProps {
   errors?: {
     name?: string | undefined;
     sku?: string | undefined;
-    price?: string | undefined;
-    stock?: string | undefined;
+    primaryAttributeId?: string | undefined;
     productTypeId?: string | undefined;
   };
 }
@@ -56,6 +51,9 @@ export default function ProductInfoSection({
   setSku,
   description,
   setDescription,
+  attributes,
+  primaryAttributeId,
+  setPrimaryAttributeId,
   selectedType,
   handleTypeChange,
   productTypes,
@@ -167,6 +165,40 @@ export default function ProductInfoSection({
                       {productTypes.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
                           {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="product-type"
+                    className="flex justify-between"
+                  >
+                    <span>Primary Attribute *</span>
+                    {errors.primaryAttributeId && (
+                      <span className="text-red-500 text-sm flex items-center gap-1">
+                        <AlertCircle size={16} />
+                        {errors.primaryAttributeId}
+                      </span>
+                    )}
+                  </Label>
+                  <Select
+                    value={primaryAttributeId || ""}
+                    onValueChange={setPrimaryAttributeId}
+                  >
+                    <SelectTrigger
+                      className={
+                        errors.primaryAttributeId ? "border-red-500" : ""
+                      }
+                    >
+                      <SelectValue placeholder="Select a product type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {attributes.map((attribute) => (
+                        <SelectItem key={attribute.id} value={attribute.id}>
+                          {attribute.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

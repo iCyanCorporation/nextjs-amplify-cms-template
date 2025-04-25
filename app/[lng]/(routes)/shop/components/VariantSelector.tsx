@@ -98,7 +98,10 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
         return vals.includes(selected[k]);
       });
     });
-    if (match) onSelect(match);
+    if (match) {
+      console.log('[VariantSelector] effect onSelect', { selected, match });
+      onSelect(match);
+    }
   }, [selected, variants, attributeKeys, onSelect]);
 
   // Handle click: update local selection and notify parent if valid
@@ -142,6 +145,7 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
         return vals.includes(newSel[k]);
       });
     });
+    console.log('[VariantSelector] handleSelect', { newSel, match, allVariantAttrs: variants.map(v => ({ id: v.id, attrs: parseAttrs(v) })) });
     if (match) onSelect(match);
   };
 

@@ -31,6 +31,7 @@ const schema = a
       sku: a.string(), // Stock keeping unit
       thumbnailImageUrl: a.string(),
       isActive: a.boolean().default(true),
+      primaryAttributeId: a.id(),
       productTypeId: a.id(),
       productType: a.belongsTo("ProductType", "productTypeId"),
       variants: a.hasMany("ProductVariant", "productId"),
