@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -14,23 +13,142 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
+import { RefreshCwIcon } from "lucide-react";
+
+interface Setting {
+  id?: string;
+  key: string;
+  value: string;
+  description?: string;
+  group?: string;
+}
+
+const SETTINGS_KEYS = [
+  { key: "store_name", label: "Store Name", defaultValue: "My Awesome Store" },
+  {
+    key: "support_email",
+    label: "Support Email",
+    defaultValue: "support@example.com",
+  },
+  { key: "currency", label: "Currency", defaultValue: "USD" },
+  { key: "phone", label: "Phone Number", defaultValue: "+1 (555) 123-4567" },
+  { key: "address_1", label: "Address Line 1", defaultValue: "123 Main St" },
+  { key: "address_2", label: "Address Line 2", defaultValue: "Suite 101" },
+  { key: "city", label: "City", defaultValue: "New York" },
+  { key: "state", label: "State/Province", defaultValue: "NY" },
+  { key: "zip", label: "ZIP/Postal Code", defaultValue: "10001" },
+  { key: "country", label: "Country", defaultValue: "USA" },
+];
 
 export default function SettingsPage() {
+  const [settings, setSettings] = React.useState<Record<string, Setting>>({});
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const fetchSettings = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/settings");
+      const data = await res.json();
+      if (data.settings) {
+        const map: Record<string, Setting> = {};
+        for (const s of data.settings) {
+          map[s.key] = s;
+        }
+        setSettings(map);
+      }
+    } catch (e) {
+      setError("Failed to load settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load settings on mount
+  React.useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  // Handle input changes
+  const handleInputChange = (key: string, value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] || { key }), value },
+    }));
+  };
+
+  // Save or update all settings
   const handleSave = async () => {
     setSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSaving(false);
+    setError(null);
+    try {
+      const authToken = await getAuthToken();
+      if (!authToken) {
+        throw new Error("Unauthorized");
+      }
+      for (const { key, label, defaultValue } of SETTINGS_KEYS) {
+        const setting = settings[key] || { key, value: defaultValue };
+        const payload = {
+          key,
+          value: setting.value || defaultValue,
+          description: label,
+          group: "general",
+        };
+        let res;
+        if (setting.id) {
+          res = await fetch(`/api/settings/${setting.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: authToken,
+            },
+            body: JSON.stringify(payload),
+          });
+        } else {
+          res = await fetch("/api/settings", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: authToken,
+            },
+            body: JSON.stringify(payload),
+          });
+        }
+        if (!res.ok) throw new Error("Failed to save setting: " + key);
+        const saved = await res.json();
+        setSettings((prev) => ({ ...prev, [key]: saved }));
+      }
+    } catch (e: any) {
+      setError(e.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+      // reload data
+      fetchSettings();
+    }
   };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">Settings</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={fetchSettings}>
+            <RefreshCwIcon className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+          <Button onClick={handleSave} disabled={saving || loading}>
+            {saving ? "Saving..." : "Save Settings"}
+          </Button>
+        </div>
       </div>
 
+      {error && <div className="text-red-500">{error}</div>}
       <Tabs defaultValue="general">
         <TabsList className="grid w-full grid-cols-3 bg-background border-b border-neutral-200 dark:border-white/50 rounded-b-none">
           <TabsTrigger value="general">General</TabsTrigger>
@@ -53,7 +171,10 @@ export default function SettingsPage() {
                   <Input
                     id="store-name"
                     placeholder="Your Store Name"
-                    defaultValue="My Awesome Store"
+                    value={settings["store_name"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("store_name", e.target.value)
+                    }
                   />
                 </div>
 
@@ -62,13 +183,35 @@ export default function SettingsPage() {
                   <Input
                     id="support-email"
                     placeholder="support@example.com"
-                    defaultValue="support@example.com"
+                    value={settings["support_email"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("support_email", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    placeholder="USA"
+                    value={settings["country"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("country", e.target.value)
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
-                  <Input id="currency" placeholder="USD" defaultValue="USD" />
+                  <Input
+                    id="currency"
+                    placeholder="USD"
+                    value={settings["currency"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("currency", e.target.value)
+                    }
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -76,7 +219,8 @@ export default function SettingsPage() {
                   <Input
                     id="phone"
                     placeholder="+1 (555) 123-4567"
-                    defaultValue="+1 (555) 123-4567"
+                    value={settings["phone"]?.value || ""}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
                   />
                 </div>
               </div>
@@ -91,40 +235,13 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="address-1">Address Line 1</Label>
-                  <Input
-                    id="address-1"
-                    placeholder="123 Main St"
-                    defaultValue="123 Main St"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address-2">Address Line 2</Label>
-                  <Input
-                    id="address-2"
-                    placeholder="Suite 101"
-                    defaultValue="Suite 101"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="New York"
-                    defaultValue="New York"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="state">State/Province</Label>
-                  <Input id="state" placeholder="NY" defaultValue="NY" />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="zip">Postal/Zip Code</Label>
-                  <Input id="zip" placeholder="10001" defaultValue="10001" />
+                  <Input
+                    id="zip"
+                    placeholder="10001"
+                    value={settings["zip"]?.value || ""}
+                    onChange={(e) => handleInputChange("zip", e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -133,6 +250,50 @@ export default function SettingsPage() {
                     id="country"
                     placeholder="United States"
                     defaultValue="United States"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="state">State/Province</Label>
+                  <Input
+                    id="state"
+                    placeholder="NY"
+                    value={settings["state"]?.value || ""}
+                    onChange={(e) => handleInputChange("state", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="New York"
+                    value={settings["city"]?.value || ""}
+                    onChange={(e) => handleInputChange("city", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address-1">Address Line 1</Label>
+                  <Input
+                    id="address-1"
+                    placeholder="123 Main St"
+                    value={settings["address_1"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("address_1", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address-2">Address Line 2</Label>
+                  <Input
+                    id="address-2"
+                    placeholder="Suite 101"
+                    value={settings["address_2"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("address_2", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -148,7 +309,7 @@ export default function SettingsPage() {
                 Configure how you deliver products
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 flex flex-col">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="free-shipping">Free Shipping</Label>
@@ -159,12 +320,14 @@ export default function SettingsPage() {
                 <Switch defaultChecked id="free-shipping" />
               </div>
 
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="min-amount">
                   Minimum Order Amount for Free Shipping
                 </Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-500">$</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500">
+                    {settings["currency"]?.value || "USD"}
+                  </span>
                   <Input
                     id="min-amount"
                     type="number"
@@ -181,9 +344,9 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                   <div className="space-y-2">
                     <Label htmlFor="standard-shipping">Standard Shipping</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-500">
-                        $
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">
+                        {settings["currency"]?.value || "USD"}
                       </span>
                       <Input
                         id="standard-shipping"
@@ -197,9 +360,9 @@ export default function SettingsPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="express-shipping">Express Shipping</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-500">
-                        $
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">
+                        {settings["currency"]?.value || "USD"}
                       </span>
                       <Input
                         id="express-shipping"
@@ -235,7 +398,7 @@ export default function SettingsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="tax-rate">Default Tax Rate (%)</Label>
-                <div className="relative">
+                <div className="flex items-center gap-2">
                   <Input
                     id="tax-rate"
                     type="number"

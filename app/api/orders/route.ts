@@ -5,20 +5,31 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
-  if (!id) {
-    return NextResponse.json({ error: "Missing ID" }, { status: 400 });
-  }
-
   try {
-    const result = await amplifyClient.models.Order.get({
-      id: id,
-    });
+    if (id) {
+      const result = await amplifyClient.models.Order.get(
+        {
+          id: id,
+        },
+        { authMode: "identityPool" }
+      );
 
-    if (!result.data) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      if (!result.data) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+
+      return NextResponse.json(result.data);
+    } else {
+      const result = await amplifyClient.models.Order.list({
+        authMode: "identityPool",
+      });
+
+      if (!result.data) {
+        return NextResponse.json([]);
+      }
+
+      return NextResponse.json(result.data);
     }
-
-    return NextResponse.json(result.data);
   } catch (error) {
     console.error("Error fetching order:", error);
     return NextResponse.json(

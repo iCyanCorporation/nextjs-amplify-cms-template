@@ -57,7 +57,7 @@ const statusVariantMap: Record<
 // Function to fetch orders from the API
 const fetchOrders = async (): Promise<Order[]> => {
   try {
-    const response = await fetch("/api/orders/list");
+    const response = await fetch("/api/orders");
     if (!response.ok) {
       throw new Error("Failed to fetch orders");
     }
