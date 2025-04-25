@@ -481,7 +481,6 @@ export default function VariantForm({
         ) : (
           <div className="flex flex-wrap gap-2">
             {attrValues.map((option) => {
-              // option: AttributeValue { key, value }
               const key = option.key;
               const value = option.value;
 

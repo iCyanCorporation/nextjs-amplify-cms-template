@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { getAuthToken } from "@/hooks/useAmplifyClient";
 
-import { Plus, Minus, Save, X, Edit } from "lucide-react";
+import { Plus, Minus, Save, X, Edit, Trash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -419,14 +419,6 @@ export default function CombinedAttributesSection({
                   className="flex gap-4 items-center justify-between p-4 border rounded-md"
                 >
                   <div className="flex items-center gap-2">
-                    {/* <span className="text-sm w-24 justify-center border-2 border-gray-300 rounded-md">
-                      {attr.type ? (
-                        attr.type.charAt(0).toUpperCase() + attr.type.slice(1)
-                      ) : (
-                        <span className="text-red-400">Unknown</span>
-                      )}
-                    </span> */}
-
                     <div className="">
                       <div className="font-medium w-24">{attr.name}</div>
 
@@ -445,23 +437,26 @@ export default function CombinedAttributesSection({
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 items-center">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
+                      className="flex items-center gap-1"
                       onClick={() => openOptionEditor(attr.id)}
                     >
-                      Edit Option
+                      <Edit className="h-4 w-4" />
+                      Edit
                     </Button>
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon"
-                      className="text-red-500"
+                      size="sm"
+                      className="text-red-500 items-center gap-1"
                       onClick={() => removeAttribute(attr.id)} // This now calls the callback
                     >
-                      <Minus className="h-4 w-4" />
+                      <Trash className="h-4 w-4" />
+                      Delete
                     </Button>
                   </div>
                 </div>

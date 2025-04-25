@@ -182,19 +182,19 @@ export default function ProductTypeTab({ onTypesChange }: ProductTypeTabProps) {
             </div>
           ) : productTypes.length > 0 ? (
             <div className="rounded-md border">
-              <Table>
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead>NAME</TableHead>
-                    <TableHead>ACTIONS</TableHead>
+                    <TableHead className="text-right">ACTIONS</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {productTypes.map((type) => (
                     <TableRow key={type.id}>
                       <TableCell className="font-medium">{type.name}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      <TableCell className="text-right">
+                        <div className="flex gap-2 justify-end">
                           <Button
                             type="button"
                             size="sm"
