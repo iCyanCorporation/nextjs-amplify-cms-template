@@ -280,25 +280,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
             ];
           });
         }
-
-        // Initialize variants if they exist
-        // if (productData.variants && Array.isArray(productData.variants)) {
-        //   setVariants(
-        //     productData.variants.map((variant: Variant) => ({
-        //       id: variant.id,
-        //       name: variant.name || "",
-        //       price: variant.price?.toString() || "",
-        //       stock: variant.stock?.toString() || "",
-        //       attributes: variant.attributes
-        //         ? typeof variant.attributes === "string"
-        //           ? JSON.parse(variant.attributes)
-        //           : variant.attributes
-        //         : {},
-
-        //       isActive: variant.isActive !== false,
-        //     }))
-        //   );
-        // }
       } catch (error) {
         console.error("Failed to load product data:", error);
         alert("Failed to load product data. Please try again.");
@@ -386,16 +367,6 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         // Include product attributes for saving to the Attribute table
         attributes,
         attributeOption,
-        // variants: variants.map((variant) => ({
-        //   id: variant.id?.startsWith("temp-") ? undefined : variant.id,
-        //   name: variant.name,
-        //   price: variant.price || price,
-        //   stock: variant.stock || stock,
-
-        //   attributes: variant.attributes || {},
-
-        //   isActive: variant.isActive,
-        // })),
       };
 
       // For edit mode, include the ID
@@ -473,7 +444,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     );
   };
 
-  if (loading) {
+  if (loading || !attributes || !attributeOption) {
     return (
       <div className="flex justify-center items-center h-96">
         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>

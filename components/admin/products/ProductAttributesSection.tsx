@@ -188,6 +188,8 @@ export default function CombinedAttributesSection({
 
   // Open the Option editor for an attribute
   const openOptionEditor = (attributeId: string) => {
+    console.log("[DEBUG] openOptionEditor:", attributeOption, attributeId);
+
     setCurrentAttributeId(attributeId);
     setIsEditingOption(true);
     setNewKeyInput("");
@@ -509,17 +511,6 @@ export default function CombinedAttributesSection({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* <div className="flex items-center space-x-2">
-              <Checkbox
-                id="attribute-required"
-                checked={newAttributeRequired}
-                onCheckedChange={(checked) =>
-                  setNewAttributeRequired(checked as boolean)
-                }
-              />
-              <Label htmlFor="attribute-required">Required</Label>
-            </div> */}
           </div>
 
           <DialogFooter>
@@ -606,25 +597,20 @@ export default function CombinedAttributesSection({
               {currentAttributeId &&
               attributeOption[currentAttributeId]?.length > 0 ? (
                 <div className="space-y-2">
-                  {/* {console.log('[render] attributeOption', attributeOption, 'currentAttributeId', currentAttributeId)} */}
                   {attributeOption[currentAttributeId]?.map((item) => (
                     <div
                       key={item.key}
                       className="flex items-center justify-between p-2 bg-gray-50 rounded"
                     >
                       <div className="flex items-center gap-2">
-                        {getCurrentAttribute()?.type === "color" ? (
+                        {getCurrentAttribute()?.type === "color" &&
                           item.value && (
                             <div
                               className="w-5 h-5 rounded-full"
-                              style={{ backgroundColor: item.value as string }}
-                              title={item.key}
+                              style={{ backgroundColor: `${item.value}` }}
                             />
-                          )
-                        ) : (
-                          <></>
-                        )}
-                        <span className="text-sm">{item.key}</span>
+                          )}
+                        <span className="text-sm">{`${item.key}(${item.value})`}</span>
                       </div>
                       <Button
                         type="button"
@@ -632,7 +618,7 @@ export default function CombinedAttributesSection({
                         size="icon"
                         className="text-red-500"
                         onClick={() =>
-                          removeOption(currentAttributeId!, item.key)
+                          removeValue(currentAttributeId!, item.key)
                         }
                       >
                         <X className="h-4 w-4" />
