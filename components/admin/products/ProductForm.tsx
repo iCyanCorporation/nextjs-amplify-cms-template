@@ -160,7 +160,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       }
 
       setAttributes(data.attributes);
-      setupAttributeOption();
+      setupAttributeOption(data.attributes);
     } catch (error) {
       console.error("Error fetching attributes:", error);
       // Only clear attributes if not already loaded
@@ -214,6 +214,9 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
 
         // Make sure to properly set the product type ID
         setSelectedType(productData.productTypeId || "");
+
+        // Make sure to properly set the primary attribute ID
+        setPrimaryAttributeId(productData.primaryAttributeId || "");
 
         // Handle thumbnailImageUrl properly
         setThumbnailImageUrl(productData.thumbnailImageUrl || "");
@@ -292,29 +295,27 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
     setLoading(false);
   };
 
-  const setupAttributeOption = () => {
+  const setupAttributeOption = (tmpAttributes: Attribute[]) => {
     try {
       setAttributeOption((prev) => {
         const newOption: Record<string, AttributeValue[]> = { ...prev }; // Start with previous state
 
-        attributes.forEach((attr) => {
+        tmpAttributes.forEach((attr) => {
           // Initialize or clear the options for the current attribute
           newOption[attr.id] = [];
-
-          (attr.options as Record<string, string>[]).forEach(
-            (optObj, index) => {
-              if (typeof optObj === "object" && optObj !== null) {
-                const key = Object.keys(optObj)[0];
-                const value = optObj[key];
-                if (key) {
-                  newOption[attr.id].push({
-                    key: key,
-                    value: value,
-                  });
-                }
+          if (!attr.options || typeof attr.options !== "object") return;
+          attr.options.forEach((optObj) => {
+            if (typeof optObj === "object" && optObj !== null) {
+              const key = Object.keys(optObj)[0];
+              const value = optObj[key];
+              if (key) {
+                newOption[attr.id].push({
+                  key: key,
+                  value: value,
+                });
               }
             }
-          );
+          });
           // If attr.options is empty or not an array, newOption[attr.id] remains []
         });
         return newOption;
@@ -363,6 +364,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         description,
         price: price,
         stock: stock,
+        primaryAttributeId: primaryAttributeId,
         productTypeId: selectedType, // Ensure productTypeId is included
         isActive,
         thumbnailImageUrl,
@@ -406,7 +408,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
       }
 
       // Only try to parse successful responses
-      const result = await response.json();
+      // const result = await response.json();
 
       // Show success message but don't redirect in edit mode
       if (mode === "edit") {
@@ -627,6 +629,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
               attributes={attributes}
               attributeOption={attributeOption}
               setActiveTab={setActiveTab}
+              primaryAttributeId={primaryAttributeId}
             />
           </TabsContent>
         </Tabs>

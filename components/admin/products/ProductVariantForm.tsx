@@ -30,6 +30,7 @@ interface VariantFormProps {
   defaultStock?: number;
   attributeList: Attribute[];
   attributeOption: Record<string, AttributeValue[]>;
+  primaryAttributeId: string | null;
 }
 
 const DEFAULT_VARIANT: Variant = {
@@ -53,6 +54,7 @@ export default function VariantForm({
   defaultStock = 0,
   attributeList,
   attributeOption,
+  primaryAttributeId,
 }: VariantFormProps) {
   const [form, setForm] = useState<Variant>({
     ...DEFAULT_VARIANT,
@@ -311,9 +313,22 @@ export default function VariantForm({
       newErrors.stock = "Stock must be a valid integer";
     }
 
+    // Enforce primary attribute id is present and unique
+    if (primaryAttributeId) {
+      if (!selectedattributes.hasOwnProperty(primaryAttributeId)) {
+        newErrors[`attr_${primaryAttributeId}`] = "Primary attribute is required";
+      }
+    }
+
+    // Check for duplicate attribute ids (shouldn't happen in object, but check for duplicate values)
+    const attrIds = Object.keys(selectedattributes);
+    const uniqueAttrIds = new Set(attrIds);
+    if (attrIds.length !== uniqueAttrIds.size) {
+      newErrors['attributes'] = 'Duplicate attribute IDs found.';
+    }
+
     // Validate required attributes
     attributeList.forEach((attr) => {
-      // Only validate if attribute is selected
       if (selectedattributes.hasOwnProperty(attr.id)) {
         const value = selectedattributes[attr.id];
         if (
@@ -335,24 +350,10 @@ export default function VariantForm({
   const handleSubmit = async (e: React.FormEvent) => {
     try {
       e.preventDefault();
-
       if (!validateForm()) {
         return;
       }
-
       // Convert selectedattributes (Record<string, string | boolean | string[]>) to Record<string, string[]>
-      // const attributes: Record<string, string[]> = {};
-      // Object.entries(selectedattributes).forEach(([key, value]) => {
-      //   if (Array.isArray(value)) {
-      //     attributes[key] = value.map(String).filter((v) => v.trim() !== "");
-      //   } else if (typeof value === "boolean") {
-      //     if (value) attributes[key] = ["true"];
-      //   } else if (typeof value === "string" && value.trim() !== "") {
-      //     attributes[key] = [value];
-      //   }
-      // });
-
-      // convert selected attribute values to a json string and group by attribute id
       const nameComponents: Record<string, string[]> = {};
       attributeList.forEach((attr) => {
         const selectedValue = selectedattributes[attr.id];
@@ -363,7 +364,6 @@ export default function VariantForm({
             (typeof selectedValue === "string" && selectedValue !== "") ||
             (typeof selectedValue === "boolean" && selectedValue === true))
         ) {
-          // For color/text/number attributes with multi-select (array)
           if (
             ["color", "text", "number"].includes(attr.type) &&
             Array.isArray(selectedValue)
@@ -387,24 +387,18 @@ export default function VariantForm({
                 }
               }
             });
-          }
-          // For color attributes, single string fallback (legacy)
-          else if (attr.type === "color" && typeof selectedValue === "string") {
+          } else if (attr.type === "color" && typeof selectedValue === "string") {
             // Use key for color
             nameComponents[attr.id] = nameComponents[attr.id] || [];
             nameComponents[attr.id].push(selectedValue);
-          }
-          // For boolean attributes, only add if true
-          else if (
+          } else if (
             attr.type === "boolean" &&
             typeof selectedValue === "boolean" &&
             selectedValue === true
           ) {
             nameComponents[attr.id] = nameComponents[attr.id] || [];
             nameComponents[attr.id].push(attr.name);
-          }
-          // For other attributes, add the selected value
-          else if (typeof selectedValue === "string" && selectedValue) {
+          } else if (typeof selectedValue === "string" && selectedValue) {
             const value = attributeOption[attr.id]?.find(
               (v) => v.key === selectedValue
             );
@@ -432,7 +426,6 @@ export default function VariantForm({
     }
   };
 
-  // Render a single attribute field with attribute-level selection
   const renderAttributeField = (attribute: Attribute) => {
     let attrValuesRaw = attribute.options || [];
     // Parse options if stringified JSON

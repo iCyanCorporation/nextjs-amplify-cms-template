@@ -62,7 +62,7 @@ export default function CombinedAttributesSection({
         ...attr,
         options: (() => {
           try {
-            const parsed = JSON.parse(attr.options);
+            const parsed = JSON.parse(attr.options || "[]");
             return Array.isArray(parsed) ? parsed : [];
           } catch {
             return [];
@@ -70,7 +70,25 @@ export default function CombinedAttributesSection({
         })(),
       }));
       setAttributes(parsedAttributes);
-      // Optionally, update attributeOption state here if needed
+      // Populate attributeOption so existing options appear in editor
+      setAttributeOption(
+        parsedAttributes.reduce(
+          (acc: Record<string, AttributeValue[]>, attr: Attribute) => {
+            acc[attr.id] = Array.isArray(attr.options)
+              ? attr.options.map((option: string | Record<string, any>) => {
+                  if (typeof option === "object" && option !== null) {
+                    const key = Object.keys(option)[0];
+                    return { key, value: (option as any)[key] };
+                  } else {
+                    return { key: String(option), value: option };
+                  }
+                })
+              : [];
+            return acc;
+          },
+          {} as Record<string, AttributeValue[]>
+        )
+      );
     } catch (error) {
       console.error("Error reloading attributes:", error);
     } finally {
@@ -428,9 +446,13 @@ export default function CombinedAttributesSection({
                             attr.type.slice(1)}
                         </span>
                         <span className="flex gap-1">
-                          {attr.options &&
+                          {Array.isArray(attr.options) &&
+                            attr.options.length > 0 &&
                             attr.options.map((option) => {
-                              const key = Object.keys(option)[0];
+                              const key =
+                                typeof option === "object" && option !== null
+                                  ? Object.keys(option)[0]
+                                  : String(option);
                               return <Badge key={key}> {key}</Badge>;
                             })}
                         </span>
@@ -559,7 +581,6 @@ export default function CombinedAttributesSection({
                       id="value-color"
                       type="color"
                       value={newValueInput}
-                      defaultValue="#000000"
                       onChange={(e) => setNewValueInput(e.target.value)}
                       className="w-8 rounded cursor-pointer aspect-square m-auto"
                     />

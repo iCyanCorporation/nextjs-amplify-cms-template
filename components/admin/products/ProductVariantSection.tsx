@@ -23,6 +23,7 @@ interface ProductVariantsSectionProps {
   attributes: Attribute[];
   attributeOption: Record<string, AttributeValue[]>;
   setActiveTab: (tab: string) => void;
+  primaryAttributeId: string | null;
 }
 
 const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
@@ -30,6 +31,7 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
   attributes,
   attributeOption,
   setActiveTab,
+  primaryAttributeId,
 }) => {
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -236,6 +238,7 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
         defaultStock={stock}
         attributeList={attributes}
         attributeOption={attributeOption}
+        primaryAttributeId={primaryAttributeId}
       />
 
       {/* Delete Variant Confirmation Dialog */}

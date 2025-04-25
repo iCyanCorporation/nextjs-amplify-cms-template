@@ -183,6 +183,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       name,
       description,
       sku,
+      primaryAttributeId,
       productTypeId,
       isActive,
       thumbnailImageUrl,
@@ -193,13 +194,14 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       name,
       description: description || "",
       sku: sku || "",
+      primaryAttributeId: primaryAttributeId || "",
       productTypeId: productTypeId,
       thumbnailImageUrl: thumbnailImageUrl || "",
       isActive: isActive !== false,
     };
 
     const basicUpdateResult = await amplifyClient.models.Product.update(
-      basicProductData as Product,
+      basicProductData,
       { authMode: "identityPool", authToken }
     );
 

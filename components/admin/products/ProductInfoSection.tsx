@@ -69,6 +69,7 @@ export default function ProductInfoSection({
     return null;
   }
 
+  console.log("primaryAttributeId::", primaryAttributeId);
   return (
     <Card>
       <CardHeader>
