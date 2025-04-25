@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -415,26 +416,33 @@ export default function CombinedAttributesSection({
               {attributes.map((attr) => (
                 <div
                   key={attr.id}
-                  className="flex gap-4 items-start p-4 border rounded-md"
+                  className="flex gap-4 items-center justify-between p-4 border rounded-md"
                 >
-                  <div className="flex-1">
-                    <div className="font-medium">{attr.name}</div>
-                    <div className="text-sm text-gray-500">
-                      Type:{" "}
+                  <div className="flex items-center gap-2">
+                    {/* <span className="text-sm w-24 justify-center border-2 border-gray-300 rounded-md">
                       {attr.type ? (
                         attr.type.charAt(0).toUpperCase() + attr.type.slice(1)
                       ) : (
                         <span className="text-red-400">Unknown</span>
                       )}
-                      {/* {attr.isRequired && (
-                        <span className="ml-2 text-red-500">Required</span>
-                      )} */}
-                    </div>
-                    <div className="text-sm mt-2">
-                      Options:{" "}
-                      {Array.isArray(attr.options) && attr.options.length > 0
-                        ? attr.options.length
-                        : 0}
+                    </span> */}
+
+                    <div className="">
+                      <div className="font-medium w-24">{attr.name}</div>
+
+                      <div className="flex items-center gap-1 text-sm opacity-70">
+                        <span className="w-16">
+                          {attr.type.charAt(0).toUpperCase() +
+                            attr.type.slice(1)}
+                        </span>
+                        <span className="flex gap-1">
+                          {attr.options &&
+                            attr.options.map((option) => {
+                              const key = Object.keys(option)[0];
+                              return <Badge key={key}> {key}</Badge>;
+                            })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -545,7 +553,6 @@ export default function CombinedAttributesSection({
               {getCurrentAttribute()?.type === "color" ? (
                 <div className="space-y-2 flex-1">
                   <Label htmlFor="value-name">Value Name</Label>
-
                   <div className="flex items-center gap-2">
                     <Input
                       id="value-name"
@@ -565,24 +572,33 @@ export default function CombinedAttributesSection({
                 </div>
               ) : (
                 <div className="space-y-2 flex-1">
-                  <Label htmlFor="value-input">Value</Label>
+                  <Label htmlFor="option-key">Key Name</Label>
                   <Input
-                    id="value-input"
+                    id="option-key"
+                    placeholder="e.g., code, sku, label"
+                    value={newKeyInput}
+                    onChange={(e) => setNewKeyInput(e.target.value)}
+                    className="mb-2"
+                  />
+                  <Label htmlFor="option-value">Value</Label>
+                  <Input
+                    id="option-value"
                     placeholder={`e.g., ${
                       getCurrentAttribute()?.type === "number"
                         ? "42, 100, 256"
-                        : "XL, Cotton, Leather"
+                        : getCurrentAttribute()?.type === "boolean"
+                          ? "true, false"
+                          : "XL, Cotton, Leather"
                     }`}
                     type={
                       getCurrentAttribute()?.type === "number"
                         ? "number"
-                        : "text"
+                        : getCurrentAttribute()?.type === "boolean"
+                          ? "text"
+                          : "text"
                     }
-                    value={newKeyInput}
-                    onChange={(e) => {
-                      setNewKeyInput(e.target.value);
-                      setNewValueInput(e.target.value);
-                    }}
+                    value={newValueInput}
+                    onChange={(e) => setNewValueInput(e.target.value)}
                   />
                 </div>
               )}

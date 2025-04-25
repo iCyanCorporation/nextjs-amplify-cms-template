@@ -199,7 +199,7 @@ export default function VariantForm({
                 (v) => v.key === id
               );
               if (valueObj) {
-                nameComponents.push(valueObj.value.toString());
+                nameComponents.push(valueObj.key.toString());
               } else {
                 // fallback: push id as string
                 nameComponents.push(id.toString());
@@ -226,7 +226,7 @@ export default function VariantForm({
             (v) => v.key === selectedValue
           );
           if (value) {
-            nameComponents.push(value.value.toString());
+            nameComponents.push(value.key.toString());
           }
         }
       }
@@ -379,7 +379,7 @@ export default function VariantForm({
                 );
                 if (valueObj) {
                   nameComponents[attr.id] = nameComponents[attr.id] || [];
-                  nameComponents[attr.id].push(valueObj.value.toString());
+                  nameComponents[attr.id].push(valueObj.key.toString());
                 } else {
                   // fallback: push id as string
                   nameComponents[attr.id] = nameComponents[attr.id] || [];
@@ -410,7 +410,7 @@ export default function VariantForm({
             );
             if (value) {
               nameComponents[attr.id] = nameComponents[attr.id] || [];
-              nameComponents[attr.id].push(value.value.toString());
+              nameComponents[attr.id].push(value.key.toString());
             }
           }
         }
@@ -547,16 +547,33 @@ export default function VariantForm({
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="w-full">
                 <div className="space-y-2">
                   <Label htmlFor="name">Variant Name*</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={form.name ?? ""}
-                    onChange={handleChange}
-                    className={errors.name ? "border-red-500" : ""}
-                  />
+                  <div className="flex items-center gap-4">
+                    <Input
+                      id="name"
+                      name="name"
+                      value={form.name ?? ""}
+                      onChange={handleChange}
+                      className={errors.name ? "border-red-500" : ""}
+                    />
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="isActive"
+                          checked={form.isActive}
+                          onCheckedChange={handleSwitchChange}
+                        />
+                        <Label htmlFor="isActive">Active</Label>
+                      </div>
+                      {errors.isActive && (
+                        <p className="text-red-500 text-xs">
+                          {errors.isActive}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   {errors.name && (
                     <p className="text-red-500 text-xs">{errors.name}</p>
                   )}
@@ -668,20 +685,6 @@ export default function VariantForm({
                   </div>
                 </div>
               )}
-
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isActive"
-                    checked={form.isActive}
-                    onCheckedChange={handleSwitchChange}
-                  />
-                  <Label htmlFor="isActive">Active</Label>
-                </div>
-                {errors.isActive && (
-                  <p className="text-red-500 text-xs">{errors.isActive}</p>
-                )}
-              </div>
 
               <div className="space-y-2">
                 <Label>Variant Images</Label>
