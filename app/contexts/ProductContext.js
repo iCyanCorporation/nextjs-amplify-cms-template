@@ -18,6 +18,7 @@ import { amplifyClient } from "@/hooks/useAmplifyClient";
 const ProductProvider = ({ children }) => {
   const [ProductList, setProductList] = useState([]);
   const [ProductTypeList, setProductTypeList] = useState([]);
+  const [AttributeList, setAttributeList] = useState([]);
 
   // Product
   async function handleGetProduct() {
@@ -31,6 +32,26 @@ const ProductProvider = ({ children }) => {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  // Attribute
+  async function handleGetAttributes() {
+    try {
+      const res = await fetch("/api/attributes", {
+        method: "GET",
+        cache: "no-cache",
+      });
+      const data = await res.json();
+      // API returns { attributes: [...] }
+      setAttributeList(data.attributes || []);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function getAttributeName(id) {
+    const attr = AttributeList.find((item) => item.id === id);
+    return attr ? attr.name : id;
   }
 
   // Product Type
@@ -59,6 +80,7 @@ const ProductProvider = ({ children }) => {
   useEffect(() => {
     handleGetProduct();
     handleGetProductType();
+    handleGetAttributes();
     console.log("init ProductContext");
   }, []);
 
@@ -70,6 +92,9 @@ const ProductProvider = ({ children }) => {
     setProductTypeList,
     handleGetProductType,
     getProductTypeName,
+    AttributeList,
+    handleGetAttributes,
+    getAttributeName,
   };
 
   return (
@@ -78,4 +103,5 @@ const ProductProvider = ({ children }) => {
 };
 
 export default ProductProvider;
+
 export const useProductContext = () => useContext(ProductContext);

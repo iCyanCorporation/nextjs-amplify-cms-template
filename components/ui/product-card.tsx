@@ -12,7 +12,11 @@ interface Product {
   thumbnailImageUrl: string;
   category: string;
   description: string;
-  specs: Record<string, string>;
+  specs: Record<string, any>;
+  stock?: number;
+  images?: string[];
+  isActive?: boolean;
+  productId?: string;
 }
 
 interface ProductCardProps {

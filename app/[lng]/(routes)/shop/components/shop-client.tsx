@@ -3,18 +3,18 @@
 import { useState, useEffect } from "react";
 import { ProductCard } from "@/components/ui/product-card";
 
-interface Product {
+type ProductWithVariants = {
   id: string;
-  title: string;
+  name: string;
   description?: string;
-  price: number;
   thumbnailImageUrl?: string;
   category?: string;
   [key: string]: any;
-}
+  variants: any[];
+};
 
 interface ShopClientProps {
-  products: Product[];
+  products: ProductWithVariants[];
   categories: string[];
 }
 
@@ -26,6 +26,7 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
   // Safe check for products array
   const safeProducts = Array.isArray(products) ? products : [];
 
+  // Filter by selected category
   const filteredProducts = selectedCategory
     ? safeProducts.filter((product) => product.category === selectedCategory)
     : safeProducts;
@@ -87,20 +88,27 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  name: product.title || "",
-                  price: product.price,
-                  thumbnailImageUrl: product.thumbnailImageUrl || "",
-                  category: product.category || "",
-                  description: product.description || "",
-                  specs: product.specs || {},
-                }}
-              />
-            ))}
+            {filteredProducts.map((product) => {
+              const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+              return (
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    price: firstVariant ? firstVariant.price : 0,
+                    thumbnailImageUrl: product.thumbnailImageUrl || "",
+                    category: product.category || "",
+                    description: product.description || "",
+                    specs: firstVariant?.attributes || {},
+                    stock: firstVariant?.stock,
+                    images: firstVariant?.images,
+                    isActive: firstVariant?.isActive,
+                    productId: product.id,
+                  }}
+                />
+              );
+            })}
           </div>
 
           {filteredProducts.length === 0 && (
@@ -116,3 +124,4 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
     </>
   );
 }
+

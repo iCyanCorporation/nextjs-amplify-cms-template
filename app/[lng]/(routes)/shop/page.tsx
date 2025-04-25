@@ -1,45 +1,54 @@
 import ShopClient from "./components/shop-client";
 
-async function getProducts() {
-  try {
-    // Add absolute URL for server-side fetching
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (typeof window === "undefined"
-        ? process.env.NEXT_PUBLIC_API_URL
-        : window.location.origin);
+// Helper to fetch all products and attach their variants
+type ProductWithVariants = any & { variants: any[] };
 
-    const response = await fetch(`${baseUrl}/api/products`, {
-      cache: "no-store",
-      // Add next.js revalidation option
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
-    });
+async function getProductsWithVariants() {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof window === "undefined"
+      ? process.env.NEXT_PUBLIC_API_URL
+      : window.location.origin);
 
-    if (!response.ok) {
-      console.error("API response error:", await response.text());
-      return [];
-    }
+  // Fetch all products
+  const productRes = await fetch(`${baseUrl}/api/products`, {
+    cache: "no-store",
+    next: { revalidate: 60 },
+  });
+  if (!productRes.ok) return [];
+  const products = await productRes.json();
+  if (!Array.isArray(products) || products.length === 0) return [];
 
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    return [];
+  // Fetch all variants
+  const variantRes = await fetch(`${baseUrl}/api/product-variant`, {
+    cache: "no-store",
+    next: { revalidate: 60 },
+  });
+  const variants = variantRes.ok ? await variantRes.json() : [];
+  // Group variants by productId
+  const variantsByProduct: Record<string, any[]> = {};
+  for (const variant of variants) {
+    if (!variantsByProduct[variant.productId]) variantsByProduct[variant.productId] = [];
+    variantsByProduct[variant.productId].push(variant);
   }
+  // Attach variants to products
+  return products.map((product: any) => ({
+    ...product,
+    variants: variantsByProduct[product.id] || [],
+  }));
 }
 
 export default async function ShopPage() {
-  const products = await getProducts();
+  const products: ProductWithVariants[] = await getProductsWithVariants();
 
-  // Handle case when products might be undefined or null
-  const productList = Array.isArray(products) ? products : [];
-
+  // Group categories by product category
   const categories = Array.from(
-    new Set(productList.map((product: any) => product.category).filter(Boolean))
+    new Set(products.map((product: any) => product.category).filter(Boolean))
   );
 
   return (
     <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24 pt-4 transition-colors duration-200">
-      <ShopClient products={productList} categories={categories} />
+      <ShopClient products={products} categories={categories} />
     </div>
   );
 }
