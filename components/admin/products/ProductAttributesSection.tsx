@@ -530,8 +530,6 @@ export default function CombinedAttributesSection({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="text">Text</SelectItem>
-                  <SelectItem value="number">Number</SelectItem>
-                  <SelectItem value="boolean">Yes/No</SelectItem>
                   <SelectItem value="color">Color</SelectItem>
                 </SelectContent>
               </Select>

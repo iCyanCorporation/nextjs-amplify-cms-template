@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { Button } from "@/components/ui/button";
 
 interface VariantSelectorProps {
   variants: any[];
@@ -34,7 +35,9 @@ const getAttributeOptions = (variants: any[]): Record<string, string[]> => {
     });
   });
   return Object.fromEntries(
-    Object.entries(opts).map(([k, set]) => [k, Array.from(set)])
+    Object.entries(opts)
+      .filter(([_, set]) => set.size > 0)
+      .map(([k, set]) => [k, Array.from(set)])
   );
 };
 
@@ -72,9 +75,7 @@ export default function VariantSelector({
         const newSelected: Record<string, string> = {};
         attributeKeys.forEach((key) => {
           const val = attrs[key];
-          newSelected[key] = Array.isArray(val)
-            ? val[0]
-            : val || attributeOptions[key][0] || "";
+          newSelected[key] = Array.isArray(val) ? val[0] : (val ?? "");
         });
         return newSelected;
       }
@@ -90,19 +91,22 @@ export default function VariantSelector({
   // Compute available options based on selections for previous attributes
   const availOptions = useMemo(() => {
     const result: Record<string, string[]> = {};
-    attributeKeys.forEach((key, idx) => {
+    attributeKeys.forEach((key) => {
       let rem = variants;
-      // filter by selected values for keys before idx
-      for (let i = 0; i < idx; i++) {
-        const pk = attributeKeys[i];
-        const val = selected[pk];
-        rem = rem.filter((v) => {
-          const attrs = parseAttrs(v);
-          const vals = Array.isArray(attrs[pk]) ? attrs[pk] : [attrs[pk]];
-          return vals.includes(val);
-        });
-      }
-      // collect unique values for current key
+      // filter by selected values for all other attributes except current
+      attributeKeys.forEach((otherKey) => {
+        if (otherKey === key) return;
+        const selVal = selected[otherKey];
+        if (selVal) {
+          rem = rem.filter((v) => {
+            const attrs = parseAttrs(v);
+            const vals = Array.isArray(attrs[otherKey])
+              ? attrs[otherKey]
+              : [attrs[otherKey]];
+            return vals.includes(selVal);
+          });
+        }
+      });
       const set = new Set<string>();
       rem.forEach((v) => {
         const attrs = parseAttrs(v);
@@ -146,7 +150,7 @@ export default function VariantSelector({
         const vals = Array.isArray(attrs[k2]) ? attrs[k2] : [attrs[k2]];
         vals.forEach((x) => x != null && set2.add(String(x)));
       });
-      newSel[k2] = Array.from(set2)[0] || attributeOptions[k2][0] || "";
+      newSel[k2] = Array.from(set2)[0] || "";
     }
     setSelected(newSel);
     // Determine matching variant
@@ -199,10 +203,12 @@ export default function VariantSelector({
               {getAttributeName ? getAttributeName(key) : ""}
             </span>
             <div className="flex gap-2 flex-wrap">
-              {availOptions[key].map((value) => {
-                const disabled = !availOptions[key].includes(value);
+              {attributeOptions[key].map((value) => {
+                const disabled =
+                  key !== primaryAttributeId &&
+                  !availOptions[key].includes(value);
                 return (
-                  <button
+                  <Button
                     key={value}
                     type="button"
                     disabled={disabled}
@@ -217,7 +223,7 @@ export default function VariantSelector({
                     }}
                   >
                     {value}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
