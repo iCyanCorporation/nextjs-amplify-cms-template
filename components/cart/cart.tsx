@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatPrice } from "@/lib/utils";
 
-import useCart from "@/hooks/use-cart";
+import { useCartContext } from "@/app/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -16,11 +16,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useProductContext } from "@/app/contexts/ProductContext";
 
 export const Cart = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const cart = useCart();
+  const cart = useCartContext();
+  const { getAttributeName } = useProductContext();
 
   const totalItems = cart.items.reduce(
     (total, item) => total + item.quantity,
@@ -34,18 +36,14 @@ export const Cart = () => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="relative rounded-full hover:bg-secondary/80"
-        >
+        <button className="relative rounded-full hover:opacity-80 transition-all duration-300 p-1">
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
             <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-xs text-primary-foreground">
               {totalItems}
             </span>
           )}
-        </Button>
+        </button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-lg border-l dark:border-neutral-800">
         <SheetHeader>
@@ -82,6 +80,23 @@ export const Cart = () => {
                   <p className="text-sm text-muted-foreground">
                     Quantity: {item.quantity}
                   </p>
+                  {item.attributes &&
+                    Object.keys(item.attributes).length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {Object.entries(item.attributes)
+                          .filter(([, vals]) => {
+                            if (Array.isArray(vals))
+                              return vals.length > 0 && vals.some((v) => v && v !== "");
+                            return vals != null && vals !== "";
+                          })
+                          .map(([attrId, vals]) => (
+                            <span key={attrId} className="mr-2">
+                              {getAttributeName(attrId)}:{" "}
+                              {Array.isArray(vals) ? vals.join(", ") : vals}
+                            </span>
+                          ))}
+                      </div>
+                    )}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">

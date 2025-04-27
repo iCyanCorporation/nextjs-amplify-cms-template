@@ -14,8 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import useCart from "@/hooks/use-cart";
+import { useCartContext } from "@/app/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
+import { useProductContext } from "@/app/contexts/ProductContext";
 
 // Define type for form data
 interface FormData {
@@ -32,7 +33,8 @@ interface FormData {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const cart = useCart();
+  const cart = useCartContext();
+  const { getAttributeName } = useProductContext();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -281,6 +283,15 @@ export default function CheckoutPage() {
                       <p className="text-xs text-muted-foreground">
                         Qty: {item.quantity}
                       </p>
+                      {item.attributes && Object.keys(item.attributes).length > 0 && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {Object.entries(item.attributes).map(([attrId, vals]) => (
+                            <span key={attrId} className="mr-2">
+                              {getAttributeName(attrId)}: {Array.isArray(vals) ? vals.join(", ") : vals}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </li>
                 ))}

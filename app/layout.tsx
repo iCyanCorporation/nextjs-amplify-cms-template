@@ -10,6 +10,7 @@ import UserProvider from "@/app/contexts/UserContext";
 
 // Context
 import ProductProvider from "@/app/contexts/ProductContext";
+import { CartProvider } from "@/app/contexts/CartContext";
 
 // In the layout component, wrap the children with the Providers
 export default function RootLayout({
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <UserProvider>
-            <ProductProvider>{children}</ProductProvider>
+            <ProductProvider>
+              <CartProvider>{children}</CartProvider>
+            </ProductProvider>
           </UserProvider>
         </Providers>
       </body>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ProductCard } from "@/components/ui/product-card";
+import { ProductCard } from "./product-card";
 
 type ProductWithVariants = {
   id: string;
@@ -89,7 +89,10 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => {
-              const firstVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+              const firstVariant =
+                product.variants && product.variants.length > 0
+                  ? product.variants[0]
+                  : null;
               return (
                 <ProductCard
                   key={product.id}
@@ -124,4 +127,3 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
     </>
   );
 }
-

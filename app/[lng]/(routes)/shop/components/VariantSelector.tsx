@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +30,7 @@ const getAttributeOptions = (variants: any[]): Record<string, string[]> => {
     const attrs = parseAttrs(v);
     Object.entries(attrs).forEach(([k, val]) => {
       if (!opts[k]) opts[k] = new Set();
-      const values = Array.isArray(val) ? val : [val];
+      const values: string[] = Array.isArray(val) ? val : [val];
       values.forEach((x) => x != null && opts[k].add(String(x)));
     });
   });
@@ -64,29 +64,31 @@ export default function VariantSelector({
     return keys;
   }, [attributeOptions, primaryAttributeId]);
 
-  // Use local state for selection, initialize from defaultSelected
-  const [selected, setSelected] = React.useState<Record<string, string>>(() => {
-    if (defaultSelected && defaultSelected.attributes) {
-      const attrs =
-        typeof defaultSelected.attributes === "string"
-          ? JSON.parse(defaultSelected.attributes)
-          : defaultSelected.attributes;
-      if (attrs && typeof attrs === "object") {
-        const newSelected: Record<string, string> = {};
-        attributeKeys.forEach((key) => {
-          const val = attrs[key];
-          newSelected[key] = Array.isArray(val) ? val[0] : (val ?? "");
-        });
-        return newSelected;
-      }
-    }
-    // fallback: first available
+  // Local selected state initialized and synced with defaultSelected
+  const computeInitial = (): Record<string, string> => {
     const init: Record<string, string> = {};
-    attributeKeys.forEach((key) => {
-      init[key] = attributeOptions[key][0] || "";
-    });
+    if (defaultSelected?.selectedAttributes) {
+      attributeKeys.forEach((k) => {
+        const v = defaultSelected.selectedAttributes[k];
+        init[k] = Array.isArray(v) ? v[0] : v;
+      });
+    } else if (defaultSelected?.attributes) {
+      const attrs = parseAttrs(defaultSelected);
+      attributeKeys.forEach((k) => {
+        const vs: string[] = Array.isArray(attrs[k]) ? attrs[k] : [attrs[k]];
+        init[k] = vs[0] ?? "";
+      });
+    } else {
+      attributeKeys.forEach((k) => {
+        init[k] = attributeOptions[k][0] ?? "";
+      });
+    }
     return init;
-  });
+  };
+  const [selected, setSelected] = useState<Record<string, string>>(computeInitial);
+  useEffect(() => {
+    setSelected(computeInitial());
+  }, [defaultSelected?.id]);
 
   // Compute available options based on selections for previous attributes
   const availOptions = useMemo(() => {
@@ -100,9 +102,9 @@ export default function VariantSelector({
         if (selVal) {
           rem = rem.filter((v) => {
             const attrs = parseAttrs(v);
-            const vals = Array.isArray(attrs[otherKey])
-              ? attrs[otherKey]
-              : [attrs[otherKey]];
+            const vals: string[] = Array.isArray(attrs[otherKey])
+              ? (attrs[otherKey] as string[])
+              : [attrs[otherKey] as string];
             return vals.includes(selVal);
           });
         }
@@ -110,76 +112,62 @@ export default function VariantSelector({
       const set = new Set<string>();
       rem.forEach((v) => {
         const attrs = parseAttrs(v);
-        const vals = Array.isArray(attrs[key]) ? attrs[key] : [attrs[key]];
-        vals.forEach((x) => x != null && set.add(String(x)));
+        const vals: string[] = Array.isArray(attrs[key])
+          ? (attrs[key] as string[])
+          : [attrs[key] as string];
+        vals.forEach((x) => x != null && set.add(x));
       });
       result[key] = Array.from(set);
     });
     return result;
   }, [variants, attributeKeys, selected]);
 
-  // Handle click: update local selection and notify parent of matching variant
+  // Handle click: update selected and notify parent
   const handleSelect = (idx: number, value: string) => {
-    const newSel: Record<string, string> = {};
-    // preserve selections for keys before idx
-    for (let i = 0; i < idx; i++) {
-      const key = attributeKeys[i];
-      newSel[key] = selected[key];
-    }
-    // set clicked selection
-    const clickedKey = attributeKeys[idx];
-    newSel[clickedKey] = value;
-    // reset selections for keys after idx
-    for (let j = idx + 1; j < attributeKeys.length; j++) {
-      const k2 = attributeKeys[j];
-      let rem2 = variants;
-      // filter by newSel for keys before j
-      for (let i2 = 0; i2 < j; i2++) {
-        const pk2 = attributeKeys[i2];
-        const v2 = newSel[pk2];
-        rem2 = rem2.filter((v) => {
-          const attrs = parseAttrs(v);
-          const vals = Array.isArray(attrs[pk2]) ? attrs[pk2] : [attrs[pk2]];
-          return vals.includes(v2);
+    setSelected((prev) => {
+      const newSel: Record<string, string> = {};
+      // preserve before
+      for (let i = 0; i < idx; i++) newSel[attributeKeys[i]] = prev[attributeKeys[i]];
+      // set clicked
+      newSel[attributeKeys[idx]] = value;
+      // recalc subsequent
+      for (let j = idx + 1; j < attributeKeys.length; j++) {
+        let rem = variants;
+        for (let k = 0; k < j; k++) {
+          const key = attributeKeys[k];
+          const v = newSel[key];
+          rem = rem.filter((vnt) => {
+            const attrs = parseAttrs(vnt);
+            const vals: string[] = Array.isArray(attrs[key])
+              ? (attrs[key] as string[])
+              : [attrs[key] as string];
+            return vals.includes(v);
+          });
+        }
+        // pick first valid option
+        const setVals = new Set<string>();
+        rem.forEach((vnt) => {
+          const attrs = parseAttrs(vnt);
+          const vs: string[] = Array.isArray(attrs[attributeKeys[j]])
+            ? (attrs[attributeKeys[j]] as string[])
+            : [attrs[attributeKeys[j]] as string];
+          vs.forEach((x) => x != null && setVals.add(x));
         });
+        newSel[attributeKeys[j]] = Array.from(setVals)[0] || "";
       }
-      // pick first available for this key
-      const set2 = new Set<string>();
-      rem2.forEach((v) => {
-        const attrs = parseAttrs(v);
-        const vals = Array.isArray(attrs[k2]) ? attrs[k2] : [attrs[k2]];
-        vals.forEach((x) => x != null && set2.add(String(x)));
-      });
-      newSel[k2] = Array.from(set2)[0] || "";
-    }
-    setSelected(newSel);
-    // Determine matching variant
-    const clickedIndex = primaryAttributeId
-      ? attributeKeys.indexOf(primaryAttributeId)
-      : -1;
-    let match;
-    if (idx === clickedIndex && primaryAttributeId) {
-      // match by primary attribute only
-      match = variants.find((v) => {
-        const attrs = parseAttrs(v);
-        const pv = attrs[primaryAttributeId];
-        const vals = Array.isArray(pv) ? pv : [pv];
-        return vals.includes(value);
-      });
-    } else {
-      // full match across all keys
-      match = variants.find((v) => {
-        const attrs = parseAttrs(v);
-        return attributeKeys.every((k) => {
-          const vals = Array.isArray(attrs[k]) ? attrs[k] : [attrs[k]];
-          return vals.includes(newSel[k]);
-        });
-      });
-    }
-    if (match) {
-      console.log("[VariantSelector] onSelect match", { newSel, match });
-      onSelect(match);
-    }
+      // notify parent
+      const match = variants.find((vnt) =>
+        attributeKeys.every((key) => {
+          const attrs = parseAttrs(vnt);
+          const vs: string[] = Array.isArray(attrs[key])
+            ? (attrs[key] as string[])
+            : [attrs[key] as string];
+          return vs.includes(newSel[key]);
+        })
+      );
+      if (match) onSelect({ ...match, selectedAttributes: newSel });
+      return newSel;
+    });
   };
 
   if (
@@ -207,18 +195,20 @@ export default function VariantSelector({
                 const disabled =
                   key !== primaryAttributeId &&
                   !availOptions[key].includes(value);
+                const isPrimary = key === primaryAttributeId;
+                const finalDisabled = isPrimary ? false : disabled;
                 return (
                   <Button
                     key={value}
                     type="button"
-                    disabled={disabled}
+                    disabled={finalDisabled}
                     className={`px-3 py-1 rounded border text-sm transition-colors ${
                       selected[key] === value
                         ? "bg-indigo-600 text-white border-indigo-600"
                         : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300"
                     }`}
                     onClick={() => {
-                      if (disabled) return;
+                      if (finalDisabled) return;
                       handleSelect(idx, value);
                     }}
                   >

@@ -8,6 +8,8 @@ import ProductImageCarousel from "@/components/product/ProductImageCarousel";
 import AttributeSpecList from "./AttributeSpecList";
 import dynamic from "next/dynamic";
 import SocialShare from "@/components/SocialShare"; // Import SocialShare component
+import { Input } from "@/components/ui/input";
+import { useCartContext } from "@/app/contexts/CartContext";
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
   ssr: false,
@@ -19,16 +21,71 @@ export default function ProductDetailClient({
   defaultVariant,
   lng,
 }: any) {
-  const [selectedVariant, setSelectedVariant] =
-    React.useState<any>(defaultVariant);
+  // Helper to extract raw selected attributes (first option) from a variant
+  const getInitialRawAttrs = (variant: any): Record<string, string> => {
+    const attrs = variant?.attributes;
+    if (!attrs) return {};
+    if (typeof attrs === "string") {
+      try {
+        const parsed = JSON.parse(attrs);
+        return Object.fromEntries(
+          Object.entries(parsed).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
+        );
+      } catch {
+        return {};
+      }
+    }
+    return Object.fromEntries(
+      Object.entries(attrs).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
+    );
+  };
+  // Initialize selectedVariant with raw selectedAttributes
+  const [selectedVariant, setSelectedVariant] = React.useState<any>(
+    () => ({ ...defaultVariant, selectedAttributes: getInitialRawAttrs(defaultVariant) })
+  );
+  const [quantity, setQuantity] = React.useState<number>(1);
+
+  // Wrap setSelectedVariant to also reset quantity
+  const handleSetSelectedVariant = (variant: any) => {
+    setSelectedVariant(variant);
+    setQuantity(1);
+  }
 
   // Ensure selectedVariant is always in sync with defaultVariant prop
   React.useEffect(() => {
-    setSelectedVariant(defaultVariant);
+    setSelectedVariant({ ...defaultVariant, selectedAttributes: getInitialRawAttrs(defaultVariant) });
+    setQuantity(1);
   }, [defaultVariant]);
 
   // Helper to get stock
   const stock = selectedVariant?.stock ?? product.stock ?? 0;
+
+  const selectedAttributes = React.useMemo<Record<string, string[]>>(() => {
+    // Always send all selected values as arrays
+    if (selectedVariant?.selectedAttributes) {
+      return Object.fromEntries(
+        Object.entries(selectedVariant.selectedAttributes).map(([k, v]) => [
+          k,
+          Array.isArray(v) ? v : [v],
+        ])
+      );
+    }
+    const attrs = selectedVariant?.attributes;
+    if (!attrs) return {} as Record<string, string[]>;
+    if (typeof attrs === "string") {
+      try {
+        return JSON.parse(attrs);
+      } catch {
+        return {} as Record<string, string[]>;
+      }
+    }
+    return attrs;
+  }, [selectedVariant]);
+  // Sync with global selectedAttributes context
+  const { setSelectedAttributes } = useCartContext();
+  React.useEffect(() => {
+    setSelectedAttributes(selectedAttributes);
+  }, [selectedAttributes, setSelectedAttributes]);
 
   if (!variants.length || !product || !defaultVariant) {
     return null;
@@ -88,21 +145,40 @@ export default function ProductDetailClient({
             <div className="mt-6">
               <VariantSelector
                 variants={variants}
-                onSelect={setSelectedVariant}
-                defaultSelected={defaultVariant}
+                onSelect={handleSetSelectedVariant}
+                defaultSelected={selectedVariant}
                 primaryAttributeId={product.primaryAttributeId}
+              />
+            </div>
+
+            <div className="mt-4">
+              <label
+                htmlFor="quantity"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Quantity
+              </label>
+              <Input
+                id="quantity"
+                type="number"
+                min={1}
+                max={stock}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="w-20 mt-1"
               />
             </div>
 
             <div className="mt-8">
               <AddToCartButton
                 product={{
-                  id: product.id,
-                  name: product.name,
+                  id: selectedVariant.id,
+                  name: selectedVariant.name,
                   price: selectedVariant?.price ?? product.price,
                   images: selectedVariant?.images || product.images || [],
-                  // Remove variantId if AddToCartButton doesn't support it
                 }}
+                quantity={quantity}
+                attributes={selectedAttributes}
               />
             </div>
 

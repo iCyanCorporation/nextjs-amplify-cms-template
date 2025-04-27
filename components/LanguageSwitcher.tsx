@@ -21,24 +21,23 @@ const LanguageSwitcher = ({ lng }: { lng: string }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full aspect-square">
-          <Globe className="h-6 w-6" />
+        <button className="h-8 w-8 p-1 rounded-full aspect-square hover:opacity-80 transition-all duration-300">
+          <Globe className="h-5 w-5" />
           <span className="sr-only">Switch language</span>
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto px-2">
         {languages.map((l, index) => (
-          <DropdownMenuItem
-            key={index}
-            disabled={lng === l}
-          >
+          <DropdownMenuItem key={index} disabled={lng === l}>
             <Link
               className={`w-full cursor-pointer justify-between flex items-center`}
               href={pathname ? createPathWithLang(pathname, l) : `/${l}`}
             >
               <span>{t(l)}</span>
               {lng === l && (
-                <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">✓</span>
+                <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
+                  ✓
+                </span>
               )}
             </Link>
           </DropdownMenuItem>

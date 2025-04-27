@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import useCart from "@/hooks/use-cart";
+import { useCartContext } from "@/app/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
+import { useProductContext } from "@/app/contexts/ProductContext";
 
 export default function CartPage() {
   const router = useRouter();
-  const cart = useCart();
+  const cart = useCartContext();
+  const { getAttributeName } = useProductContext();
   const [isUpdating, setIsUpdating] = useState(false);
 
   const totalPrice = cart.items.reduce(
@@ -134,6 +136,15 @@ export default function CartPage() {
                         <p className="text-sm text-muted-foreground mt-1">
                           Unit Price: {safeFormatPrice(item.price)}
                         </p>
+                        {item.attributes && Object.keys(item.attributes).length > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {Object.entries(item.attributes).map(([attrId, vals]) => (
+                              <span key={attrId} className="mr-2">
+                                {getAttributeName(attrId)}: {Array.isArray(vals) ? vals.join(", ") : vals}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-4">

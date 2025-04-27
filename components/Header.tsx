@@ -6,7 +6,7 @@ import { createPathWithLang } from "@/app/i18n/client-config";
 import ThemeToggle from "./ThemeToggle";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Link from "next/link";
-import { Cart } from "./ui/cart";
+import { Cart } from "./cart/cart";
 
 export default function Header({ lng }: { lng: string }) {
   const pathname = usePathname() || "/";
@@ -47,7 +47,7 @@ export default function Header({ lng }: { lng: string }) {
               ))}
             </nav>
             <div className="border-l border-gray-300 dark:border-gray-700 h-5 mx-2" />
-            <div className="flex gap-0 items-center">
+            <div className="flex gap-2 items-center">
               <Cart />
               <ThemeToggle />
               <LanguageSwitcher lng={lng} />
