@@ -5,11 +5,12 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "@/components/product/AddToCartButton";
 import ProductImageCarousel from "@/components/product/ProductImageCarousel";
-import AttributeSpecList from "./AttributeSpecList";
 import dynamic from "next/dynamic";
 import SocialShare from "@/components/SocialShare"; // Import SocialShare component
 import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/app/contexts/CartContext";
+import { useProductContext } from "@/app/contexts/ProductContext";
+import { Badge } from "@/components/ui/badge";
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
   ssr: false,
@@ -21,6 +22,7 @@ export default function ProductDetailClient({
   defaultVariant,
   lng,
 }: any) {
+  const { getProductTypeName } = useProductContext();
   // Helper to extract raw selected attributes (first option) from a variant
   const getInitialRawAttrs = (variant: any): Record<string, string> => {
     const attrs = variant?.attributes;
@@ -53,6 +55,14 @@ export default function ProductDetailClient({
   const handleSetSelectedVariant = (variant: any) => {
     setSelectedVariant(variant);
     setQuantity(1);
+  };
+
+  const incrementQuantity = () => {
+    setQuantity((prevQuantity) => Math.min(prevQuantity + 1, stock));
+  };
+
+  const decrementQuantity = () => {
+    setQuantity((prevQuantity) => Math.max(prevQuantity - 1, 1));
   };
 
   // Ensure selectedVariant is always in sync with defaultVariant prop
@@ -120,7 +130,7 @@ export default function ProductDetailClient({
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to products
+            Back to shop
           </Link>
         </div>
 
@@ -134,10 +144,14 @@ export default function ProductDetailClient({
           </div>
 
           {/* Product info */}
-          <div className="p-6 sm:p-8 lg:p-10">
+          <div className="">
+            <Badge className="my-2">
+              {getProductTypeName(product.productTypeId)}
+            </Badge>
             <h1 className="text-3xl font-bold tracking-tight dark:text-white transition-colors">
               {product.name}
             </h1>
+            <h3 className="opacity-80">{selectedVariant.name}</h3>
 
             <div className="mt-3">
               <p className="text-3xl tracking-tight text-indigo-600 dark:text-indigo-400 transition-colors">
@@ -165,15 +179,27 @@ export default function ProductDetailClient({
               >
                 Quantity
               </label>
-              <Input
-                id="quantity"
-                type="number"
-                min={1}
-                max={stock}
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-20 mt-1"
-              />
+              <div className="flex items-center mt-1">
+                <button
+                  onClick={decrementQuantity}
+                  disabled={quantity <= 1}
+                  className="px-3 py-1 border rounded-l disabled:opacity-50 dark:border-gray-600 dark:text-white"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span className="px-4 py-1 border-t border-b dark:border-gray-600 dark:text-white">
+                  {quantity}
+                </span>
+                <button
+                  onClick={incrementQuantity}
+                  disabled={quantity >= stock}
+                  className="px-3 py-1 border rounded-r disabled:opacity-50 dark:border-gray-600 dark:text-white"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             <div className="mt-8">

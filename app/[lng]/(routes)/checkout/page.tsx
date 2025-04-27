@@ -283,15 +283,26 @@ export default function CheckoutPage() {
                       <p className="text-xs text-muted-foreground">
                         Qty: {item.quantity}
                       </p>
-                      {item.attributes && Object.keys(item.attributes).length > 0 && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {Object.entries(item.attributes).map(([attrId, vals]) => (
-                            <span key={attrId} className="mr-2">
-                              {getAttributeName(attrId)}: {Array.isArray(vals) ? vals.join(", ") : vals}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {item.attributes &&
+                        Object.keys(item.attributes).length > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {Object.entries(item.attributes)
+                              .filter(([, vals]) => {
+                                if (Array.isArray(vals))
+                                  return (
+                                    vals.length > 0 &&
+                                    vals.some((v) => v && v !== "")
+                                  );
+                                return vals != null && vals !== "";
+                              })
+                              .map(([attrId, vals]) => (
+                                <span key={attrId} className="mr-2">
+                                  {getAttributeName(attrId)}:{" "}
+                                  {Array.isArray(vals) ? vals.join(", ") : vals}
+                                </span>
+                              ))}
+                          </div>
+                        )}
                     </div>
                   </li>
                 ))}

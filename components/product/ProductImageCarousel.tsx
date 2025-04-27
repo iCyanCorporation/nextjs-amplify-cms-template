@@ -84,7 +84,7 @@ export default function ProductImageCarousel({
       <div className="mt-4 flex justify-between items-center">
         <button
           onClick={() => emblaApi?.scrollPrev()}
-          className="p-2 rounded-full bg-white/80 hover:bg-white shadow-sm"
+          className="p-2 rounded-full bg-white/80 dark:bg-gray-800 hover:opacity-80 shadow-sm transition-opacity duration-300"
           aria-label="Previous slide"
         >
           <svg
@@ -118,7 +118,7 @@ export default function ProductImageCarousel({
 
         <button
           onClick={() => emblaApi?.scrollNext()}
-          className="p-2 rounded-full bg-white/80 hover:bg-white shadow-sm"
+          className="p-2 rounded-full bg-white/80 dark:bg-gray-800 hover:opacity-80 shadow-sm transition-opacity duration-300"
           aria-label="Next slide"
         >
           <svg

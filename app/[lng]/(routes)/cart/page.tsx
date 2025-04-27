@@ -35,10 +35,8 @@ export default function CartPage() {
         const itemToAdd = { ...item, quantity: 1 };
         cart.addItem(itemToAdd);
       } else if (action === "decrease" && item.quantity > 1) {
-        // To decrease, remove the item and add it back with reduced quantity
-        cart.removeItem(id);
-        const updatedItem = { ...item, quantity: item.quantity - 1 };
-        cart.addItem(updatedItem);
+        // Use removeItem with decrementOnly flag to preserve order
+        cart.removeItem(item.id, true);
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
@@ -139,16 +137,23 @@ export default function CartPage() {
                         {item.attributes &&
                           Object.keys(item.attributes).length > 0 && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              {Object.entries(item.attributes).map(
-                                ([attrId, vals]) => (
+                              {Object.entries(item.attributes)
+                                .filter(([, vals]) => {
+                                  if (Array.isArray(vals))
+                                    return (
+                                      vals.length > 0 &&
+                                      vals.some((v) => v && v !== "")
+                                    );
+                                  return vals != null && vals !== "";
+                                })
+                                .map(([attrId, vals]) => (
                                   <span key={attrId} className="mr-2">
                                     {getAttributeName(attrId)}:{" "}
                                     {Array.isArray(vals)
                                       ? vals.join(", ")
                                       : vals}
                                   </span>
-                                )
-                              )}
+                                ))}
                             </div>
                           )}
                       </div>

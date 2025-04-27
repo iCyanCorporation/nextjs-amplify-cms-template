@@ -81,7 +81,8 @@ const ProductProvider = ({ children }) => {
     handleGetProduct();
     handleGetProductType();
     handleGetAttributes();
-    console.log("init ProductContext");
+    // console.log("init ProductContext");
+    getProductTypeName();
   }, []);
 
   const global = {
