@@ -335,6 +335,12 @@ export default function VariantSelector({
     return null;
   }
 
+  // Helper to get attribute type by key
+  const getAttributeType = (key: string) => {
+    const attr = attributeList.find((item: any) => item.id === key);
+    return attr?.type || "";
+  };
+
   return (
     <div className="mb-6">
       <h4 className="text-sm font-semibold mb-2">Select Options</h4>
@@ -352,24 +358,50 @@ export default function VariantSelector({
                 const finalDisabled =
                   key === primaryAttributeId ? false : !isAvailable;
 
-                return (
-                  <Button
-                    key={value}
-                    type="button"
-                    disabled={finalDisabled}
-                    className={`px-3 py-1 rounded border text-sm transition-colors ${
-                      selected[key] === value
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300"
-                    } ${finalDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                    onClick={() => {
-                      if (finalDisabled) return;
-                      handleSelect(idx, value);
-                    }}
-                  >
-                    {value}
-                  </Button>
-                );
+                const attrType = getAttributeType(key);
+
+                if (attrType === "color") {
+                  return (
+                    <div
+                      key={value}
+                      className={`inline-block w-7 h-7 rounded-full transition-all align-middle cursor-pointer ${
+                        selected[key] === value
+                          ? "ring-2 ring-gray-600 border-2 border-gray-300"
+                          : "border-gray-300"
+                      } ${finalDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                      style={{
+                        backgroundColor: value,
+                      }}
+                      title={value}
+                      onClick={() => {
+                        if (finalDisabled) return;
+                        handleSelect(idx, value);
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={value}
+                    />
+                  );
+                } else {
+                  return (
+                    <Button
+                      key={value}
+                      type="button"
+                      disabled={finalDisabled}
+                      className={`px-3 py-1 rounded border text-sm transition-colors ${
+                        selected[key] === value
+                          ? "bg-indigo-600 text-white border-indigo-600"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300"
+                      } ${finalDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                      onClick={() => {
+                        if (finalDisabled) return;
+                        handleSelect(idx, value);
+                      }}
+                    >
+                      {value}
+                    </Button>
+                  );
+                }
               })}
             </div>
           </div>
