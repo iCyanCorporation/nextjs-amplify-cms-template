@@ -7,6 +7,7 @@ import AddToCartButton from "@/components/product/AddToCartButton";
 import ProductImageCarousel from "@/components/product/ProductImageCarousel";
 import AttributeSpecList from "./AttributeSpecList";
 import dynamic from "next/dynamic";
+import SocialShare from "@/components/SocialShare"; // Import SocialShare component
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
   ssr: false,
@@ -103,6 +104,11 @@ export default function ProductDetailClient({
                   // Remove variantId if AddToCartButton doesn't support it
                 }}
               />
+            </div>
+
+            {/* Share to social */}
+            <div className="mt-8">
+              <SocialShare />
             </div>
           </div>
         </div>

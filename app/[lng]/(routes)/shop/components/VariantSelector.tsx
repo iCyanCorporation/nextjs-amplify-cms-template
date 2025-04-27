@@ -44,7 +44,8 @@ export default function VariantSelector({
   defaultSelected,
   primaryAttributeId,
 }: VariantSelectorProps) {
-  const { getAttributeName, AttributeList: attributeList } = useProductContext();
+  const { getAttributeName, AttributeList: attributeList } =
+    useProductContext();
   const attributeOptions = useMemo(
     () => getAttributeOptions(variants),
     [variants]
