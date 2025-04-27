@@ -245,7 +245,7 @@ export default function ProductsPage() {
                             size="sm"
                             variant="outline"
                             className="text-red-600 hover:bg-red-50"
-                            onClick={() => handleDeleteClick(product.id)}
+                            onClick={() => handleDeleteClick(product.id || "")}
                           >
                             Delete
                           </Button>

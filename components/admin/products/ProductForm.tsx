@@ -52,10 +52,39 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(0);
-  const [stock, setStock] = useState(0);
+  const [price, setPrice] = useState(0); // base price, not used for display if variants exist
+  const [stock, setStock] = useState(0); // base stock, not used for display if variants exist
   const [hasDiscount, setHasDiscount] = useState(false);
   const [discountPrice, setDiscountPrice] = useState(0);
+
+  // variants
+  const [variants, setVariants] = useState<Variant[]>([]);
+
+  // Defensive: ensure variants is always an array
+  const safeVariants = Array.isArray(variants) ? variants : [];
+
+  // Calculate total stock from variants
+  const totalVariantStock =
+    safeVariants.length > 0
+      ? safeVariants.reduce(
+          (sum, v) => sum + (typeof v.stock === "number" ? v.stock : 0),
+          0
+        )
+      : stock;
+
+  // Calculate price range from variants
+  const variantPrices =
+    safeVariants.length > 0
+      ? safeVariants
+          .map((v) => (typeof v.price === "number" ? v.price : 0))
+          .filter((p) => typeof p === "number" && !isNaN(p))
+      : [price];
+
+  const minPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
+  const maxPrice = variantPrices.length > 0 ? Math.max(...variantPrices) : 0;
+
+  const priceRange =
+    minPrice === maxPrice ? `$${minPrice}` : `$${minPrice}-${maxPrice}`;
   const [primaryAttributeId, setPrimaryAttributeId] = useState<string | null>(
     null
   );
@@ -78,7 +107,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
   >({});
 
   // variants
-  const [variants, setVariants] = useState<Variant[]>([]);
+  // (moved above for correct variable order)
 
   // Callback function to handle attribute removal from the child component
   const handleRemoveAttribute = useCallback(
@@ -522,12 +551,12 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           </Card>
           <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <Truck className="h-8 w-8 text-green-500 mb-2" />
-            <span className="font-semibold text-2xl">{stock || "0"}</span>
+            <span className="font-semibold text-2xl">{totalVariantStock}</span>
             <span className="text-sm text-gray-500">In Stock</span>
           </Card>
           <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
             <Tag className="h-8 w-8 text-orange-500 mb-2" />
-            <span className="font-semibold text-2xl">${price || "0"}</span>
+            <span className="font-semibold text-2xl">{priceRange}</span>
             <span className="text-sm text-gray-500">Price</span>
           </Card>
           <Card className="p-4 flex flex-col items-center justify-center cursor-pointer hover:opacity-80">
