@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useProductContext } from "@/app/contexts/ProductContext";
 
 interface VariantSelectorProps {
   variants: any[];
   onSelect: (variant: any) => void;
   defaultSelected?: any;
+  primaryAttributeId?: string;
 }
 
 // Normalize variant.attributes to an object
 const parseAttrs = (variant: any): Record<string, any> => {
   if (typeof variant.attributes === "string") {
-    try { return JSON.parse(variant.attributes); } catch { return {}; }
+    try {
+      return JSON.parse(variant.attributes);
+    } catch {
+      return {};
+    }
   }
   return variant.attributes || {};
 };
@@ -33,22 +38,39 @@ const getAttributeOptions = (variants: any[]): Record<string, string[]> => {
   );
 };
 
-export default function VariantSelector({ variants, onSelect, defaultSelected }: VariantSelectorProps) {
+export default function VariantSelector({
+  variants,
+  onSelect,
+  defaultSelected,
+  primaryAttributeId,
+}: VariantSelectorProps) {
   const { getAttributeName } = useProductContext();
-  const attributeOptions = useMemo(() => getAttributeOptions(variants), [variants]);
-  const attributeKeys = useMemo(() => Object.keys(attributeOptions), [attributeOptions]);
+  const attributeOptions = useMemo(
+    () => getAttributeOptions(variants),
+    [variants]
+  );
+  const attributeKeys = useMemo(() => {
+    const keys = Object.keys(attributeOptions);
+    if (primaryAttributeId && keys.includes(primaryAttributeId)) {
+      return [primaryAttributeId, ...keys.filter((k) => k !== primaryAttributeId)];
+    }
+    return keys;
+  }, [attributeOptions, primaryAttributeId]);
 
   // Use local state for selection, initialize from defaultSelected
   const [selected, setSelected] = React.useState<Record<string, string>>(() => {
     if (defaultSelected && defaultSelected.attributes) {
-      const attrs = typeof defaultSelected.attributes === "string"
-        ? JSON.parse(defaultSelected.attributes)
-        : defaultSelected.attributes;
+      const attrs =
+        typeof defaultSelected.attributes === "string"
+          ? JSON.parse(defaultSelected.attributes)
+          : defaultSelected.attributes;
       if (attrs && typeof attrs === "object") {
         const newSelected: Record<string, string> = {};
         attributeKeys.forEach((key) => {
           const val = attrs[key];
-          newSelected[key] = Array.isArray(val) ? val[0] : val || attributeOptions[key][0] || "";
+          newSelected[key] = Array.isArray(val)
+            ? val[0]
+            : val || attributeOptions[key][0] || "";
         });
         return newSelected;
       }
@@ -60,7 +82,6 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
     });
     return init;
   });
-
 
   // Compute available options based on selections for previous attributes
   const availOptions = useMemo(() => {
@@ -89,30 +110,17 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
     return result;
   }, [variants, attributeKeys, selected]);
 
-  // Notify parent of matching variant
-  useEffect(() => {
-    const match = variants.find((v) => {
-      const attrs = parseAttrs(v);
-      return attributeKeys.every((k) => {
-        const vals = Array.isArray(attrs[k]) ? attrs[k] : [attrs[k]];
-        return vals.includes(selected[k]);
-      });
-    });
-    if (match) {
-      console.log('[VariantSelector] effect onSelect', { selected, match });
-      onSelect(match);
-    }
-  }, [selected, variants, attributeKeys, onSelect]);
-
-  // Handle click: update local selection and notify parent if valid
+  // Handle click: update local selection and notify parent of matching variant
   const handleSelect = (idx: number, value: string) => {
     const newSel: Record<string, string> = {};
     // preserve selections for keys before idx
     for (let i = 0; i < idx; i++) {
-      const k = attributeKeys[i]; newSel[k] = selected[k];
+      const key = attributeKeys[i];
+      newSel[key] = selected[key];
     }
-    // set clicked
-    const key = attributeKeys[idx]; newSel[key] = value;
+    // set clicked selection
+    const clickedKey = attributeKeys[idx];
+    newSel[clickedKey] = value;
     // reset selections for keys after idx
     for (let j = idx + 1; j < attributeKeys.length; j++) {
       const k2 = attributeKeys[j];
@@ -127,7 +135,7 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
           return vals.includes(v2);
         });
       }
-      // collect values for k2
+      // pick first available for this key
       const set2 = new Set<string>();
       rem2.forEach((v) => {
         const attrs = parseAttrs(v);
@@ -137,18 +145,32 @@ export default function VariantSelector({ variants, onSelect, defaultSelected }:
       newSel[k2] = Array.from(set2)[0] || attributeOptions[k2][0] || "";
     }
     setSelected(newSel);
-    // Find the matching variant and notify parent immediately
-    const match = variants.find((v) => {
-      const attrs = parseAttrs(v);
-      return attributeKeys.every((k) => {
-        const vals = Array.isArray(attrs[k]) ? attrs[k] : [attrs[k]];
-        return vals.includes(newSel[k]);
+    // Determine matching variant
+    const clickedIndex = primaryAttributeId ? attributeKeys.indexOf(primaryAttributeId) : -1;
+    let match;
+    if (idx === clickedIndex && primaryAttributeId) {
+      // match by primary attribute only
+      match = variants.find((v) => {
+        const attrs = parseAttrs(v);
+        const pv = attrs[primaryAttributeId];
+        const vals = Array.isArray(pv) ? pv : [pv];
+        return vals.includes(value);
       });
-    });
-    console.log('[VariantSelector] handleSelect', { newSel, match, allVariantAttrs: variants.map(v => ({ id: v.id, attrs: parseAttrs(v) })) });
-    if (match) onSelect(match);
+    } else {
+      // full match across all keys
+      match = variants.find((v) => {
+        const attrs = parseAttrs(v);
+        return attributeKeys.every((k) => {
+          const vals = Array.isArray(attrs[k]) ? attrs[k] : [attrs[k]];
+          return vals.includes(newSel[k]);
+        });
+      });
+    }
+    if (match) {
+      console.log("[VariantSelector] onSelect match", { newSel, match });
+      onSelect(match);
+    }
   };
-
 
   return (
     <div className="mb-6">

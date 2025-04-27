@@ -85,6 +85,7 @@ export default function ProductDetailClient({
                 variants={variants}
                 onSelect={setSelectedVariant}
                 defaultSelected={defaultVariant}
+                primaryAttributeId={product.primaryAttributeId}
               />
             </div>
 
