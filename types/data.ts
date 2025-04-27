@@ -1,4 +1,4 @@
-export type AttributeType = "text" | "number" | "boolean" | "color";
+export type AttributeType = "text" | "color";
 
 export interface Attribute {
   id: string;

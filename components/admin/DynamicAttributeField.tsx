@@ -28,28 +28,6 @@ export default function DynamicAttributeField({
           />
         );
 
-      case "number":
-        return (
-          <Input
-            type="number"
-            placeholder={`Enter ${attribute.name}`}
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        );
-
-      case "boolean":
-        return (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`checkbox-${attribute.id}`}
-              checked={!!value}
-              onCheckedChange={(checked) => onChange(checked)}
-            />
-            <Label htmlFor={`checkbox-${attribute.id}`}>{attribute.name}</Label>
-          </div>
-        );
-
       case "color":
         return (
           <div className="flex items-center gap-2">
@@ -78,10 +56,5 @@ export default function DynamicAttributeField({
     }
   };
 
-  return (
-    <div className="space-y-2">
-      {attribute.type !== "boolean" && <Label>{attribute.name}</Label>}
-      {renderField()}
-    </div>
-  );
+  return <div className="space-y-2">{renderField()}</div>;
 }

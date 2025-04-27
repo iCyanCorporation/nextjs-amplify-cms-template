@@ -5,29 +5,13 @@ import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Minus } from "lucide-react";
-import { ProductType, Attribute, AttributeType } from "@/types/data";
+import { ProductType, AttributeType } from "@/types/data";
 
 interface ProductTypeFormProps {
   initialData: ProductType | null;
   onSave: (data: ProductType) => void;
   onCancel: () => void;
 }
-
-const attributeTypes: { value: AttributeType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "boolean", label: "Yes/No" },
-  { value: "color", label: "Color" },
-];
 
 export default function ProductTypeForm({
   initialData,

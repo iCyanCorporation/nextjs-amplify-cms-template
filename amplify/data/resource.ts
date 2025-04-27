@@ -43,7 +43,7 @@ const schema = a
 
     Attribute: a.model({
       name: a.string().required(),
-      type: a.enum(["text", "number", "boolean", "color"]),
+      type: a.enum(["text", "color"]),
       options: a.json(), // Store options for select attributes
     }),
 

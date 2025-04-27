@@ -97,10 +97,8 @@ export default function VariantForm({
           string | number | string[] | boolean
         > = {};
         attributeList.forEach((attr) => {
-          if (["text", "number", "color"].includes(attr.type)) {
+          if (["text", "color"].includes(attr.type)) {
             initialattributes[attr.id] = [];
-          } else if (attr.type === "boolean") {
-            initialattributes[attr.id] = false;
           } else {
             initialattributes[attr.id] = "";
           }
@@ -117,10 +115,8 @@ export default function VariantForm({
       // Create empty selected attributes for new variant
       const initialattributes: Record<string, string | string[] | boolean> = {};
       attributeList.forEach((attr) => {
-        if (["text", "number", "color"].includes(attr.type)) {
+        if (["text", "color"].includes(attr.type)) {
           initialattributes[attr.id] = [];
-        } else if (attr.type === "boolean") {
-          initialattributes[attr.id] = false;
         } else {
           initialattributes[attr.id] = "";
         }
@@ -213,14 +209,6 @@ export default function VariantForm({
         else if (attr.type === "color" && typeof selectedValue === "string") {
           // Use key for color
           nameComponents.push(selectedValue);
-        }
-        // For boolean attributes, only add if true
-        else if (
-          attr.type === "boolean" &&
-          typeof selectedValue === "boolean" &&
-          selectedValue === true
-        ) {
-          nameComponents.push(attr.name);
         }
         // For other attributes, add the selected value
         else if (typeof selectedValue === "string" && selectedValue) {
@@ -316,7 +304,8 @@ export default function VariantForm({
     // Enforce primary attribute id is present and unique
     if (primaryAttributeId) {
       if (!selectedattributes.hasOwnProperty(primaryAttributeId)) {
-        newErrors[`attr_${primaryAttributeId}`] = "Primary attribute is required";
+        newErrors[`attr_${primaryAttributeId}`] =
+          "Primary attribute is required";
       }
     }
 
@@ -324,7 +313,7 @@ export default function VariantForm({
     const attrIds = Object.keys(selectedattributes);
     const uniqueAttrIds = new Set(attrIds);
     if (attrIds.length !== uniqueAttrIds.size) {
-      newErrors['attributes'] = 'Duplicate attribute IDs found.';
+      newErrors["attributes"] = "Duplicate attribute IDs found.";
     }
 
     // Validate required attributes
@@ -387,17 +376,13 @@ export default function VariantForm({
                 }
               }
             });
-          } else if (attr.type === "color" && typeof selectedValue === "string") {
+          } else if (
+            attr.type === "color" &&
+            typeof selectedValue === "string"
+          ) {
             // Use key for color
             nameComponents[attr.id] = nameComponents[attr.id] || [];
             nameComponents[attr.id].push(selectedValue);
-          } else if (
-            attr.type === "boolean" &&
-            typeof selectedValue === "boolean" &&
-            selectedValue === true
-          ) {
-            nameComponents[attr.id] = nameComponents[attr.id] || [];
-            nameComponents[attr.id].push(attr.name);
           } else if (typeof selectedValue === "string" && selectedValue) {
             const value = attributeOption[attr.id]?.find(
               (v) => v.key === selectedValue
@@ -446,24 +431,6 @@ export default function VariantForm({
       }))
     );
     const selectedAttrVal = selectedattributes[attribute.id];
-
-    // Only allow multi-select for text, number, color; boolean is a switch
-    if (attribute.type === "boolean") {
-      return (
-        <div className="space-y-1">
-          <Label>{attribute.name}</Label>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={!!selectedattributes[attribute.id]}
-              onCheckedChange={(checked) =>
-                handleAttributeChange(attribute.id, checked)
-              }
-            />
-            <span>{!!selectedattributes[attribute.id] ? "Yes" : "No"}</span>
-          </div>
-        </div>
-      );
-    }
 
     // For text, number, color: multi-select options by checkbox
     return (
@@ -640,8 +607,7 @@ export default function VariantForm({
                                   )
                                 )
                                   initial = [];
-                                else if (attribute.type === "boolean")
-                                  initial = false;
+
                                 setSelectedattributes((prev) => ({
                                   ...prev,
                                   [attribute.id]: initial,

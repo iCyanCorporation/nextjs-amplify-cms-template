@@ -599,20 +599,8 @@ export default function CombinedAttributesSection({
                   <Label htmlFor="option-value">Value</Label>
                   <Input
                     id="option-value"
-                    placeholder={`e.g., ${
-                      getCurrentAttribute()?.type === "number"
-                        ? "42, 100, 256"
-                        : getCurrentAttribute()?.type === "boolean"
-                          ? "true, false"
-                          : "XL, Cotton, Leather"
-                    }`}
-                    type={
-                      getCurrentAttribute()?.type === "number"
-                        ? "number"
-                        : getCurrentAttribute()?.type === "boolean"
-                          ? "text"
-                          : "text"
-                    }
+                    placeholder={`e.g., XL, Cotton, Leather`}
+                    type="text"
                     value={newValueInput}
                     onChange={(e) => setNewValueInput(e.target.value)}
                   />

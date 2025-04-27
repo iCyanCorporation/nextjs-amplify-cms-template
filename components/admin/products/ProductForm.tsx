@@ -233,15 +233,11 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
           Object.entries(productData.specs).forEach(([key, value]) => {
             const attrId = `attr_${key}`;
             const attributeType =
-              typeof value === "boolean"
-                ? "boolean"
-                : typeof value === "number"
-                  ? "number"
-                  : (typeof value === "string" &&
-                        /^#([0-9A-F]{3}){1,2}$/i.test(value)) ||
-                      key.toLowerCase().includes("color")
-                    ? "color"
-                    : "text";
+              (typeof value === "string" &&
+                /^#([0-9A-F]{3}){1,2}$/i.test(value)) ||
+              key.toLowerCase().includes("color")
+                ? "color"
+                : "text";
 
             // Add attribute
             attributesData.push({
