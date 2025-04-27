@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import { Button } from "@/components/ui/button";
 
@@ -276,6 +276,53 @@ export default function VariantSelector({
       return workingSel;
     });
   };
+
+  // Notify parent only after initial mount and only if variant changes
+  const lastVariantIdRef = useRef<string | undefined>(undefined);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    // Find the best matching variant based on the *current* selected state
+    const match = variants.find((vnt) =>
+      attributeKeys.every((key) => {
+        const attrs = parseAttrs(vnt);
+        const selectedValue = selected[key];
+        if (!selectedValue) return true;
+        if (!attrs.hasOwnProperty(key)) return false;
+        const vs: string[] = Array.isArray(attrs[key])
+          ? (attrs[key] as string[])
+          : [attrs[key] as string];
+        return vs.includes(selectedValue);
+      })
+    );
+
+    // Refine match: Ensure the found match *actually contains* all the attributes selected
+    const finalMatch =
+      match &&
+      attributeKeys.every((key) => {
+        const selectedValue = selected[key];
+        if (!selectedValue) return true;
+        const attrs = parseAttrs(match);
+        if (!attrs.hasOwnProperty(key)) return false;
+        const vs: string[] = Array.isArray(attrs[key])
+          ? attrs[key]
+          : [attrs[key]];
+        return vs.includes(selectedValue);
+      })
+        ? match
+        : undefined;
+
+    // Only notify parent if variant id changed (skip initial mount)
+    if (finalMatch && finalMatch.id !== lastVariantIdRef.current) {
+      if (!isFirstRender.current) {
+        onSelect({ ...finalMatch, selectedAttributes: selected });
+      }
+      lastVariantIdRef.current = finalMatch.id;
+    }
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
+  }, [selected, variants, attributeKeys, onSelect]);
 
   if (
     !attributeKeys ||

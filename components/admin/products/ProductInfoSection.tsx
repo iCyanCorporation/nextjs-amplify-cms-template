@@ -65,11 +65,10 @@ export default function ProductInfoSection({
     setThumbnailImageUrl(url as string);
   };
 
-  if (!productTypes || !name || !sku || !description) {
+  if (!productTypes) {
     return null;
   }
 
-  console.log("primaryAttributeId::", primaryAttributeId);
   return (
     <Card>
       <CardHeader>
@@ -86,7 +85,7 @@ export default function ProductInfoSection({
                   height={250}
                   src={thumbnailImageUrl}
                   alt="Thumbnail"
-                  className="aspect-square border rounded-md border-gray-300"
+                  className="aspect-square object-cover border rounded-md border-gray-300"
                 />
                 <div className="p-2">
                   <ImagePickerButton

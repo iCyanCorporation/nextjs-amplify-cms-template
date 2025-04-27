@@ -31,7 +31,7 @@ export interface ProductType {
 //   updatedAt: a.datetime(),
 // }),
 export interface Product {
-  id: string;
+  id?: string;
   name: string;
   description: string;
   sku: string;

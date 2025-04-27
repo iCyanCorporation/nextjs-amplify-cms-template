@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
         { status: 404 }
       );
     }
-    return NextResponse.json(result.data);
+    return NextResponse.json(result.data, { status: 200 });
   } catch (error) {
     console.error("Error fetching product variant:", error);
     return NextResponse.json(
@@ -44,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
       { authMode: "identityPool", authToken }
     );
     const record = (result as any).data ?? result;
-    return NextResponse.json(record);
+    return NextResponse.json(record, { status: 200 });
   } catch (error) {
     console.error("Error updating product variant:", error);
     return NextResponse.json(
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       { authMode: "identityPool", authToken }
     );
     const record = (result as any).data ?? result;
-    return NextResponse.json(record);
+    return NextResponse.json(record, { status: 200 });
   } catch (error) {
     console.error("Error creating product variant:", error);
     return NextResponse.json(
@@ -106,7 +106,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
         { status: 500 }
       );
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting product variant:", error);
     return NextResponse.json(

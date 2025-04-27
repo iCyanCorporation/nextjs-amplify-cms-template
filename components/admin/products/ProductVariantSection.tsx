@@ -47,6 +47,8 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
   const reloadVariant = async () => {
     try {
       setLoading(true);
+      if (!productId) return;
+
       const response = await fetch(
         `/api/product-variant?productId=${productId}`
       );
@@ -98,16 +100,10 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
     };
   };
 
-  // const confirmDeleteVariant = (variantId: string) => {
-  //   setVariantToDelete(variantId);
-  //   setDeleteVariantDialogOpen(true);
-  // };
-
   const handleDeleteVariant = (id: string) => {
     if (id) {
       setVariants(variants.filter((v) => v.id !== id));
       setDeleteVariantDialogOpen(false);
-      // setVariantToDelete(null);
     }
   };
 

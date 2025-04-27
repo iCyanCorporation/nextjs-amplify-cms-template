@@ -28,7 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import {
   PlusIcon,
   SearchIcon,
@@ -38,6 +37,7 @@ import {
 } from "lucide-react";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import Image from "next/image";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 export default function ProductsPage() {
   const { getProductTypeName } = useProductContext();
@@ -89,6 +89,9 @@ export default function ProductsPage() {
     try {
       const response = await fetch(`/api/products/${productToDelete}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `${await getAuthToken()}`,
+        },
       });
 
       if (!response.ok) {

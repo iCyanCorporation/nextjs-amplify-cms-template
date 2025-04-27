@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
-import { SocialIcon } from './SocialIcon';
+import { SocialIcon } from "./SocialIcon";
 import { useTranslation } from "@/app/i18n/client";
-
 
 interface SocialLink {
   name: string;
@@ -28,15 +27,15 @@ export function SocialLinks({ links, lng, scheduleActive }: SocialLinksProps) {
           onClick={() => {
             window.open(link.href, "_blank");
           }}
-          className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:opacity-80"
+          className="flex items-center gap-2 px-4 py-2 hover:opacity-80"
           rel="noopener noreferrer"
         >
           <SocialIcon name={link.icon} />
           <span>{translations(link.name)}</span>
         </Button>
       ))}
-      <Button 
-        className="inline-flex items-center gap-2 px-4 py-2 text-gray-700 hover:opacity-80"
+      <Button
+        className="inline-flex items-center gap-2 px-4 py-2 hover:opacity-80"
         disabled={!scheduleActive}
       >
         <CalendarDays className="w-4 h-4" />

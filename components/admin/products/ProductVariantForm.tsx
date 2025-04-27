@@ -239,9 +239,10 @@ export default function VariantForm({
     try {
       variant.productId = productId;
       // console.log("variant::", variant);
+      let res;
       if (variant.id) {
         // Update existing variant
-        await fetch(`/api/product-variant/${variant.id}`, {
+        res = await fetch(`/api/product-variant/${variant.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -252,7 +253,7 @@ export default function VariantForm({
       } else {
         // Add new variant
         variant.id = uuid();
-        await fetch(`/api/product-variant/${variant.id}`, {
+        res = await fetch(`/api/product-variant/${variant.id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -260,6 +261,9 @@ export default function VariantForm({
           },
           body: JSON.stringify(variant),
         });
+      }
+      if (res.status !== 200) {
+        throw new Error("Failed to update variant");
       }
       toast({
         title: "Success",
