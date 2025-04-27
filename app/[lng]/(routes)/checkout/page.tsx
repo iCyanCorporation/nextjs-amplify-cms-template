@@ -44,8 +44,8 @@ export default function CheckoutPage() {
     city: "",
     state: "",
     postalCode: "",
-    country: "US",
-    paymentMethod: "credit",
+    country: "TW",
+    paymentMethod: "bank",
   });
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -200,10 +200,7 @@ export default function CheckoutPage() {
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="CA">Canada</SelectItem>
-                    <SelectItem value="UK">United Kingdom</SelectItem>
-                    <SelectItem value="AU">Australia</SelectItem>
+                    <SelectItem value="TW">Taiwan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -219,14 +216,14 @@ export default function CheckoutPage() {
                 handleSelectChange("paymentMethod", value)
               }
             >
-              <div className="flex items-center space-x-2 mb-3">
+              {/* <div className="flex items-center space-x-2 mb-3">
                 <RadioGroupItem value="credit" id="credit" />
                 <Label htmlFor="credit">Credit Card</Label>
               </div>
               <div className="flex items-center space-x-2 mb-3">
                 <RadioGroupItem value="paypal" id="paypal" />
                 <Label htmlFor="paypal">PayPal</Label>
-              </div>
+              </div> */}
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="bank" id="bank" />
                 <Label htmlFor="bank">Bank Transfer</Label>
@@ -268,14 +265,19 @@ export default function CheckoutPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.image}
-                          alt={item.name}
+                          alt={item.title}
                           className="h-full w-full object-cover object-center"
                         />
                       </div>
                     )}
                     <div className="flex flex-1 flex-col">
                       <div className="flex justify-between">
-                        <h3 className="text-sm font-medium">{item.name}</h3>
+                        <div>
+                          <h3 className="text-sm font-medium">{item.title}</h3>
+                          <h4 className="text-sm font-medium">
+                            {item.subtitle}
+                          </h4>
+                        </div>
                         <p className="text-sm font-medium">
                           {formatPrice(item.price * item.quantity)}
                         </p>

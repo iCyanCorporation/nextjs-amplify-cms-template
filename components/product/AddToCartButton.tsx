@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 interface AddToCartButtonProps {
   product: {
     id: string;
-    name: string;
+    title: string;
+    subtitle: string;
     price: number;
     images: string[];
   };
@@ -25,10 +26,11 @@ export default function AddToCartButton({
   const { toast } = useToast();
 
   const onAddToCart = () => {
-    console.log("Adding to cart:", product, quantity, attributes);
+    // console.log("Adding to cart:", product, quantity, attributes);
     cart.addItem({
       id: product.id,
-      name: product.name,
+      title: product.title,
+      subtitle: product.subtitle,
       price: product.price,
       image: product.images[0],
       quantity,
@@ -36,7 +38,7 @@ export default function AddToCartButton({
     });
     toast({
       title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
+      description: `${product.title} has been added to your cart.`,
     });
   };
 

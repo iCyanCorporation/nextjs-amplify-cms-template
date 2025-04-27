@@ -122,7 +122,7 @@ export default function CartPage() {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.image}
-                          alt={item.name}
+                          alt={item.title}
                           className="h-full w-full object-cover object-center"
                         />
                       </div>
@@ -130,7 +130,10 @@ export default function CartPage() {
 
                     <div className="flex flex-1 flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                       <div>
-                        <h3 className="text-base font-medium">{item.name}</h3>
+                        <h3 className="text-base font-medium">{item.title}</h3>
+                        <h4 className="text-base font-medium">
+                          {item.subtitle}
+                        </h4>
                         <p className="text-sm text-muted-foreground mt-1">
                           Unit Price: {safeFormatPrice(item.price)}
                         </p>

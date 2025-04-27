@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import Image from "next/image";
 
 export const Cart = () => {
   const router = useRouter();
@@ -66,16 +67,21 @@ export const Cart = () => {
                 {item.image && (
                   <div className="relative aspect-square w-16 overflow-hidden rounded-lg border dark:border-neutral-800">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={item.image}
-                      alt={item.name}
-                      className="object-cover"
+                      alt={item.title}
+                      width={64}
+                      height={64}
+                      className="aspect-square w-full h-full object-cover"
                     />
                   </div>
                 )}
                 <div className="flex flex-col">
                   <p className="line-clamp-1 text-sm font-medium text-foreground">
-                    {item.name}
+                    {item.title}
+                  </p>
+                  <p className="line-clamp-1 text-sm font-medium text-foreground">
+                    {item.subtitle}
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Quantity: {item.quantity}

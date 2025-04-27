@@ -5,7 +5,9 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 // Define cart item shape
 interface CartItem {
   id: string;
-  name: string;
+  // name: string;
+  title: string;
+  subtitle: string;
   price: number;
   quantity: number;
   image?: string;

@@ -50,12 +50,22 @@ export default function ProductDetailClient({
     selectedAttributes: getInitialRawAttrs(defaultVariant),
   }));
   const [quantity, setQuantity] = React.useState<number>(1);
+  const [pendingVariantUpdate, setPendingVariantUpdate] =
+    React.useState<any>(null);
 
-  // Wrap setSelectedVariant to also reset quantity
+  // Handle variant selection from child component
   const handleSetSelectedVariant = (variant: any) => {
-    setSelectedVariant(variant);
-    setQuantity(1);
+    setPendingVariantUpdate(variant); // Defer actual update
   };
+
+  // Effect to apply the pending variant update
+  React.useEffect(() => {
+    if (pendingVariantUpdate) {
+      setSelectedVariant(pendingVariantUpdate);
+      setQuantity(1);
+      setPendingVariantUpdate(null); // Reset pending update
+    }
+  }, [pendingVariantUpdate]);
 
   const incrementQuantity = () => {
     setQuantity((prevQuantity) => Math.min(prevQuantity + 1, stock));
@@ -206,7 +216,8 @@ export default function ProductDetailClient({
               <AddToCartButton
                 product={{
                   id: selectedVariant.id,
-                  name: selectedVariant.name,
+                  title: product.name,
+                  subtitle: selectedVariant.name,
                   price: selectedVariant?.price ?? product.price,
                   images: selectedVariant?.images || product.images || [],
                 }}
