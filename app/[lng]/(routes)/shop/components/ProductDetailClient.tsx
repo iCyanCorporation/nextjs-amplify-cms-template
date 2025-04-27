@@ -29,7 +29,10 @@ export default function ProductDetailClient({
       try {
         const parsed = JSON.parse(attrs);
         return Object.fromEntries(
-          Object.entries(parsed).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
+          Object.entries(parsed).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v[0] : v,
+          ])
         );
       } catch {
         return {};
@@ -40,20 +43,24 @@ export default function ProductDetailClient({
     );
   };
   // Initialize selectedVariant with raw selectedAttributes
-  const [selectedVariant, setSelectedVariant] = React.useState<any>(
-    () => ({ ...defaultVariant, selectedAttributes: getInitialRawAttrs(defaultVariant) })
-  );
+  const [selectedVariant, setSelectedVariant] = React.useState<any>(() => ({
+    ...defaultVariant,
+    selectedAttributes: getInitialRawAttrs(defaultVariant),
+  }));
   const [quantity, setQuantity] = React.useState<number>(1);
 
   // Wrap setSelectedVariant to also reset quantity
   const handleSetSelectedVariant = (variant: any) => {
     setSelectedVariant(variant);
     setQuantity(1);
-  }
+  };
 
   // Ensure selectedVariant is always in sync with defaultVariant prop
   React.useEffect(() => {
-    setSelectedVariant({ ...defaultVariant, selectedAttributes: getInitialRawAttrs(defaultVariant) });
+    setSelectedVariant({
+      ...defaultVariant,
+      selectedAttributes: getInitialRawAttrs(defaultVariant),
+    });
     setQuantity(1);
   }, [defaultVariant]);
 

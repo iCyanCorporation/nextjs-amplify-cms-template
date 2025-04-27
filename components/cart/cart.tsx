@@ -86,7 +86,10 @@ export const Cart = () => {
                         {Object.entries(item.attributes)
                           .filter(([, vals]) => {
                             if (Array.isArray(vals))
-                              return vals.length > 0 && vals.some((v) => v && v !== "");
+                              return (
+                                vals.length > 0 &&
+                                vals.some((v) => v && v !== "")
+                              );
                             return vals != null && vals !== "";
                           })
                           .map(([attrId, vals]) => (
