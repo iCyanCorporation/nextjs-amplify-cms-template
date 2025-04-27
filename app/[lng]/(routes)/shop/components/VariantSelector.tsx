@@ -44,7 +44,7 @@ export default function VariantSelector({
   defaultSelected,
   primaryAttributeId,
 }: VariantSelectorProps) {
-  const { getAttributeName } = useProductContext();
+  const { getAttributeName, AttributeList: attributeList } = useProductContext();
   const attributeOptions = useMemo(
     () => getAttributeOptions(variants),
     [variants]
@@ -52,7 +52,10 @@ export default function VariantSelector({
   const attributeKeys = useMemo(() => {
     const keys = Object.keys(attributeOptions);
     if (primaryAttributeId && keys.includes(primaryAttributeId)) {
-      return [primaryAttributeId, ...keys.filter((k) => k !== primaryAttributeId)];
+      return [
+        primaryAttributeId,
+        ...keys.filter((k) => k !== primaryAttributeId),
+      ];
     }
     return keys;
   }, [attributeOptions, primaryAttributeId]);
@@ -146,7 +149,9 @@ export default function VariantSelector({
     }
     setSelected(newSel);
     // Determine matching variant
-    const clickedIndex = primaryAttributeId ? attributeKeys.indexOf(primaryAttributeId) : -1;
+    const clickedIndex = primaryAttributeId
+      ? attributeKeys.indexOf(primaryAttributeId)
+      : -1;
     let match;
     if (idx === clickedIndex && primaryAttributeId) {
       // match by primary attribute only
@@ -172,6 +177,17 @@ export default function VariantSelector({
     }
   };
 
+  if (
+    !attributeKeys ||
+    !variants.length ||
+    !getAttributeName ||
+    !attributeOptions ||
+    !availOptions ||
+    attributeList.length === 0
+  ) {
+    return null;
+  }
+
   return (
     <div className="mb-6">
       <h4 className="text-sm font-semibold mb-2">Select Options</h4>
@@ -179,7 +195,7 @@ export default function VariantSelector({
         {attributeKeys.map((key, idx) => (
           <div key={key} className="flex items-center gap-2">
             <span className="text-sm text-gray-600 dark:text-gray-300 min-w-[80px]">
-              {getAttributeName ? getAttributeName(key) : key}
+              {getAttributeName ? getAttributeName(key) : ""}
             </span>
             <div className="flex gap-2 flex-wrap">
               {availOptions[key].map((value) => {

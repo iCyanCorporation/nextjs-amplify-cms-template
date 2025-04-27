@@ -1,10 +1,12 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Search, X, ChevronDown } from "lucide-react";
 import { Project } from "@/types/gallery";
 import { useTranslation } from "@/app/i18n/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const INITIAL_LOAD = 9;
 const LOAD_MORE_COUNT = 6;
@@ -27,27 +29,31 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
   const allTags = Array.from(
     new Set(projects.flatMap((project) => project.tags))
   ).sort((a, b) => {
-    const countA = projects.filter(p => p.tags.includes(a)).length;
-    const countB = projects.filter(p => p.tags.includes(b)).length;
+    const countA = projects.filter((p) => p.tags.includes(a)).length;
+    const countB = projects.filter((p) => p.tags.includes(b)).length;
     return countB - countA;
   });
 
   // Filter tags based on search
-  const filteredTags = allTags.filter(tag =>
+  const filteredTags = allTags.filter((tag) =>
     tag.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Filter projects based on selected tags
-  const filteredProjects = selectedTags.length > 0
-    ? projects.filter((project) =>
-      selectedTags.some(tag => project.tags.includes(tag))
-    )
-    : projects;
+  const filteredProjects =
+    selectedTags.length > 0
+      ? projects.filter((project) =>
+          selectedTags.some((tag) => project.tags.includes(tag))
+        )
+      : projects;
 
   // Handle click outside to close filter
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setIsFilterOpen(false);
       }
     };
@@ -60,10 +66,13 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&
+        window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 100 &&
         visibleCount < filteredProjects.length
       ) {
-        setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, filteredProjects.length));
+        setVisibleCount((prev) =>
+          Math.min(prev + LOAD_MORE_COUNT, filteredProjects.length)
+        );
       }
     };
 
@@ -79,10 +88,8 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
   const visibleProjects = filteredProjects.slice(0, visibleCount);
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
@@ -93,27 +100,30 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
 
   return (
     <div>
-      <div> 
+      <div>
         {/* Filter Section */}
         <div className="mb-8">
           {/* Filter Dropdown */}
           <div className="relative mb-4" ref={filterRef}>
-            <button
+            <Button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="px-4 py-2 rounded-lg text-sm bg-secondary hover:bg-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2"
+              variant="outline"
             >
-              {t1('gallery.filterByTags', 'Filter by Tags')}
-              <ChevronDown className={`w-4 h-4 transition-transform ${isFilterOpen ? "rotate-180" : ""}`} />
-            </button>
+              {t1("gallery.filterByTags", "Filter by Tags")}
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${isFilterOpen ? "rotate-180" : ""}`}
+              />
+            </Button>
 
             {isFilterOpen && (
               <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 p-4 z-10">
                 {/* Search Input */}
                 <div className="relative mb-4">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder={t1('gallery.searchTags', 'Search tags...')}
+                    placeholder={t1("gallery.searchTags", "Search tags...")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-500"
@@ -133,7 +143,7 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
                   {filteredTags.map((tag) => (
                     <label
                       key={tag}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-secondary dark:hover:bg-gray-700 rounded-lg cursor-pointer group dark:text-white"
+                      className="flex items-center gap-3 px-3 py-2 hover:opacity-80 transition-opacity rounded-lg cursor-pointer group dark:text-white"
                     >
                       <input
                         type="checkbox"
@@ -143,7 +153,7 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
                       />
                       <span className="text-sm flex-1">{tag}</span>
                       <span className="text-xs text-gray-500">
-                        ({projects.filter(p => p.tags.includes(tag)).length})
+                        ({projects.filter((p) => p.tags.includes(tag)).length})
                       </span>
                     </label>
                   ))}
@@ -156,25 +166,19 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
           {selectedTags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {selectedTags.map((tag) => (
-                <span
+                <Badge
                   key={tag}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-secondary dark:bg-gray-700 rounded-full text-sm dark:text-white"
+                  className="flex items-center justify-center gap-1 px-3 py-1.5"
                 >
                   {tag}
-                  <button
-                    onClick={() => toggleTag(tag)}
-                    className="hover:opacity-80"
-                  >
+                  <button onClick={() => toggleTag(tag)} className="">
                     <X className="w-3 h-3" />
                   </button>
-                </span>
+                </Badge>
               ))}
-              <button
-                onClick={clearAllTags}
-                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              >
-                {t1('gallery.clearAll', 'Clear all')}
-              </button>
+              <Button variant="ghost" onClick={clearAllTags} className="">
+                {t1("gallery.clearAll", "Clear all")}
+              </Button>
             </div>
           )}
         </div>
@@ -206,7 +210,7 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
                       rel="noopener noreferrer"
                       className="px-6 py-2 bg-white text-black rounded-full hover:bg-opacity-90 transition-colors"
                     >
-                      {t1('gallery.viewProject', 'View Project')}
+                      {t1("gallery.viewProject", "View Project")}
                     </a>
                   )}
                 </div>
@@ -215,18 +219,19 @@ export default function GalleryContent({ projects, lng }: GalleryContentProps) {
               {/* Project Info */}
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold dark:text-white">{t1(project.title)}</h3>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">{project.year}</span>
+                  <h3 className="text-xl font-bold dark:text-white">
+                    {t1(project.title)}
+                  </h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {project.year}
+                  </span>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">{t1(project.description)}</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {t1(project.description)}
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {project.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-secondary dark:bg-gray-700 text-sm rounded-full dark:text-gray-200"
-                    >
-                      {tag}
-                    </span>
+                    <Badge key={tag}>{tag}</Badge>
                   ))}
                 </div>
               </div>

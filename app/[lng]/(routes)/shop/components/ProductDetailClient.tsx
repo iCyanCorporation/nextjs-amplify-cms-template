@@ -29,6 +29,10 @@ export default function ProductDetailClient({
   // Helper to get stock
   const stock = selectedVariant?.stock ?? product.stock ?? 0;
 
+  if (!variants.length || !product || !defaultVariant) {
+    return null;
+  }
+
   return (
     <div className="max-w-6xl w-full mx-auto px-4 py-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="mx-auto max-w-7xl">
@@ -99,37 +103,6 @@ export default function ProductDetailClient({
                   // Remove variantId if AddToCartButton doesn't support it
                 }}
               />
-            </div>
-
-            <div className="mt-10">
-              <h3 className="text-sm font-medium dark:text-white mb-4 transition-colors">
-                Specifications
-              </h3>
-              <div className="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden transition-colors">
-                <ul className="divide-y divide-gray-200 dark:divide-gray-600">
-                  <AttributeSpecList
-                    attributes={(() => {
-                      let attrs =
-                        selectedVariant?.attributes || product.specs || {};
-                      if (typeof attrs === "string") {
-                        try {
-                          attrs = JSON.parse(attrs);
-                        } catch {
-                          attrs = {};
-                        }
-                      }
-                      if (
-                        !attrs ||
-                        typeof attrs !== "object" ||
-                        Array.isArray(attrs)
-                      ) {
-                        attrs = {};
-                      }
-                      return attrs;
-                    })()}
-                  />
-                </ul>
-              </div>
             </div>
           </div>
         </div>
