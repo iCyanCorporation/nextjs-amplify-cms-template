@@ -102,7 +102,7 @@ export function ProductCard({
             </div>
           )}
           {/* Hover Block */}
-          <div className="absolute inset-0 bg-gray-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
+          <div className="absolute inset-0 bg-gray-400 opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
           {/* Slide-in "check now" text */}
           <div className="absolute bottom-0 left-0 w-full flex justify-start pointer-events-none">
             <span
