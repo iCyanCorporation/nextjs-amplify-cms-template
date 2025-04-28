@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { sayHello } from "../functions/send-mail/resource.js";
 
 /*== Data ===============================================================
 The section below creates a database table with fields.
@@ -98,6 +99,16 @@ const schema = a
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     }),
+
+    // functions
+    sayHello: a
+      .query()
+      .arguments({
+        name: a.string(),
+      })
+      .returns(a.string())
+      .authorization((allow) => [allow.guest()])
+      .handler(a.handler.function(sayHello)),
   })
   .authorization((allow) => [
     // allow.publicApiKey().to(["read"]),

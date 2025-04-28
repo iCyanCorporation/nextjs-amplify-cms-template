@@ -288,7 +288,7 @@ export default function SettingsPage() {
         <TabsContent value="general" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Edit Payment Methods</CardTitle>
+              <CardTitle>Payment Methods</CardTitle>
               <CardDescription>
                 Configure available payment methods for your store.
               </CardDescription>

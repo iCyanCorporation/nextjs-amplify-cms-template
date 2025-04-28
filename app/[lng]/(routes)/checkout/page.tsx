@@ -76,8 +76,24 @@ export default function CheckoutPage() {
         return;
       }
 
-      // TODO: Implement your checkout logic here using formData
-      // For example, integrate with a payment gateway
+      // Send order confirmation email
+      // const response = await fetch("/api/send-mail", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({
+      //     ...formData,
+      //     items: cart.items,
+      //     total: finalTotal,
+      //   }),
+      // });
+
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   console.error("Failed to send mail:", errorData.error);
+      //   alert("Failed to send confirmation email.");
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       // For now, just clear the cart and show success
       cart.clearCart();
@@ -91,6 +107,7 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error("Checkout failed:", error);
+      alert("Checkout failed.");
     } finally {
       setIsLoading(false);
     }
