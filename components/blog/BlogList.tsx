@@ -17,6 +17,7 @@ export function BlogList() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [blogsPerPage, setBlogsPerPage] = useState(6);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   async function getBlogs() {
     try {
@@ -69,19 +70,62 @@ export function BlogList() {
     handleGetBlogs();
   }, []);
 
+  // Get unique categories from blogs
+  const categories = Array.from(
+    new Set(blogs.map((blog) => blog.category ?? "other"))
+  ).filter(Boolean);
+
+  // Filter blogs by selected category
+  const filteredBlogs =
+    selectedCategory === "all"
+      ? blogs
+      : blogs.filter((blog) => (blog.category ?? "other") === selectedCategory);
+
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = blogs.slice(indexOfFirstBlog, indexOfLastBlog);
-  const totalPages = Math.ceil(blogs.length / blogsPerPage);
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
   if (isLoading)
     return <LoadingSpinner className="w-10 h-10" text="Loading..." />;
   if (error) return <ErrorMessage message={error} />;
-  if (blogs.length === 0)
+  if (filteredBlogs.length === 0)
     return <EmptyState message="No blogs found" icon="box" />;
 
   return (
     <div className="mt-6">
+      {/* Category Filter Buttons */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          className={`px-3 py-1 rounded ${
+            selectedCategory === "all"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+          onClick={() => {
+            setSelectedCategory("all");
+            setCurrentPage(1);
+          }}
+        >
+          All
+        </button>
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            className={`px-3 py-1 rounded ${
+              selectedCategory === cat
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+            onClick={() => {
+              setSelectedCategory(cat);
+              setCurrentPage(1);
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
         {currentBlogs.map((blog) => (
           <BlogCard

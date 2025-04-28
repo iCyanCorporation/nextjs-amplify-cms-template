@@ -106,7 +106,7 @@ export function ProductCard({
           {/* Slide-in "check now" text */}
           <div className="absolute bottom-0 left-0 w-full flex justify-start pointer-events-none">
             <span
-              className="ml-2 translate-x-[-80%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white text-sm font-semibold rounded-t px-4 py-2 mb-0.5 shadow"
+              className="translate-x-[-80%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 text-gray-900 dark:text-white text-sm font-semibold px-4 py-2 bg-white/20 dark:bg-gray-900/60"
               style={{ pointerEvents: "none" }}
             >
               check now
