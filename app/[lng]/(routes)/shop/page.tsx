@@ -28,7 +28,8 @@ async function getProductsWithVariants() {
   // Group variants by productId
   const variantsByProduct: Record<string, any[]> = {};
   for (const variant of variants) {
-    if (!variantsByProduct[variant.productId]) variantsByProduct[variant.productId] = [];
+    if (!variantsByProduct[variant.productId])
+      variantsByProduct[variant.productId] = [];
     variantsByProduct[variant.productId].push(variant);
   }
   // Attach variants to products
@@ -47,7 +48,7 @@ export default async function ShopPage() {
   );
 
   return (
-    <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24 pt-4 transition-colors duration-200">
+    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24 pt-4 transition-colors duration-200">
       <ShopClient products={products} categories={categories} />
     </div>
   );

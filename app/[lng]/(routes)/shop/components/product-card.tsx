@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useProductContext } from "@/app/contexts/ProductContext";
 
 interface Product {
   id: string;
@@ -62,6 +63,14 @@ export function ProductCard({
 }: ProductCardProps) {
   const params = useParams();
   const lng = params?.lng || "en";
+  const { AttributeList: attributeList } = useProductContext?.() || {};
+
+  // Helper to get attribute type
+  const getAttributeType = (key: string) => {
+    if (!attributeList) return "";
+    const attr = attributeList.find((item: any) => item.id === key);
+    return attr?.type || "";
+  };
 
   const urlCheck = (url: string) => {
     if (!url) return false;
@@ -72,9 +81,9 @@ export function ProductCard({
 
   return (
     <Link href={`/${lng}/shop/${product.id}`}>
-      <div className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:shadow-md dark:hover:shadow-indigo-900/20  dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <div className="group flex flex-col dark:border-gray-700 rounded-sm transition-all duration-200 hover:shadow-xl dark:hover:shadow-2xl">
         {/* Product image */}
-        <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-900">
+        <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-800 rounded-t-sm flex items-center justify-center">
           {product.thumbnailImageUrl ? (
             <Image
               src={
@@ -85,51 +94,59 @@ export function ProductCard({
               alt={product.name}
               width={300}
               height={300}
-              className="aspect-square h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+              className="aspect-square h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-200"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gray-100 dark:bg-gray-900">
-              <span className="text-gray-400 dark:text-gray-600">No image</span>
+            <div className="flex h-full items-center justify-center w-full">
+              <span className="text-gray-300 dark:text-gray-600">No image</span>
             </div>
           )}
+          {/* Hover Block */}
+          <div className="absolute inset-0 bg-gray-900 opacity-0 group-hover:opacity-30 transition-opacity duration-200"></div>
+          {/* Slide-in "check now" text */}
+          <div className="absolute bottom-0 left-0 w-full flex justify-start pointer-events-none">
+            <span
+              className="ml-2 translate-x-[-80%] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300 bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white text-sm font-semibold rounded-t px-4 py-2 mb-0.5 shadow"
+              style={{ pointerEvents: "none" }}
+            >
+              check now
+            </span>
+          </div>
         </div>
 
         {/* Product details */}
-        <div className="p-4 space-y-2">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+        <div className="flex flex-col gap-2 px-2 py-3">
+          <h3 className="text-base font-medium text-gray-800 dark:text-white truncate mb-1">
             {product.name}
           </h3>
-          <div className="mt-1 flex items-center justify-between">
-            <p className="text-2xl font-medium text-indigo-600 dark:text-indigo-400">
-              {formatPrice(product.price)}
-            </p>
-          </div>
-          <div>
-            {/* Attribute options */}
-            {variants &&
-              primaryAttributeId &&
-              getAttributeOptions(variants)[primaryAttributeId] &&
-              getAttributeOptions(variants)[primaryAttributeId].length > 0 && (
-                <div className="flex items-center mt-1 text-xs gap-1">
-                  {getAttributeOptions(variants)[primaryAttributeId].map(
-                    (option: string, index: number) => (
+          <p className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-1">
+            {formatPrice(product.price)}
+          </p>
+          {variants &&
+            primaryAttributeId &&
+            getAttributeOptions(variants)[primaryAttributeId] &&
+            getAttributeOptions(variants)[primaryAttributeId].length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {getAttributeOptions(variants)[primaryAttributeId].map(
+                  (option: string, index: number) =>
+                    getAttributeType(primaryAttributeId) === "color" ? (
                       <span
                         key={index}
-                        className="text-xs font-medium border rounded-sm px-2 py-1 bg-gray-200 dark:bg-gray-700 uppercase text-gray-600 dark:text-gray-300 transition-colors duration-200"
+                        className="inline-block w-6 h-6 rounded-full border border-black/20 dark:border-white/30"
+                        style={{ backgroundColor: option }}
+                        title={option}
+                      />
+                    ) : (
+                      <span
+                        key={index}
+                        className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase"
                       >
                         {option}
                       </span>
                     )
-                  )}
-                </div>
-              )}
-          </div>
-          {/* Add to cart button - shows on hover */}
-          {/* <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <button className="w-full rounded-md bg-indigo-600 dark:bg-indigo-700 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors">
-              View Details
-            </button>
-          </div> */}
+                )}
+              </div>
+            )}
         </div>
       </div>
     </Link>

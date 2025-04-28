@@ -35,6 +35,7 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [sortBy, setSortBy] = useState<string>("default");
 
   const productsPerPage = 12;
 
@@ -42,9 +43,44 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
   const safeProducts = Array.isArray(products) ? products : [];
 
   // Filter by selected category
-  const filteredProducts = selectedCategory
+  let filteredProducts = selectedCategory
     ? safeProducts.filter((product) => product.category === selectedCategory)
     : safeProducts;
+
+  // Sort products
+  if (sortBy === "price-asc") {
+    filteredProducts = [...filteredProducts].sort((a, b) => {
+      const priceA =
+        a.variants && a.variants[0] && typeof a.variants[0].price === "number"
+          ? a.variants[0].price
+          : 0;
+      const priceB =
+        b.variants && b.variants[0] && typeof b.variants[0].price === "number"
+          ? b.variants[0].price
+          : 0;
+      return priceA - priceB;
+    });
+  } else if (sortBy === "price-desc") {
+    filteredProducts = [...filteredProducts].sort((a, b) => {
+      const priceA =
+        a.variants && a.variants[0] && typeof a.variants[0].price === "number"
+          ? a.variants[0].price
+          : 0;
+      const priceB =
+        b.variants && b.variants[0] && typeof b.variants[0].price === "number"
+          ? b.variants[0].price
+          : 0;
+      return priceB - priceA;
+    });
+  } else if (sortBy === "name-asc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  } else if (sortBy === "name-desc") {
+    filteredProducts = [...filteredProducts].sort((a, b) =>
+      b.name.localeCompare(a.name)
+    );
+  }
 
   // Pagination logic
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
@@ -71,38 +107,56 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8">
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold dark:text-white transition-colors">
+      <div className="flex flex-col gap-2 mb-8">
+        <div className="flex flex-row items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-800 dark:text-white">
             Our Products
           </h1>
-          <div className="flex flex-wrap gap-2">
+          {/* Filter bar */}
+          <div className="flex flex-row items-center gap-4">
+            <label className="text-sm text-gray-600 dark:text-gray-300">
+              Sort by:
+              <select
+                className="ml-2 border border-gray-300 rounded px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="default">Default</option>
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+              </select>
+            </label>
+            {/* Add more filter controls here if needed */}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`border border-gray-300 rounded px-4 py-1 text-sm font-medium transition-colors
+              ${
+                !selectedCategory
+                  ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+              }`}
+          >
+            All
+          </button>
+          {categories.map((category) => (
             <button
-              onClick={() => setSelectedCategory(null)}
-              className={`rounded-full px-4 py-2 text-sm transition-colors
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`border border-gray-300 rounded px-4 py-1 text-sm font-medium transition-colors
                 ${
-                  !selectedCategory
-                    ? "bg-indigo-600 text-white dark:bg-indigo-500"
-                    : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+                  selectedCategory === category
+                    ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                    : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
                 }`}
             >
-              All
+              {category}
             </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`rounded-full px-4 py-2 text-sm transition-colors
-                  ${
-                    selectedCategory === category
-                      ? "bg-indigo-600 text-white dark:bg-indigo-500"
-                      : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
-                  }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 
