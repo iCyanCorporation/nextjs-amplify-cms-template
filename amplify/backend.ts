@@ -4,11 +4,11 @@ import { data } from "./data/resource.js";
 import { storage } from "./storage/resource";
 
 // functions
-import { sayHello } from "./functions/send-mail/resource.js";
+import { sendEmail } from "./functions/send-mail/resource.js";
 
 defineBackend({
   auth,
   data,
   storage,
-  sayHello,
+  sendEmail,
 });
