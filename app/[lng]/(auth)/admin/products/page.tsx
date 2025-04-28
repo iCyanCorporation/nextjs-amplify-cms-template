@@ -125,6 +125,12 @@ export default function ProductsPage() {
     ...Array.from(new Set(products.map((p) => p.productType))),
   ];
 
+  const urlCheck = (url: string | undefined) => {
+    if (!url) return false;
+    const urlPattern = new RegExp(/^(http|https):\/\/[^ "]+$/);
+    return urlPattern.test(url);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -207,13 +213,21 @@ export default function ProductsPage() {
                         <div className="flex items-center">
                           <Image
                             src={
-                              product.thumbnailImageUrl || "/images/noimage.jpg"
+                              product.thumbnailImageUrl &&
+                              urlCheck(product.thumbnailImageUrl)
+                                ? product.thumbnailImageUrl
+                                : "/images/noimage.jpg"
                             }
                             alt={"Product Thumbnail"}
                             width={50}
                             height={50}
                             className="aspect-square rounded object-cover mr-3"
                             quality={100}
+                            onError={(e) => {
+                              // Fallback to no image if the URL fails to load
+                              (e.target as HTMLImageElement).src =
+                                "/images/noimage.jpg";
+                            }}
                           />
 
                           <div>
