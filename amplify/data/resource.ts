@@ -1,5 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
-import { sayHello } from "../functions/send-mail/resource.js";
+import { sendEmail } from "../functions/send-mail/resource.js";
 
 /*== Data ===============================================================
 The section below creates a database table with fields.
@@ -101,14 +101,14 @@ const schema = a
     }),
 
     // functions
-    sayHello: a
+    sendEmail: a
       .query()
       .arguments({
         name: a.string(),
       })
       .returns(a.string())
       .authorization((allow) => [allow.guest()])
-      .handler(a.handler.function(sayHello)),
+      .handler(a.handler.function(sendEmail)),
   })
   .authorization((allow) => [
     // allow.publicApiKey().to(["read"]),

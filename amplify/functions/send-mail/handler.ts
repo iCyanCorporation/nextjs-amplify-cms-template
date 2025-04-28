@@ -3,8 +3,10 @@ import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 const ses = new SESClient({ region: "ap-northeast-1" }); // Change region as needed
 
-export const handler: Schema["sayHello"]["functionHandler"] = async (event) => {
-  const { name } = event.arguments;
+export const handler: Schema["sendEmail"]["functionHandler"] = async (
+  event
+) => {
+  const name = event.arguments?.name ?? "Anonymous";
 
   const params = {
     Destination: {

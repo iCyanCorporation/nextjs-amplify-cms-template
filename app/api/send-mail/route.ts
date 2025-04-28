@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     //     { authMode: "identityPool", authToken }
     // );
 
-    const result = await amplifyClient.queries.sayHello(
+    const result = await amplifyClient.queries.sendEmail(
       {
         name: "Amplify",
       },
