@@ -37,6 +37,23 @@ export const SETTINGS_KEYS: SettingKeyConfig[] = [
   { key: "state", label: "State/Province", defaultValue: "NY" },
   { key: "zip", label: "ZIP/Postal Code", defaultValue: "10001" },
   { key: "country", label: "Country", defaultValue: "USA" },
+  // Payment Methods
+  {
+    key: "payment_bank_transfer",
+    label: "Bank Transfer Details",
+    defaultValue: "",
+  },
+  { key: "payment_qr_code", label: "QR Code Payment Image", defaultValue: "" },
+  {
+    key: "payment_custom_link",
+    label: "Custom Payment Link",
+    defaultValue: "",
+  },
+  {
+    key: "admin_language",
+    label: "Admin Platform Language",
+    defaultValue: "en",
+  },
 ];
 
 interface SettingContextType {

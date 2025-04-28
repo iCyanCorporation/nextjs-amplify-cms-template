@@ -26,9 +26,11 @@ import {
 } from "./ui/sidebar";
 import SignOutButton from "./SignOutButton";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function SidebarNav() {
   const pathname = usePathname();
+  const lng = pathname.split("/")[1] || "en";
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const { getSetting } = useSettingContext();
 
@@ -128,10 +130,16 @@ export default function SidebarNav() {
                   </div>
                 </div>
                 <ThemeToggle />
+                <LanguageSwitcher lng={lng} />
               </div>
 
               <div className="flex flex-col py-1">
-                <button className="flex items-center gap-2 p-2  hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm">
+                <button
+                  className="flex items-center gap-2 p-2  hover:bg-neutral-100 dark:hover:bg-neutral-800 text-sm"
+                  onClick={() => {
+                    window.location.href = `/${lng}`;
+                  }}
+                >
                   <FaHome className="w-4 h-4" />
                   <span className="uppercase">Homepage</span>
                 </button>

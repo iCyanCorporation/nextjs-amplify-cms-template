@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ImagePickerButton } from "@/components/image/ImagePicker";
 import {
   Card,
   CardContent,
@@ -140,9 +142,9 @@ export default function SettingsPage() {
         <TabsContent value="general" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Store Information</CardTitle>
+              <CardTitle>Store Infomation</CardTitle>
               <CardDescription>
-                Basic information about your store
+                This is the general settings for your store.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -282,6 +284,81 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* Payment Methods Section */}
+        <TabsContent value="general" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Payment Methods</CardTitle>
+              <CardDescription>
+                Configure available payment methods for your store.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bank Transfer */}
+                <div className="space-y-2">
+                  <Label htmlFor="payment-bank-transfer">
+                    Bank Transfer Details
+                  </Label>
+                  <textarea
+                    id="payment-bank-transfer"
+                    placeholder="Bank account info or instructions"
+                    className="w-full min-h-[80px] border rounded-md p-2"
+                    value={settings["payment_bank_transfer"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("payment_bank_transfer", e.target.value)
+                    }
+                  />
+                </div>
+                {/* QR Code */}
+                <div className="space-y-2">
+                  <Label htmlFor="payment-qr-code">QR Code Payment Image</Label>
+                  <div>
+                    <ImagePickerButton
+                      buttonText={
+                        settings["payment_qr_code"]?.value
+                          ? "Change QR Code Image"
+                          : "Select QR Code Image"
+                      }
+                      onSelect={(url) =>
+                        handleInputChange(
+                          "payment_qr_code",
+                          Array.isArray(url) ? url[0] || "" : url
+                        )
+                      }
+                      icon={true}
+                      variant="outline"
+                      className="mb-2"
+                      multiSelect={false}
+                    />
+                    {settings["payment_qr_code"]?.value && (
+                      <img
+                        src={settings["payment_qr_code"].value}
+                        alt="QR Code"
+                        className="w-32 h-32 object-contain border rounded"
+                      />
+                    )}
+                  </div>
+                </div>
+                {/* Custom Payment Link */}
+                <div className="space-y-2">
+                  <Label htmlFor="payment-custom-link">
+                    Custom Payment Link
+                  </Label>
+                  <Input
+                    id="payment-custom-link"
+                    placeholder="https://your-payment-link.com"
+                    value={settings["payment_custom_link"]?.value || ""}
+                    onChange={(e) =>
+                      handleInputChange("payment_custom_link", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="shipping" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
@@ -298,7 +375,7 @@ export default function SettingsPage() {
                     Enable free shipping for orders above a certain amount
                   </p>
                 </div>
-                <Switch defaultChecked id="free-shipping" />
+                <Switch id="free-shipping" />
               </div>
 
               <div className="flex flex-col gap-2">
