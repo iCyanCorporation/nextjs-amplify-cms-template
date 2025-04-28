@@ -16,30 +16,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAuthToken } from "@/hooks/useAmplifyClient";
 import { RefreshCwIcon } from "lucide-react";
 
-interface Setting {
-  id?: string;
-  key: string;
-  value: string;
-  description?: string;
-  group?: string;
-}
-
-const SETTINGS_KEYS = [
-  { key: "store_name", label: "Store Name", defaultValue: "My Awesome Store" },
-  {
-    key: "support_email",
-    label: "Support Email",
-    defaultValue: "support@example.com",
-  },
-  { key: "currency", label: "Currency", defaultValue: "USD" },
-  { key: "phone", label: "Phone Number", defaultValue: "+1 (555) 123-4567" },
-  { key: "address_1", label: "Address Line 1", defaultValue: "123 Main St" },
-  { key: "address_2", label: "Address Line 2", defaultValue: "Suite 101" },
-  { key: "city", label: "City", defaultValue: "New York" },
-  { key: "state", label: "State/Province", defaultValue: "NY" },
-  { key: "zip", label: "ZIP/Postal Code", defaultValue: "10001" },
-  { key: "country", label: "Country", defaultValue: "USA" },
-];
+import {
+  SETTINGS_KEYS,
+  SettingKeyConfig,
+  Setting,
+} from "@/app/contexts/SettingContext";
 
 export default function SettingsPage() {
   const [settings, setSettings] = React.useState<Record<string, Setting>>({});
@@ -404,10 +385,9 @@ export default function SettingsPage() {
                     type="number"
                     placeholder="7.5"
                     defaultValue="7.5"
+                    className="w-24"
                   />
-                  <span className="absolute right-3 top-3 text-gray-500">
-                    %
-                  </span>
+                  <span className="right-3 top-3 text-gray-500">%</span>
                 </div>
               </div>
 

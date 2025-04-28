@@ -2,8 +2,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RiDashboardLine, RiArticleLine, RiImageLine } from "react-icons/ri";
-import { FaHome } from "react-icons/fa";
+import {
+  RiDashboardLine,
+  RiArticleLine,
+  RiImageLine,
+  RiShoppingCartLine,
+  RiFileList2Line,
+  RiSettings3Line,
+} from "react-icons/ri";
+import { FaHome, FaUserCircle } from "react-icons/fa";
+import { useUserContext } from "../app/contexts/UserContext.js";
+import { useSettingContext } from "../app/contexts/SettingContext";
 import {
   Sidebar,
   SidebarHeader,
@@ -21,29 +30,28 @@ import ThemeToggle from "./ThemeToggle";
 export default function SidebarNav() {
   const pathname = usePathname();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const { getSetting } = useSettingContext();
 
   const navItems = [
     { href: "/admin/image", icon: RiImageLine, label: "Images" },
     { href: "/admin/blog", icon: RiArticleLine, label: "Blog" },
-    { href: "/admin/products", icon: RiArticleLine, label: "Shop" },
-    { href: "/admin/orders", icon: RiArticleLine, label: "Orders" },
-    { href: "/admin/settings", icon: RiArticleLine, label: "Settings" },
+    { href: "/admin/products", icon: RiShoppingCartLine, label: "Shop" },
+    // { href: "/admin/orders", icon: RiFileList2Line, label: "Orders" },
+    { href: "/admin/settings", icon: RiSettings3Line, label: "Settings" },
   ];
 
-  // Dummy user info for the profile section
-  const user = {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "https://avatars.githubusercontent.com/u/6661165?v=4",
-  };
+  // Get user info from context
+  const { user } = useUserContext();
 
   return (
     <Sidebar className="fixed left-0 top-0 h-screen z-50 flex flex-col justify-between border-r-2 border-neutral-200 dark:border-neutral-800">
       <SidebarHeader className="flex flex-col gap-2 px-4 py-4 border-b border-neutral-200 dark:border-neutral-800">
         {/* Organization Info */}
         <div className="flex flex-col mb-2">
-          <span className="font-semibold text-lg">Acme Inc</span>
-          <span className="text-xs text-neutral-400">Enterprise</span>
+          <span className="font-semibold text-lg">
+            {getSetting("store_name") || "Store"}
+          </span>
+          <span className="text-xs text-neutral-400">DASHBOARD</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="uppercase text-xs text-neutral-400 tracking-widest">
@@ -82,14 +90,14 @@ export default function SidebarNav() {
             className="flex items-center gap-3 w-full px-2 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
             onClick={() => setProfileMenuOpen((v) => !v)}
           >
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-8 h-8 rounded-full"
-            />
+            <FaUserCircle className="w-8 h-8 text-neutral-400" />
             <div className="flex flex-col items-start">
-              <span className="font-medium text-sm">{user.name}</span>
-              <span className="text-xs text-neutral-400">{user.email}</span>
+              <span className="font-medium text-sm">
+                {user?.name || "User"}
+              </span>
+              <span className="text-xs text-neutral-400">
+                {user?.email || ""}
+              </span>
             </div>
             <svg
               className={`ml-auto w-4 h-4 transition-transform ${profileMenuOpen ? "rotate-180" : ""}`}
@@ -109,15 +117,13 @@ export default function SidebarNav() {
             <div className="absolute left-0 bottom-12 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-md shadow-lg z-50">
               <div className="flex items-center justify-between px-2 py-3 border-b border-neutral-200 dark:border-neutral-800">
                 <div className="flex items-center gap-3 w-full">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-10 h-10 rounded-full"
-                  />
+                  <FaUserCircle className="w-10 h-10 text-neutral-400" />
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">{user.name}</span>
+                    <span className="font-medium text-sm">
+                      {user?.name || "User"}
+                    </span>
                     <span className="text-xs text-neutral-400">
-                      {user.email}
+                      {user?.email || ""}
                     </span>
                   </div>
                 </div>

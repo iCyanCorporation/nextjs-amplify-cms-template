@@ -11,6 +11,9 @@ import UserProvider from "@/app/contexts/UserContext";
 // Context
 import ProductProvider from "@/app/contexts/ProductContext";
 import { CartProvider } from "@/app/contexts/CartContext";
+import { SettingProvider } from "@/app/contexts/SettingContext";
+
+// Components
 import { Toaster } from "@/components/ui/toaster";
 
 // Google
@@ -29,10 +32,12 @@ export default function RootLayout({
       <body className={`${inter.className} bg-background`}>
         <Providers>
           <UserProvider>
-            <ProductProvider>
-              <CartProvider>{children}</CartProvider>
-              <Toaster />
-            </ProductProvider>
+            <SettingProvider>
+              <ProductProvider>
+                <CartProvider>{children}</CartProvider>
+                <Toaster />
+              </ProductProvider>
+            </SettingProvider>
           </UserProvider>
         </Providers>
         {/* Google tags */}
