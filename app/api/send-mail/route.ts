@@ -17,9 +17,12 @@ export async function POST(request: Request) {
     //     { authMode: "identityPool", authToken }
     // );
 
-    const result = await amplifyClient.queries.sayHello({
-      name: "Amplify",
-    });
+    const result = await amplifyClient.queries.sayHello(
+      {
+        name: "Amplify",
+      },
+      { authMode: "identityPool", authToken }
+    );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Error sending email:", error);

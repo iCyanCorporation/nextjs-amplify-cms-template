@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 // Define type for form data
 interface FormData {
@@ -86,6 +87,18 @@ export default function CheckoutPage() {
       //     total: finalTotal,
       //   }),
       // });
+
+      // test send mail
+      const response = await fetch("/api/send-mail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await getAuthToken(),
+        },
+        body: JSON.stringify({}),
+      });
+      console.log("response:::", response);
+      return;
 
       // if (!response.ok) {
       //   const errorData = await response.json();
