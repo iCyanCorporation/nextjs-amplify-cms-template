@@ -1,46 +1,26 @@
-import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-const sesClient = new SESv2Client({ region: "ap-northeast-1" });
+import { sendSESEmail } from "./helpers/sendSESEmail";
 
-export const handler = async () =>
-  // fileBuffer: Buffer,
-  // toEmailAddresses: string[],
-  // fileContentType: string,
-  // fileName: string
-  {
-    const myEmail = "icyan.contact@gmail.com";
-    const toEmailAddresses = ["icyan.contact@gmail.com"];
-    const params = {
-      subject: "Test Email from SESv2",
-      content: "This email is a test email.",
+// Lambda handler for AWS Amplify Function
+import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda";
+
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => {
+  try {
+    // Parse recipient(s) from event body, fallback to default
+    const body = event.body ? JSON.parse(event.body) : {};
+    const toEmailAddresses: string[] = body.toEmailAddresses || ["icyan.contact@gmail.com"];
+    await sendSESEmail(toEmailAddresses);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Email sent successfully" })
     };
-
-    const rawMessage = `From: ${myEmail}
-      To: ${toEmailAddresses.join(", ")}
-      Subject: ${params.subject}
-      MIME-Version: 1.0
-      Content-Type: multipart/mixed; boundary="boundary_string"
-
-      --boundary_string
-      Content-Type: text/plain; charset=UTF-8
-      Content-Transfer-Encoding: 7bit
-
-      ${params.content}
-      `;
-
-    try {
-      const sendEmailParams = {
-        Content: {
-          Raw: {
-            Data: Buffer.from(rawMessage),
-          },
-        },
-      };
-      const sendEmailCommand = new SendEmailCommand(sendEmailParams);
-      const result = await sesClient.send(sendEmailCommand);
-
-      console.log(`Email sent successfully. Message ID: ${result.MessageId}`);
-    } catch (error) {
-      console.error("SESv2 send error:", error);
-      throw new Error("Failed to send email");
-    }
-  };
+  } catch (error) {
+    console.error(error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: (error as Error).message || "Unknown error" })
+    };
+  }
+};

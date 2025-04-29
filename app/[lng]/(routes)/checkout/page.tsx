@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
 import { useProductContext } from "@/app/contexts/ProductContext";
-import { getAuthToken } from "@/hooks/useAmplifyClient";
+// import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 // Define type for form data
 interface FormData {
@@ -93,7 +93,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: await getAuthToken(),
+          // Authorization: await getAuthToken(),
         },
         body: JSON.stringify({}),
       });
