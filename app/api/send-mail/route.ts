@@ -8,10 +8,10 @@ export async function POST(request: Request) {
   const { to, subject, body: emailBody } = body;
 
   try {
-    const authToken = request.headers.get("Authorization");
-    if (!authToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // const authToken = request.headers.get("Authorization");
+    // if (!authToken) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
     // const result = await amplifyClient.functions.sendMail.invoke(
     //     { to, subject, body: emailBody },
     //     { authMode: "identityPool", authToken }
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       {
         name: "Amplify",
       },
-      { authMode: "identityPool", authToken }
+      { authMode: "identityPool" }
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
