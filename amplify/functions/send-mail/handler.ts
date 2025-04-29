@@ -1,35 +1,46 @@
-import type { Schema } from "../../data/resource";
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
+const sesClient = new SESv2Client({ region: "ap-northeast-1" });
 
-const ses = new SESClient({ region: "ap-northeast-1" }); // Change region as needed
+export const handler = async () =>
+  // fileBuffer: Buffer,
+  // toEmailAddresses: string[],
+  // fileContentType: string,
+  // fileName: string
+  {
+    const myEmail = "icyan.contact@gmail.com";
+    const toEmailAddresses = ["icyan.contact@gmail.com"];
+    const params = {
+      subject: "Test Email from SESv2",
+      content: "This email is a test email.",
+    };
 
-export const handler: Schema["sendEmail"]["functionHandler"] = async (
-  event
-) => {
-  const name = event.arguments?.name ?? "Anonymous";
+    const rawMessage = `From: ${myEmail}
+      To: ${toEmailAddresses.join(", ")}
+      Subject: ${params.subject}
+      MIME-Version: 1.0
+      Content-Type: multipart/mixed; boundary="boundary_string"
 
-  const params = {
-    Destination: {
-      ToAddresses: ["icyan.contact@gmail.com"], // Replace with your recipient
-    },
-    Message: {
-      Body: {
-        Text: {
-          Data: `Hello, ${name}! This is a test email from SES.`,
+      --boundary_string
+      Content-Type: text/plain; charset=UTF-8
+      Content-Transfer-Encoding: 7bit
+
+      ${params.content}
+      `;
+
+    try {
+      const sendEmailParams = {
+        Content: {
+          Raw: {
+            Data: Buffer.from(rawMessage),
+          },
         },
-      },
-      Subject: {
-        Data: "Test Email from SES",
-      },
-    },
-    Source: "icyan.contact@gmail.com", // Replace with your verified sender
-  };
+      };
+      const sendEmailCommand = new SendEmailCommand(sendEmailParams);
+      const result = await sesClient.send(sendEmailCommand);
 
-  try {
-    await ses.send(new SendEmailCommand(params));
-    return `Email sent to ${params.Destination.ToAddresses[0]} for ${name}`;
-  } catch (error) {
-    console.error("SES send error:", error);
-    throw new Error("Failed to send email");
-  }
-};
+      console.log(`Email sent successfully. Message ID: ${result.MessageId}`);
+    } catch (error) {
+      console.error("SESv2 send error:", error);
+      throw new Error("Failed to send email");
+    }
+  };
