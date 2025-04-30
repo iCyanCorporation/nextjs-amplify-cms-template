@@ -105,6 +105,9 @@ const schema = a
       .query()
       .arguments({
         name: a.string(),
+        emailAddresses: a.string().array(), // recipient email addresses
+        subject: a.string(), // email subject
+        bodyText: a.string(), // email body
       })
       .returns(a.string())
       .authorization((allow) => [allow.guest()]) // independent authorization

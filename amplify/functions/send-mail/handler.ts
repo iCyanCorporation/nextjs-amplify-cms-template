@@ -1,26 +1,31 @@
 import { sendSESEmail } from "./helpers/sendSESEmail";
+import type { Schema } from "../../data/resource";
 
 // Lambda handler for AWS Amplify Function
-import { APIGatewayProxyEvent, Context, APIGatewayProxyResult } from "aws-lambda";
+// import {
+//   APIGatewayProxyEvent,
+//   Context,
+//   APIGatewayProxyResult,
+// } from "aws-lambda";
 
-export const handler = async (
-  event: APIGatewayProxyEvent,
-  context: Context
-): Promise<APIGatewayProxyResult> => {
+export const handler: Schema["sendEmail"]["functionHandler"] = async (
+  event
+) => {
   try {
-    // Parse recipient(s) from event body, fallback to default
-    const body = event.body ? JSON.parse(event.body) : {};
-    const toEmailAddresses: string[] = body.toEmailAddresses || ["icyan.contact@gmail.com"];
-    await sendSESEmail(toEmailAddresses);
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "Email sent successfully" })
-    };
+    console.log("Received event:", JSON.stringify(event, null, 2));
+
+    const { name, emailAddresses, subject, bodyText } = event.arguments;
+    if (!name || !emailAddresses || !subject || !bodyText) {
+      throw new Error("Missing required parameters");
+    }
+    const toEmailAddresses = emailAddresses.filter(
+      (email): email is string => email !== null
+    );
+    await sendSESEmail(toEmailAddresses, subject, bodyText);
   } catch (error) {
     console.error(error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: (error as Error).message || "Unknown error" })
-    };
+    throw new Error("Failed to send email");
   }
+
+  return "Hello world";
 };

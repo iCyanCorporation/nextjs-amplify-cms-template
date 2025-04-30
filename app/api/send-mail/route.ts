@@ -20,6 +20,9 @@ export async function POST(request: Request) {
     const result = await amplifyClient.queries.sendEmail(
       {
         name: "Amplify",
+        emailAddresses: ["icyan.contact@gmail.com"],
+        subject: "Test subject",
+        bodyText: "Test emailBody",
       },
       { authMode: "identityPool" }
     );

@@ -2,7 +2,11 @@ import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 const sesClient = new SESv2Client();
 import { env } from "process";
 
-export const sendSESEmail = async (toEmailAddresses: string[]) => {
+export const sendSESEmail = async (
+  toEmailAddresses: string[],
+  subject: string,
+  bodyText: string
+) => {
   console.log("Sending email...");
 
   const myEmail = env.FROM_EMAIL_ADDRESS;
@@ -16,7 +20,8 @@ export const sendSESEmail = async (toEmailAddresses: string[]) => {
   // NOTE: If you want to attach an MP3, you must add a proper MIME part for the attachment. This example sends only plain text.
   const rawMessage = `From: ${myEmail}
 To: ${toEmailAddresses.join(", ")}
-Subject: Email with MP3 Attachment
+Cc: ${myEmail}
+Subject: ${subject}
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary=\"boundary_string\"
 
@@ -24,7 +29,7 @@ Content-Type: multipart/mixed; boundary=\"boundary_string\"
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-This email has an MP3 attachment.
+${bodyText}
 
 --boundary_string--`;
 

@@ -95,7 +95,11 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
           // Authorization: await getAuthToken(),
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          toEmailAddresses: [formData.email],
+          subject: "Order Confirmation",
+          body: `Thank you for your order, ${formData.firstName} ${formData.lastName}!\n\nOrder total: ${finalTotal}\n\nShipping address: ${formData.address}, ${formData.city}, ${formData.state}, ${formData.postalCode}, ${formData.country}\n\nItems:\n${cart.items.map((item) => `- ${item.title} x${item.quantity}`).join("\n")}`,
+        }),
       });
       console.log("response:::", response);
       return;
