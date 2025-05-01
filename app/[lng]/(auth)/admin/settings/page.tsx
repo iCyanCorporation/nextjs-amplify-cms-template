@@ -296,7 +296,28 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Bank Transfer */}
-                <div className="space-y-2">
+                <div className="space-y-2 border p-3 rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <input
+                      type="checkbox"
+                      id="payment-bank-transfer-enabled"
+                      checked={
+                        !!settings["payment_bank_transfer_enabled"]?.value
+                      }
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment_bank_transfer_enabled",
+                          e.target.checked ? "1" : ""
+                        )
+                      }
+                    />
+                    <Label
+                      htmlFor="payment-bank-transfer-enabled"
+                      className="mb-0"
+                    >
+                      Enable Bank Transfer
+                    </Label>
+                  </div>
                   <Label htmlFor="payment-bank-transfer">
                     Bank Transfer Details
                   </Label>
@@ -311,7 +332,23 @@ export default function SettingsPage() {
                   />
                 </div>
                 {/* QR Code */}
-                <div className="space-y-2">
+                <div className="space-y-2 border p-3 rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <input
+                      type="checkbox"
+                      id="payment-qr-code-enabled"
+                      checked={!!settings["payment_qr_code_enabled"]?.value}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment_qr_code_enabled",
+                          e.target.checked ? "1" : ""
+                        )
+                      }
+                    />
+                    <Label htmlFor="payment-qr-code-enabled" className="mb-0">
+                      Enable QR Code Payment
+                    </Label>
+                  </div>
                   <Label htmlFor="payment-qr-code">QR Code Payment Image</Label>
                   <div>
                     <ImagePickerButton
@@ -341,7 +378,26 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 {/* Custom Payment Link */}
-                <div className="space-y-2">
+                <div className="space-y-2 border p-3 rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <input
+                      type="checkbox"
+                      id="payment-custom-link-enabled"
+                      checked={!!settings["payment_custom_link_enabled"]?.value}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "payment_custom_link_enabled",
+                          e.target.checked ? "1" : ""
+                        )
+                      }
+                    />
+                    <Label
+                      htmlFor="payment-custom-link-enabled"
+                      className="mb-0"
+                    >
+                      Enable Custom Payment Link
+                    </Label>
+                  </div>
                   <Label htmlFor="payment-custom-link">
                     Custom Payment Link
                   </Label>

@@ -54,6 +54,22 @@ export const SETTINGS_KEYS: SettingKeyConfig[] = [
     label: "Admin Platform Language",
     defaultValue: "en",
   },
+  // Payment Method Enable Flags
+  {
+    key: "payment_bank_transfer_enabled",
+    label: "Enable Bank Transfer",
+    defaultValue: "",
+  },
+  {
+    key: "payment_qr_code_enabled",
+    label: "Enable QR Code Payment",
+    defaultValue: "",
+  },
+  {
+    key: "payment_custom_link_enabled",
+    label: "Enable Custom Payment Link",
+    defaultValue: "",
+  },
 ];
 
 interface SettingContextType {

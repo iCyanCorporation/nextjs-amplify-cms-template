@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,26 @@ export default function CheckoutPage() {
     paymentMethod: "bank",
   });
 
+  // Payment methods from settings
+  const [paymentSettings, setPaymentSettings] = useState<
+    Record<string, string>
+  >({});
+
+  // Fetch payment method settings on mount
+  React.useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings) {
+          const map: Record<string, string> = {};
+          for (const s of data.settings) {
+            map[s.key] = s.value;
+          }
+          setPaymentSettings(map);
+        }
+      });
+  }, []);
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -80,6 +100,27 @@ export default function CheckoutPage() {
         console.error("Cannot checkout with empty cart");
         return;
       }
+
+      // Get owner-set value for selected payment method
+      let paymentMethodValue = "";
+      if (formData.paymentMethod === "bank") {
+        paymentMethodValue = paymentSettings["payment_bank_transfer"] || "";
+      } else if (formData.paymentMethod === "qr") {
+        paymentMethodValue = paymentSettings["payment_qr_code"] || "";
+      } else if (formData.paymentMethod === "custom") {
+        paymentMethodValue = paymentSettings["payment_custom_link"] || "";
+      }
+
+      if (!paymentMethodValue) {
+        toast.error(
+          "Selected payment method is not available. Please contact the store or choose another method."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // debug
+      // console.log("Payment Method Value:", paymentMethodValue);
 
       // Prepare order items HTML
       const orderItemsHtml = cart.items
@@ -113,6 +154,12 @@ export default function CheckoutPage() {
         .join("");
 
       // Replace placeholders in template
+      // Format payment method value for email (show image if QR code)
+      let paymentMethodValueHtml = paymentMethodValue;
+      if (formData.paymentMethod === "qr" && paymentMethodValue) {
+        paymentMethodValueHtml = `<img src="${paymentMethodValue}" alt="QR Code" style="max-width:200px;max-height:200px;border:1px solid #ccc;border-radius:8px;" />`;
+      }
+
       const htmlBody = orderConfirmationEmailTemplate
         .replace(/{{firstName}}/g, formData.firstName)
         .replace(/{{lastName}}/g, formData.lastName)
@@ -129,6 +176,7 @@ export default function CheckoutPage() {
             ? "Bank Transfer"
             : formData.paymentMethod
         )
+        .replace(/{{paymentMethodValue}}/g, paymentMethodValueHtml)
         .replace(/{{orderItems}}/g, orderItemsHtml)
         .replace(/{{subtotal}}/g, formatPrice(totalPrice))
         .replace(/{{shipping}}/g, formatPrice(shippingPrice))
@@ -136,6 +184,8 @@ export default function CheckoutPage() {
         .replace(/{{total}}/g, formatPrice(finalTotal));
 
       // Send order confirmation email
+      // console.log("Sending email with body:", htmlBody);
+
       const response = await fetch("/api/send-mail", {
         method: "POST",
         headers: {
@@ -145,6 +195,8 @@ export default function CheckoutPage() {
           toEmailAddresses: [formData.email],
           subject: "Order Confirmation",
           body: htmlBody,
+          paymentMethod: formData.paymentMethod,
+          paymentMethodValue: paymentMethodValue,
         }),
       });
       // console.log("response:::", response);
@@ -303,18 +355,24 @@ export default function CheckoutPage() {
                 handleSelectChange("paymentMethod", value)
               }
             >
-              {/* <div className="flex items-center space-x-2 mb-3">
-                <RadioGroupItem value="credit" id="credit" />
-                <Label htmlFor="credit">Credit Card</Label>
-              </div>
-              <div className="flex items-center space-x-2 mb-3">
-                <RadioGroupItem value="paypal" id="paypal" />
-                <Label htmlFor="paypal">PayPal</Label>
-              </div> */}
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="bank" id="bank" />
-                <Label htmlFor="bank">Bank Transfer</Label>
-              </div>
+              {paymentSettings["payment_bank_transfer_enabled"] && (
+                <div className="flex items-center space-x-2 mb-3">
+                  <RadioGroupItem value="bank" id="bank" />
+                  <Label htmlFor="bank">Bank Transfer</Label>
+                </div>
+              )}
+              {paymentSettings["payment_qr_code_enabled"] && (
+                <div className="flex items-center space-x-2 mb-3">
+                  <RadioGroupItem value="qr" id="qr" />
+                  <Label htmlFor="qr">QR Code Payment</Label>
+                </div>
+              )}
+              {paymentSettings["payment_custom_link_enabled"] && (
+                <div className="flex items-center space-x-2 mb-3">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom">Custom Payment Link</Label>
+                </div>
+              )}
             </RadioGroup>
 
             {formData.paymentMethod === "credit" && (
