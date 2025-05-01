@@ -17,11 +17,14 @@ import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { formatPrice } from "@/lib/utils";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { toast } from "sonner";
+import orderConfirmationEmailTemplate from "./order-confirmation-email";
 // import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 // Define type for form data
 interface FormData {
   email: string;
+  phone: string;
   firstName: string;
   lastName: string;
   address: string;
@@ -39,6 +42,7 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
+    phone: "",
     firstName: "",
     lastName: "",
     address: "",
@@ -77,40 +81,77 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Send order confirmation email
-      // const response = await fetch("/api/send-mail", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     ...formData,
-      //     items: cart.items,
-      //     total: finalTotal,
-      //   }),
-      // });
+      // Prepare order items HTML
+      const orderItemsHtml = cart.items
+        .map(
+          (item) => `
+            <tr>
+              <td>${item.title}${item.subtitle ? `<br/><small>${item.subtitle}</small>` : ""}</td>
+              <td>${
+                item.attributes && Object.keys(item.attributes).length > 0
+                  ? Object.entries(item.attributes)
+                      .filter(([, vals]) => {
+                        if (Array.isArray(vals))
+                          return (
+                            vals.length > 0 && vals.some((v) => v && v !== "")
+                          );
+                        return vals != null && vals !== "";
+                      })
+                      .map(
+                        ([attrId, vals]) =>
+                          `${getAttributeName(attrId)}: ${Array.isArray(vals) ? vals.join(", ") : vals}`
+                      )
+                      .join("<br/>")
+                  : "-"
+              }</td>
+              <td>${formatPrice(item.price)}</td>
+              <td>${item.quantity}</td>
+              <td>${formatPrice(item.price * item.quantity)}</td>
+            </tr>
+          `
+        )
+        .join("");
 
-      // test send mail
+      // Replace placeholders in template
+      const htmlBody = orderConfirmationEmailTemplate
+        .replace(/{{firstName}}/g, formData.firstName)
+        .replace(/{{lastName}}/g, formData.lastName)
+        .replace(/{{email}}/g, formData.email)
+        .replace(/{{phone}}/g, formData.phone)
+        .replace(/{{address}}/g, formData.address)
+        .replace(/{{city}}/g, formData.city)
+        .replace(/{{state}}/g, formData.state)
+        .replace(/{{postalCode}}/g, formData.postalCode)
+        .replace(/{{country}}/g, formData.country)
+        .replace(
+          /{{paymentMethod}}/g,
+          formData.paymentMethod === "bank"
+            ? "Bank Transfer"
+            : formData.paymentMethod
+        )
+        .replace(/{{orderItems}}/g, orderItemsHtml)
+        .replace(/{{subtotal}}/g, formatPrice(totalPrice))
+        .replace(/{{shipping}}/g, formatPrice(shippingPrice))
+        .replace(/{{tax}}/g, formatPrice(taxPrice))
+        .replace(/{{total}}/g, formatPrice(finalTotal));
+
+      // Send order confirmation email
       const response = await fetch("/api/send-mail", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Authorization: await getAuthToken(),
         },
         body: JSON.stringify({
           toEmailAddresses: [formData.email],
           subject: "Order Confirmation",
-          body: `Thank you for your order, ${formData.firstName} ${formData.lastName}!\n\nOrder total: ${finalTotal}\n\nShipping address: ${formData.address}, ${formData.city}, ${formData.state}, ${formData.postalCode}, ${formData.country}\n\nItems:\n${cart.items.map((item) => `- ${item.title} x${item.quantity}`).join("\n")}`,
+          body: htmlBody,
         }),
       });
-      console.log("response:::", response);
-      return;
+      // console.log("response:::", response);
 
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   console.error("Failed to send mail:", errorData.error);
-      //   alert("Failed to send confirmation email.");
-      //   setIsLoading(false);
-      //   return;
-      // }
+      if (response.status !== 200) {
+        throw new Error("Failed to send email");
+      }
 
       // For now, just clear the cart and show success
       cart.clearCart();
@@ -124,7 +165,7 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error("Checkout failed:", error);
-      alert("Checkout failed.");
+      toast.error("Checkout failed.");
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +191,18 @@ export default function CheckoutPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your@email.com"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="e.g. 0900-000-000"
                   required
                 />
               </div>

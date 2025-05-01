@@ -1,13 +1,6 @@
 import { sendSESEmail } from "./helpers/sendSESEmail";
 import type { Schema } from "../../data/resource";
 
-// Lambda handler for AWS Amplify Function
-// import {
-//   APIGatewayProxyEvent,
-//   Context,
-//   APIGatewayProxyResult,
-// } from "aws-lambda";
-
 export const handler: Schema["sendEmail"]["functionHandler"] = async (
   event
 ) => {

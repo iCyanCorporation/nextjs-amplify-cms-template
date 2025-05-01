@@ -17,21 +17,27 @@ export const sendSESEmail = async (
     throw new Error("No recipient email addresses provided.");
   }
 
-  // NOTE: If you want to attach an MP3, you must add a proper MIME part for the attachment. This example sends only plain text.
+  // Send as multipart/alternative for both plain text and HTML
   const rawMessage = `From: ${myEmail}
 To: ${toEmailAddresses.join(", ")}
 Cc: ${myEmail}
 Subject: ${subject}
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary=\"boundary_string\"
+Content-Type: multipart/alternative; boundary="boundary_alt"
 
---boundary_string
+--boundary_alt
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+This email requires an HTML-compatible email client.
+
+--boundary_alt
+Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 ${bodyText}
 
---boundary_string--`;
+--boundary_alt--`;
 
   const sendEmailParams = {
     Content: {
