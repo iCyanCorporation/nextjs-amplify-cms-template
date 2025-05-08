@@ -27,6 +27,9 @@ export async function generateMetadata({
       description: t("description"),
       images: [image],
     },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/${lng}/blog`,
+    },
   };
 }
 

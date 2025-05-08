@@ -3,13 +3,13 @@ import { BlogContent } from "./components/BlogContent";
 import type { Metadata, ResolvingMetadata } from "next";
 import type { Blog } from "@/types/blog";
 
-type Params = Promise<{ id: string }>;
+type Params = Promise<{ id: string; lng: string }>;
 export async function generateMetadata(
   props: { params: Params },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const params = await props.params;
-  const { id } = params;
+  const { id, lng } = params;
 
   const blog: Blog | null = await getBlog(id);
   if (!blog) {
@@ -31,6 +31,9 @@ export async function generateMetadata(
           type: "image/jpeg",
         },
       ],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/${lng}/blog/${id}`,
     },
   };
 }

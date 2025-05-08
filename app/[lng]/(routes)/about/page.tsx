@@ -4,9 +4,11 @@ import { PageNavigation } from "./components/PageNavigation";
 import { SocialLinks } from "./components/SocialLinks";
 
 import { Metadata } from "next";
-export async function generateMetadata(
-  { params }: { params: Params }
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
   const { lng } = await params;
   const { t } = await handleTranslation(lng, "about");
 
@@ -15,21 +17,22 @@ export async function generateMetadata(
     alt: "My website",
     width: 800,
     height: 600,
-    type: "image/jpeg"
-  }
+    type: "image/jpeg",
+  };
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || ""),
-    title: t('title'),
-    description: t('description'),
+    title: t("title"),
+    description: t("description"),
     openGraph: {
-      title: t('title'),
-      description: t('description'),
-      images: [
-        image
-      ],
-    }
-  }
+      title: t("title"),
+      description: t("description"),
+      images: [image],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/${lng}/about`,
+    },
+  };
 }
 
 interface NavigationItem {
@@ -90,7 +93,7 @@ export default async function Page({ params }: { params: Params }) {
                   </span>
                 </div>
 
-                <SocialLinks 
+                <SocialLinks
                   links={aboutData.profile.socialLinks}
                   lng={lng}
                   scheduleActive={aboutData.profile.schedule.isActive}
@@ -105,18 +108,22 @@ export default async function Page({ params }: { params: Params }) {
 
           {/* Work Experience Section */}
           <div id="work" className="w-full">
-            <h2 className="text-3xl font-bold mb-6 dark:text-white">{t1("work experience")}</h2>
+            <h2 className="text-3xl font-bold mb-6 dark:text-white">
+              {t1("work experience")}
+            </h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
               {aboutData.workExperience.map((work, index) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-bold dark:text-white">{t1(work.company)}</h3>
-                      <p className="text-primary dark:text-blue-400">{t1(work.position)}</p>
+                      <h3 className="text-xl font-bold dark:text-white">
+                        {t1(work.company)}
+                      </h3>
+                      <p className="text-primary dark:text-blue-400">
+                        {t1(work.position)}
+                      </p>
                     </div>
-                    <span className="text-gray-400">
-                      {work.period}
-                    </span>
+                    <span className="text-gray-400">{work.period}</span>
                   </div>
                   <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
                     {work.achievements.map((achievement, i) => (
@@ -129,18 +136,22 @@ export default async function Page({ params }: { params: Params }) {
           </div>
           {/* Side Projects Section */}
           <div id="side-projects" className="w-full">
-            <h2 className="text-3xl font-bold mb-6 dark:text-white">{t1("side projects")}</h2>
+            <h2 className="text-3xl font-bold mb-6 dark:text-white">
+              {t1("side projects")}
+            </h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
               {aboutData.sideProjects.map((project, index) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-bold dark:text-white">{t1(project.company)}</h3>
-                      <p className="text-primary dark:text-blue-400">{t1(project.position)}</p>
+                      <h3 className="text-xl font-bold dark:text-white">
+                        {t1(project.company)}
+                      </h3>
+                      <p className="text-primary dark:text-blue-400">
+                        {t1(project.position)}
+                      </p>
                     </div>
-                    <span className="text-gray-400">
-                      {project.period}
-                    </span>
+                    <span className="text-gray-400">{project.period}</span>
                   </div>
                   <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 space-y-2">
                     {project.achievements.map((achievement, i) => (
@@ -154,18 +165,24 @@ export default async function Page({ params }: { params: Params }) {
 
           {/* Studies Section */}
           <div id="studies" className="w-full">
-            <h2 className="text-3xl font-bold mb-6 dark:text-white">{t1("studies")}</h2>
+            <h2 className="text-3xl font-bold mb-6 dark:text-white">
+              {t1("studies")}
+            </h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
               {aboutData.education.map((edu, index) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-bold dark:text-white">{t1(edu.institution)}</h3>
+                      <h3 className="text-xl font-bold dark:text-white">
+                        {t1(edu.institution)}
+                      </h3>
                       <p className="dark:text-gray-300">{t1(edu.degree)}</p>
                     </div>
                     <span className="text-gray-400">{edu.period}</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300">{t1(edu.description)}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {t1(edu.description)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -173,17 +190,23 @@ export default async function Page({ params }: { params: Params }) {
 
           {/* Other Experience */}
           <div id="other-experience" className="w-full">
-            <h2 className="text-3xl font-bold mb-6 dark:text-white">{t1("other experience")}</h2>
+            <h2 className="text-3xl font-bold mb-6 dark:text-white">
+              {t1("other experience")}
+            </h2>
             <div className="border-l-2 border-primary dark:border-gray-600 pl-6">
               {aboutData.otherExperience.map((exp, index) => (
                 <div key={index} className="mb-8">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-bold dark:text-white">{t1(exp.title)}</h3>
+                      <h3 className="text-xl font-bold dark:text-white">
+                        {t1(exp.title)}
+                      </h3>
                     </div>
                     <span className="text-gray-400">{exp.period}</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300">{t1(exp.description)}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {t1(exp.description)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -191,7 +214,9 @@ export default async function Page({ params }: { params: Params }) {
 
           {/* Technical Skills Section */}
           <div id="skills" className="w-full">
-            <h2 className="text-3xl font-bold mb-6 dark:text-white">{t1("technicalSkills")}</h2>
+            <h2 className="text-3xl font-bold mb-6 dark:text-white">
+              {t1("technicalSkills")}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {Object.keys(aboutData.skills).map((key) => {
                 return (
@@ -216,5 +241,3 @@ export default async function Page({ params }: { params: Params }) {
     </div>
   );
 }
-
-
