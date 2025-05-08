@@ -2,10 +2,8 @@ import { notFound } from "next/navigation";
 import { BlogContent } from "./components/BlogContent";
 import type { Metadata, ResolvingMetadata } from "next";
 import type { Blog } from "@/types/blog";
-import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 type Params = Promise<{ id: string }>;
-
 export async function generateMetadata(
   props: { params: Params },
   parent: ResolvingMetadata
