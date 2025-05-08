@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { Schema } from "@/amplify/data/resource";
-import { BlogCard } from "@/components/blog/BlogCard";
-import { BlogPagination } from "@/components/blog/BlogPagination";
+import { BlogCard } from "@/app/[lng]/(auth)/admin/blog/components/BlogCard";
+import { BlogPagination } from "@/app/[lng]/(auth)/admin/blog/components/BlogPagination";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { EmptyState } from "@/components/ui/empty-state";

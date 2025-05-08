@@ -1,5 +1,5 @@
 import AnimatedTitle from "@/components/AnimatedTitle";
-import { LatestBlogs } from "@/components/blog/LatestBlogs";
+import { LatestBlogs } from "@/app/[lng]/(auth)/admin/blog/components/LatestBlogs";
 import { homepageData } from "@/data/homepage";
 import { handleTranslation } from "@/app/i18n/index";
 import { Metadata } from "next";

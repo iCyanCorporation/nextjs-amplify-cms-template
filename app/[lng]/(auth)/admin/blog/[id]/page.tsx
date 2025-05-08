@@ -1,10 +1,14 @@
-import BlogEditor from "@/components/blog/BlogEditor";
+import BlogEditor from "@/app/[lng]/(auth)/admin/blog/components/BlogEditor";
 import { Metadata } from "next";
 export const metadata: Metadata = {
-    title: "Admin Dashboard",
+  title: "Admin Dashboard",
 };
-export default async function EditBlogPost({ params }: { params: Promise<{ id: string }> }) {
-  const {id} = await params;
+export default async function EditBlogPost({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
   return (
     <div>

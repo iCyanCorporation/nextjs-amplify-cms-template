@@ -1,5 +1,5 @@
 import React from "react";
-import ProductForm from "@/components/admin/products/ProductForm";
+import ProductForm from "@/app/[lng]/(auth)/admin/shop/components/ProductForm";
 
 type Params = Promise<{
   id: string;

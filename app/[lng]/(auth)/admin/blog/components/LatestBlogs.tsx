@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BlogCard } from "@/components/blog/BlogCard";
+import { BlogCard } from "@/app/[lng]/(auth)/admin/blog/components/BlogCard";
 import { stripHtml } from "@/lib/common";
 import { Blog } from "@/types/blog";
 import { useTranslation } from "@/app/i18n/client";
