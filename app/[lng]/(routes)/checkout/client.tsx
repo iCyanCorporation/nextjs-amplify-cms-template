@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import orderConfirmationEmailTemplate from "./order-confirmation-email";
 import { useSettingContext } from "@/app/contexts/SettingContext";
 import clsx from "clsx";
+import { useParams } from "next/navigation";
+import { useTranslation } from "@/app/i18n/client";
 
 // Define type for form data
 interface FormData {
@@ -36,6 +38,10 @@ interface FormData {
 }
 
 export default function Client() {
+  const params = useParams();
+  const lng = Array.isArray(params?.lng) ? params.lng[0] : params?.lng || "en";
+  const { t } = useTranslation(lng, "checkout");
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -154,7 +160,10 @@ export default function Client() {
     return (
       <div className="container mx-auto px-4 py-12">
         <h1 className="min-h-[300px] max-w-xl mx-auto text-3xl font-bold mb-8 text-center justify-center flex items-center">
-          Something went wrong. Please contact us for assistance.
+          {t(
+            "errorMessage",
+            "Something went wrong. Please contact us for assistance."
+          )}
         </h1>
       </div>
     );
@@ -185,7 +194,7 @@ export default function Client() {
       key: "standard",
       name: standardShippingNameRaw?.trim()
         ? standardShippingNameRaw
-        : "Standard Shipping",
+        : t("standardShipping", "Standard Shipping"),
       price: standardShipping,
     });
   }
@@ -194,7 +203,7 @@ export default function Client() {
       key: "express",
       name: expressShippingNameRaw?.trim()
         ? expressShippingNameRaw
-        : "Express Shipping",
+        : t("expressShipping", "Express Shipping"),
       price: expressShipping,
     });
   }
@@ -250,8 +259,11 @@ export default function Client() {
       if (!formData.email || !paymentMethodValue) {
         console.error("Missing required fields");
         toast({
-          title: "Missing required fields",
-          description: "Please fill in all required fields.",
+          title: t("missingFieldsTitle", "Missing required fields"),
+          description: t(
+            "missingFieldsDescription",
+            "Please fill in all required fields."
+          ),
         });
         setIsLoading(false);
         return;
@@ -312,7 +324,7 @@ export default function Client() {
         .replace(
           /{{paymentMethod}}/g,
           formData.paymentMethod === "bank"
-            ? "Bank Transfer"
+            ? t("bankTransfer", "Bank Transfer")
             : formData.paymentMethod
         )
         .replace(/{{paymentMethodValue}}/g, paymentMethodValueHtml)
@@ -327,7 +339,7 @@ export default function Client() {
       const emailBody = {
         myEmail: getSetting("support_email"),
         toEmailAddresses: [formData.email],
-        subject: `[${getSetting("store_name")}] Order Confirmation`,
+        subject: `[${getSetting("store_name")}] ${t("orderConfirmation", "Order Confirmation")}`,
         body: htmlBody,
         paymentMethod: formData.paymentMethod,
         paymentMethodValue: paymentMethodValue,
@@ -361,8 +373,11 @@ export default function Client() {
     } catch (error) {
       console.error("Checkout failed:", error);
       toast({
-        title: "Checkout failed",
-        description: "An error occurred while processing your order.",
+        title: t("checkoutFailedTitle", "Checkout failed"),
+        description: t(
+          "checkoutFailedDescription",
+          "An error occurred while processing your order."
+        ),
       });
     } finally {
       setIsLoading(false);
@@ -371,18 +386,22 @@ export default function Client() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        {t("checkoutTitle", "Checkout")}
+      </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left column - Customer Information & Shipping */}
         <div className="lg:col-span-2 space-y-8">
           {/* Customer Information */}
           <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-            <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {t("contactInformation", "Contact Information")}
+            </h2>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
+                  {t("email", "Email")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -390,19 +409,22 @@ export default function Client() {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="your@email.com"
+                  placeholder={t("emailPlaceholder", "your@email.com")}
                   required
                   className={clsx(
                     errors.email && "border-red-500 focus-visible:ring-red-500"
                   )}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {t("emailRequired", errors.email)}
+                  </p>
                 )}
               </div>
               <div>
                 <Label htmlFor="phone">
-                  Phone Number <span className="text-red-500">*</span>
+                  {t("phone", "Phone Number")}{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="phone"
@@ -410,14 +432,16 @@ export default function Client() {
                   type="tel"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="e.g. 0900-000-000"
+                  placeholder={t("phonePlaceholder", "e.g. 0900-000-000")}
                   required
                   className={clsx(
                     errors.phone && "border-red-500 focus-visible:ring-red-500"
                   )}
                 />
                 {errors.phone && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {t("phoneRequired", errors.phone)}
+                  </p>
                 )}
               </div>
             </div>
@@ -425,12 +449,15 @@ export default function Client() {
 
           {/* Shipping Address */}
           <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-            <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {t("shippingAddress", "Shipping Address")}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <Label htmlFor="country">
-                    Country <span className="text-red-500">*</span>
+                    {t("country", "Country")}{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={formData.country}
@@ -445,21 +472,26 @@ export default function Client() {
                           "border-red-500 focus-visible:ring-red-500"
                       )}
                     >
-                      <SelectValue placeholder="Select country" />
+                      <SelectValue
+                        placeholder={t("selectCountry", "Select country")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="TW">Taiwan</SelectItem>
+                      <SelectItem value="TW">
+                        {t("taiwan", "Taiwan")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.country && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.country}
+                      {t("countryRequired", errors.country)}
                     </p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="postalCode">
-                    Postal Code <span className="text-red-500">*</span>
+                    {t("postalCode", "Postal Code")}{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="postalCode"
@@ -474,13 +506,14 @@ export default function Client() {
                   />
                   {errors.postalCode && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.postalCode}
+                      {t("postalCodeRequired", errors.postalCode)}
                     </p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="state">
-                    State <span className="text-red-500">*</span>
+                    {t("state", "State")}{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="state"
@@ -494,12 +527,14 @@ export default function Client() {
                     )}
                   />
                   {errors.state && (
-                    <p className="text-red-500 text-xs mt-1">{errors.state}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {t("stateRequired", errors.state)}
+                    </p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="city">
-                    City <span className="text-red-500">*</span>
+                    {t("city", "City")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="city"
@@ -512,14 +547,17 @@ export default function Client() {
                     )}
                   />
                   {errors.city && (
-                    <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {t("cityRequired", errors.city)}
+                    </p>
                   )}
                 </div>
               </div>
 
               <div className="col-span-4">
                 <Label htmlFor="address">
-                  Address <span className="text-red-500">*</span>
+                  {t("address", "Address")}{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="address"
@@ -533,13 +571,16 @@ export default function Client() {
                   )}
                 />
                 {errors.address && (
-                  <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {t("addressRequired", errors.address)}
+                  </p>
                 )}
               </div>
               <div className="col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">
-                    First Name <span className="text-red-500">*</span>
+                    {t("firstName", "First Name")}{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="firstName"
@@ -554,13 +595,14 @@ export default function Client() {
                   />
                   {errors.firstName && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.firstName}
+                      {t("firstNameRequired", errors.firstName)}
                     </p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="lastName">
-                    Last Name <span className="text-red-500">*</span>
+                    {t("lastName", "Last Name")}{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="lastName"
@@ -575,7 +617,7 @@ export default function Client() {
                   />
                   {errors.lastName && (
                     <p className="text-red-500 text-xs mt-1">
-                      {errors.lastName}
+                      {t("lastNameRequired", errors.lastName)}
                     </p>
                   )}
                 </div>
@@ -585,7 +627,9 @@ export default function Client() {
 
           {/* Payment Method */}
           <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
-            <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {t("paymentMethod", "Payment Method")}
+            </h2>
             <RadioGroup
               value={formData.paymentMethod}
               onValueChange={(value) =>
@@ -595,19 +639,25 @@ export default function Client() {
               {paymentSettings["payment_bank_transfer_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="bank" id="bank" />
-                  <Label htmlFor="bank">Bank Transfer</Label>
+                  <Label htmlFor="bank">
+                    {t("bankTransfer", "Bank Transfer")}
+                  </Label>
                 </div>
               )}
               {paymentSettings["payment_qr_code_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="qr" id="qr" />
-                  <Label htmlFor="qr">QR Code Payment</Label>
+                  <Label htmlFor="qr">
+                    {t("qrCodePayment", "QR Code Payment")}
+                  </Label>
                 </div>
               )}
               {paymentSettings["payment_custom_link_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom">Custom Payment Link</Label>
+                  <Label htmlFor="custom">
+                    {t("customPaymentLink", "Custom Payment Link")}
+                  </Label>
                 </div>
               )}
             </RadioGroup>
@@ -615,11 +665,16 @@ export default function Client() {
             {/* Shipping Method Selection */}
             {availableShippingMethods.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Shipping Method</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {t("shippingMethod", "Shipping Method")}
+                </h3>
                 {minFreeShipping > 0 && (
                   <div className="mb-2 text-sm text-muted-foreground">
-                    Minimum Order Amount for Free Shipping:{" "}
-                    {formatPriceWithCurrency(minFreeShipping)}
+                    {t(
+                      "minFreeShipping",
+                      "Minimum Order Amount for Free Shipping"
+                    )}
+                    : {formatPriceWithCurrency(minFreeShipping)}
                   </div>
                 )}
                 <RadioGroup
@@ -646,7 +701,9 @@ export default function Client() {
         {/* Right column - Order Summary */}
         <div>
           <div className="bg-card rounded-lg p-6 shadow-sm border border-border sticky top-6">
-            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {t("orderSummary", "Order Summary")}
+            </h2>
 
             <div className="max-h-[300px] overflow-y-auto mb-4">
               <ul className="divide-y divide-border">
@@ -675,7 +732,7 @@ export default function Client() {
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Qty: {item.quantity}
+                        {t("qty", "Qty")}: {item.quantity}
                       </p>
                       {item.attributes &&
                         Object.keys(item.attributes).length > 0 && (
@@ -707,15 +764,15 @@ export default function Client() {
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <p>Subtotal</p>
+                <p>{t("subtotal", "Subtotal")}</p>
                 <p>{formatPriceWithCurrency(totalPrice)}</p>
               </div>
               <div className="flex justify-between text-sm">
-                <p>Shipping</p>
+                <p>{t("shipping", "Shipping")}</p>
                 <p>{formatPriceWithCurrency(shippingPrice)}</p>
               </div>
               <div className="flex justify-between text-sm">
-                <p>Tax</p>
+                <p>{t("tax", "Tax")}</p>
                 <p>{formatPriceWithCurrency(taxPrice)}</p>
               </div>
             </div>
@@ -723,7 +780,7 @@ export default function Client() {
             <Separator className="my-4" />
 
             <div className="flex justify-between font-medium">
-              <p>Total</p>
+              <p>{t("total", "Total")}</p>
               <p>{formatPriceWithCurrency(finalTotal)}</p>
             </div>
 
@@ -732,7 +789,9 @@ export default function Client() {
               disabled={cart.items.length === 0 || isLoading}
               onClick={onCheckout}
             >
-              {isLoading ? "Processing..." : "Place Order"}
+              {isLoading
+                ? t("processing", "Processing...")
+                : t("placeOrder", "Place Order")}
             </Button>
 
             <div className="mt-4 text-center">
@@ -742,14 +801,14 @@ export default function Client() {
                 size="sm"
                 className="mr-2"
               >
-                Back to Cart
+                {t("backToCart", "Back to Cart")}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => router.push("/")}
                 size="sm"
               >
-                Continue Shopping
+                {t("continueShopping", "Continue Shopping")}
               </Button>
             </div>
           </div>
