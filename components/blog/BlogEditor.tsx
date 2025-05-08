@@ -30,6 +30,7 @@ import {
   ArrowRightFromLine,
   ImagePlus,
   ImageUp,
+  RefreshCw,
 } from "lucide-react";
 import { IoMdClose } from "react-icons/io";
 import { ImagePicker, ImagePickerButton } from "@/components/image/ImagePicker";
@@ -146,15 +147,16 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
     <div>
       <div className="z-50 flex items-center gap-2 p-4">
         <Link href="/admin/blog">
-          <Button className="p-2 hover:opacity-80">
-            <i className="fa-solid fa-arrow-left"></i> back
+          <Button className="p-2 hover:opacity-80" variant="outline">
+            <ArrowLeftFromLine className="mr-2 h-4 w-4" /> Back
           </Button>
         </Link>
         <Button
           className="hover:opacity-80"
           onClick={() => window.location.reload()}
+          variant="outline"
         >
-          refresh
+          <RefreshCw className="mr-2 h-4 w-4" /> Refresh
         </Button>
         <Button
           type="submit"
@@ -162,7 +164,20 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
           disabled={isLoading}
           className="hover:opacity-80"
         >
-          {isLoading ? "Processing..." : blogId ? "Update Post" : "Create Post"}
+          {isLoading ? (
+            <>
+              <LoadingSpinner className="mr-2 h-4 w-4 inline-block" />{" "}
+              Processing...
+            </>
+          ) : blogId ? (
+            <>
+              <ArrowRightFromLine className="mr-2 h-4 w-4" /> Update Post
+            </>
+          ) : (
+            <>
+              <ArrowRightFromLine className="mr-2 h-4 w-4" /> Create Post
+            </>
+          )}
         </Button>
       </div>
       <div className="flex">
@@ -196,34 +211,17 @@ export default function BlogEditor({ blogId }: { blogId?: string }) {
                 <div>
                   <Label htmlFor="category" className="flex gap-2">
                     <p>Post Image</p>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          type="button"
-                          className="hover:opacity-80"
-                        >
-                          {imgUrl ? <ImageUp /> : <ImagePlus />}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-6xl">
-                        <DialogHeader>
-                          <DialogTitle>Choose an image</DialogTitle>
-                        </DialogHeader>
-
-                        <ImagePickerButton
-                          onSelect={(url) => {
-                            // url is a string
-                            if (Array.isArray(url)) {
-                              setImgUrl(url[0]);
-                            } else {
-                              setImgUrl(url);
-                            }
-                          }}
-                          buttonText="Choose an image"
-                        />
-                      </DialogContent>
-                    </Dialog>
+                    <ImagePickerButton
+                      onSelect={(url) => {
+                        // url is a string
+                        if (Array.isArray(url)) {
+                          setImgUrl(url[0]);
+                        } else {
+                          setImgUrl(url);
+                        }
+                      }}
+                      buttonText="Choose an image"
+                    />
                   </Label>
                   <div className=" items-center gap-4">
                     {imgUrl && (

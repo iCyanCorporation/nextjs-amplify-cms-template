@@ -160,7 +160,7 @@ export function ImagePicker({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full sm:max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {multiSelect ? "Select Images" : "Select Image"}
@@ -198,24 +198,33 @@ export function ImagePicker({
             </div>
           ) : (
             <div className="w-full max-h-[50vh] overflow-y-auto">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
                 {filteredImages.map((image) => (
                   <div
                     key={image.key}
-                    className={`relative border rounded-md overflow-hidden cursor-pointer transition-all ${
-                      selectedImages.has(image.url)
-                        ? "ring-2 ring-primary"
-                        : "hover:opacity-90"
-                    }`}
+                    className="relative border rounded-md overflow-hidden cursor-pointer transition-all hover:opacity-90"
                     onClick={() => handleSelectImage(image)}
                   >
-                    <img
-                      src={image.url}
-                      alt={image.key.split("/").pop()}
-                      className="w-full h-28 object-cover"
-                    />
+                    <div
+                      className={
+                        selectedImages.has(image.url)
+                          ? "ring-2 ring-primary rounded-md"
+                          : ""
+                      }
+                      style={{ display: "flex", flexDirection: "column" }}
+                    >
+                      <img
+                        src={image.url}
+                        alt={image.key.split("/").pop()}
+                        className="w-full object-cover aspect-square"
+                      />
+                      {/* Show image file name under image */}
+                      <div className="text-xs text-center truncate px-2 py-1 bg-white/80 dark:bg-black/40">
+                        {image.key.split("/").pop()}
+                      </div>
+                    </div>
                     {selectedImages.has(image.url) && (
-                      <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
+                      <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1 z-10">
                         <Check className="h-4 w-4" />
                       </div>
                     )}
