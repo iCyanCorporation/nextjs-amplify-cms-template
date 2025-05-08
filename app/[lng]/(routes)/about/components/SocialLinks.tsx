@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays } from "lucide-react";
 import { SocialIcon } from "./SocialIcon";
 import { useTranslation } from "@/app/i18n/client";
+import { useParams } from "next/navigation";
 
 interface SocialLink {
   name: string;
@@ -13,11 +14,12 @@ interface SocialLink {
 
 interface SocialLinksProps {
   links: SocialLink[];
-  lng: string;
   scheduleActive: boolean;
 }
 
-export function SocialLinks({ links, lng, scheduleActive }: SocialLinksProps) {
+export function SocialLinks({ links, scheduleActive }: SocialLinksProps) {
+  const param = useParams();
+  const lng = param.lng || "en";
   const { t: translations } = useTranslation(lng, "about");
   return (
     <div className="flex flex-wrap items-center gap-3">

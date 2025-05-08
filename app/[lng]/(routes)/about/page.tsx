@@ -95,7 +95,6 @@ export default async function Page({ params }: { params: Params }) {
 
                 <SocialLinks
                   links={aboutData.profile.socialLinks}
-                  lng={lng}
                   scheduleActive={aboutData.profile.schedule.isActive}
                 />
               </div>

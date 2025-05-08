@@ -79,7 +79,6 @@ export default async function ProductPage({ params }: { params: Params }) {
       product={product}
       variants={variants}
       defaultVariant={defaultVariant}
-      lng={lng}
     />
   );
 }

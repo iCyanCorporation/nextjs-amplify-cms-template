@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Product } from "@/types/data";
 import { Button } from "@/components/ui/button";
+import { useParams } from "next/navigation";
 
 type ProductWithVariants = {
   id: string;
@@ -36,14 +37,11 @@ type ProductWithVariants = {
 interface ShopClientProps {
   products: ProductWithVariants[];
   categories: string[];
-  lng?: string;
 }
 
-export default function ShopClient({
-  products,
-  categories,
-  lng,
-}: ShopClientProps) {
+export default function ShopClient({ products, categories }: ShopClientProps) {
+  const params = useParams();
+  const lng = params?.lng || "en";
   const { t } = useTranslation(lng, "shop");
   const { getProductTypeName } = useProductContext();
 

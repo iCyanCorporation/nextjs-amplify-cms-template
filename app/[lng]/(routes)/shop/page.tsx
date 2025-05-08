@@ -86,7 +86,7 @@ export default async function ShopPage({ params }: { params: Params }) {
 
   return (
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24 pt-4 transition-colors duration-200">
-      <ShopClient products={products} categories={categories} lng={lng} />
+      <ShopClient products={products} categories={categories} />
     </div>
   );
 }

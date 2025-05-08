@@ -12,6 +12,7 @@ import { useProductContext } from "@/app/contexts/ProductContext";
 import { useSettingContext } from "@/app/contexts/SettingContext";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "@/app/i18n/client";
+import { useParams } from "next/navigation";
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
   ssr: false,
@@ -21,15 +22,15 @@ interface ProductDetailClientProps {
   product: any;
   variants: any[];
   defaultVariant: any;
-  lng: string;
 }
 
 export default function ProductDetailClient({
   product,
   variants,
   defaultVariant,
-  lng,
 }: ProductDetailClientProps) {
+  const params = useParams();
+  const lng = params?.lng || "en";
   const { t } = useTranslation(lng, "shop");
 
   const { getProductTypeName } = useProductContext();
