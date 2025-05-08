@@ -9,9 +9,12 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { EmptyState } from "@/components/ui/empty-state";
 import { stripHtml } from "@/lib/common";
 import type { Blog } from "@/types/blog";
-import { getAuthToken } from "@/hooks/useAmplifyClient";
+// import { getAuthToken } from "@/hooks/useAmplifyClient";
+import { useTranslation } from "@/app/i18n/client";
 
-export function BlogList() {
+export function BlogList({ lng }: { lng?: string }) {
+  const { t } = useTranslation(lng, "blog");
+
   const [blogs, setBlogs] = useState<Array<Schema["Blog"]["type"]>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,10 +90,12 @@ export function BlogList() {
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
 
   if (isLoading)
-    return <LoadingSpinner className="w-10 h-10" text="Loading..." />;
-  if (error) return <ErrorMessage message={error} />;
+    return (
+      <LoadingSpinner className="w-10 h-10" text={t("loading", "Loading...")} />
+    );
+  if (error) return <ErrorMessage message={t("error", error)} />;
   if (filteredBlogs.length === 0)
-    return <EmptyState message="No blogs found" icon="box" />;
+    return <EmptyState message={t("empty", "No blogs found")} icon="box" />;
 
   return (
     <div className="mt-6">
@@ -107,7 +112,7 @@ export function BlogList() {
             setCurrentPage(1);
           }}
         >
-          All
+          {t("all", "All")}
         </button>
         {categories.map((cat) => (
           <button
@@ -122,7 +127,7 @@ export function BlogList() {
               setCurrentPage(1);
             }}
           >
-            {cat}
+            {t(`category.${cat}`, cat)}
           </button>
         ))}
       </div>

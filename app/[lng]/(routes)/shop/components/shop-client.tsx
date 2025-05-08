@@ -12,6 +12,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { useTranslation } from "@/app/i18n/client";
 
 type ProductWithVariants = {
   id: string;
@@ -26,9 +27,15 @@ type ProductWithVariants = {
 interface ShopClientProps {
   products: ProductWithVariants[];
   categories: string[];
+  lng?: string;
 }
 
-export default function ShopClient({ products, categories }: ShopClientProps) {
+export default function ShopClient({
+  products,
+  categories,
+  lng,
+}: ShopClientProps) {
+  const { t } = useTranslation(lng, "shop");
   const { getProductTypeName } = useProductContext();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -110,22 +117,30 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
       <div className="flex flex-col gap-2 mb-8">
         <div className="flex flex-row items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight text-gray-800 dark:text-white">
-            Our Products
+            {t("ourProducts", "Our Products")}
           </h1>
           {/* Filter bar */}
           <div className="flex flex-row items-center gap-4">
             <label className="text-sm text-gray-600 dark:text-gray-300">
-              Sort by:
+              {t("sortBy", "Sort by:")}
               <select
                 className="ml-2 border border-gray-300 rounded px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="default">Default</option>
-                <option value="price-asc">Price (Low to High)</option>
-                <option value="price-desc">Price (High to Low)</option>
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
+                <option value="default">{t("sort.default", "Default")}</option>
+                <option value="price-asc">
+                  {t("sort.priceAsc", "Price (Low to High)")}
+                </option>
+                <option value="price-desc">
+                  {t("sort.priceDesc", "Price (High to Low)")}
+                </option>
+                <option value="name-asc">
+                  {t("sort.nameAsc", "Name (A-Z)")}
+                </option>
+                <option value="name-desc">
+                  {t("sort.nameDesc", "Name (Z-A)")}
+                </option>
               </select>
             </label>
             {/* Add more filter controls here if needed */}
@@ -141,7 +156,7 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
                   : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
               }`}
           >
-            All
+            {t("all", "All")}
           </button>
           {categories.map((category) => (
             <button
@@ -261,9 +276,14 @@ export default function ShopClient({ products, categories }: ShopClientProps) {
 
           {filteredProducts.length === 0 && (
             <div className="flex flex-col items-center justify-center space-y-3 py-12 dark:text-white">
-              <h2 className="text-xl font-medium">No products found</h2>
+              <h2 className="text-xl font-medium">
+                {t("noProductsFound", "No products found")}
+              </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Try changing your filters or check back later for new items.
+                {t(
+                  "noProductsFoundDescription",
+                  "Try changing your filters or check back later for new items."
+                )}
               </p>
             </div>
           )}

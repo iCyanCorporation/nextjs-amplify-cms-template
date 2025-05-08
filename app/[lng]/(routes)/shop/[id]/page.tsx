@@ -37,6 +37,26 @@ async function getProducts() {
   }
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
+  }
+
+  return {
+    title: product.name,
+    description: product.description,
+  };
+}
+
 export default async function ProductPage({ params }: { params: Params }) {
   const { id: productId, lng } = await params;
   const product = await getProduct(productId);

@@ -1,4 +1,35 @@
+import { Metadata } from "next";
+import { handleTranslation } from "@/app/i18n/index";
+
 import ShopClient from "./components/shop-client";
+
+type Params = Promise<{ lng: string }>;
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const { lng } = await params;
+  const { t } = await handleTranslation(lng, "shop");
+
+  const image = {
+    url: "/images/profile-image.jpg",
+    alt: "My Website",
+    width: 800,
+    height: 600,
+    type: "image/jpeg",
+  };
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || ""),
+    title: t("title"),
+    description: t("description"),
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      images: [image],
+    },
+  };
+}
 
 // Helper to fetch all products and attach their variants
 type ProductWithVariants = any & { variants: any[] };
@@ -39,7 +70,8 @@ async function getProductsWithVariants() {
   }));
 }
 
-export default async function ShopPage() {
+export default async function ShopPage({ params }: { params: Params }) {
+  const { lng } = await params;
   const products: ProductWithVariants[] = await getProductsWithVariants();
 
   // Group categories by product category
@@ -49,7 +81,7 @@ export default async function ShopPage() {
 
   return (
     <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-24 pt-4 transition-colors duration-200">
-      <ShopClient products={products} categories={categories} />
+      <ShopClient products={products} categories={categories} lng={lng} />
     </div>
   );
 }

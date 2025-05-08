@@ -11,17 +11,27 @@ import { useCartContext } from "@/app/contexts/CartContext";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import { useSettingContext } from "@/app/contexts/SettingContext";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/app/i18n/client";
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
   ssr: false,
 });
+
+interface ProductDetailClientProps {
+  product: any;
+  variants: any[];
+  defaultVariant: any;
+  lng: string;
+}
 
 export default function ProductDetailClient({
   product,
   variants,
   defaultVariant,
   lng,
-}: any) {
+}: ProductDetailClientProps) {
+  const { t } = useTranslation(lng, "shop");
+
   const { getProductTypeName } = useProductContext();
   const { formatPrice } = useSettingContext();
 
@@ -142,7 +152,7 @@ export default function ProductDetailClient({
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Back to shop
+            {t("backToShop", "Back to shop")}
           </Link>
         </div>
 
@@ -170,12 +180,16 @@ export default function ProductDetailClient({
                 {formatPrice(selectedVariant?.price ?? product.price)}
               </p>
               <div className="text-base text-gray-600 dark:text-gray-300 mt-1">
-                Stock: {stock}
+                {t("stock", "Stock")}: {stock}
               </div>
             </div>
 
             {/* Variant Selector */}
             <div className="mt-6">
+              <h4 className="text-sm font-semibold mb-2">
+                {" "}
+                {t("selectOptions", "Select Options")}{" "}
+              </h4>
               <VariantSelector
                 variants={variants}
                 onSelect={handleSetSelectedVariant}
@@ -189,14 +203,14 @@ export default function ProductDetailClient({
                 htmlFor="quantity"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Quantity
+                {t("quantity", "Quantity")}
               </label>
               <div className="flex items-center mt-1">
                 <button
                   onClick={decrementQuantity}
                   disabled={quantity <= 1}
                   className="px-3 py-1 border rounded-l disabled:opacity-50 dark:border-gray-600 dark:text-white"
-                  aria-label="Decrease quantity"
+                  aria-label={t("decreaseQuantity", "Decrease quantity")}
                 >
                   -
                 </button>
@@ -207,7 +221,7 @@ export default function ProductDetailClient({
                   onClick={incrementQuantity}
                   disabled={quantity >= stock}
                   className="px-3 py-1 border rounded-r disabled:opacity-50 dark:border-gray-600 dark:text-white"
-                  aria-label="Increase quantity"
+                  aria-label={t("increaseQuantity", "Increase quantity")}
                 >
                   +
                 </button>
@@ -237,7 +251,9 @@ export default function ProductDetailClient({
       </div>
 
       <div className="py-8">
-        <h3 className="py-4 font-bold">Product Detail</h3>
+        <h3 className="py-4 font-bold">
+          {t("productDetail", "Product Detail")}
+        </h3>
 
         <div
           className="prose prose-indigo dark:prose-invert markdownContent w-full"

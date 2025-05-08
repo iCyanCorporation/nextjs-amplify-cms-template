@@ -1,4 +1,4 @@
-import { BlogList } from "@/app/[lng]/(auth)/admin/blog/components/BlogList";
+import { BlogList } from "@/app/[lng]/(routes)/blog/components/BlogList";
 import { handleTranslation } from "@/app/i18n/index";
 
 import { Metadata } from "next";
@@ -38,11 +38,11 @@ export default async function Page({ params }: { params: Params }) {
   return (
     <div className="w-screen max-w-6xl m-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold dark:text-white">
-          {t1("blog.title", "My Blogs")}
+        <h1 className="font-bold dark:text-white">
+          {t1("my-blogs", "My Blogs")}
         </h1>
       </div>
-      <BlogList />
+      <BlogList lng={lng} />
     </div>
   );
 }

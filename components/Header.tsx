@@ -23,7 +23,6 @@ export default function Header({ lng }: { lng: string }) {
               <div className="md:w-auto h-8md:rounded-none">
                 <img src="/images/logo.png" alt="Logo" className="h-8 w-auto" />
               </div>
-              {/* <span className="hidden md:block">ICYANSTUDIO</span> */}
             </Link>
           </span>
           <div className="flex items-center gap-1">
@@ -31,7 +30,6 @@ export default function Header({ lng }: { lng: string }) {
               {mainNavigation.map((item, index) => (
                 <Link
                   key={index}
-                  // href={item.href}
                   href={
                     pathname ? createPathWithLang(item.href, lng) : `/${lng}`
                   }

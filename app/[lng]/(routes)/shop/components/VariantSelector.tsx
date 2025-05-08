@@ -302,7 +302,6 @@ export default function VariantSelector({
 
   return (
     <div className="mb-6">
-      <h4 className="text-sm font-semibold mb-2">Select Options</h4>
       <div className="flex flex-col gap-4">
         {attributeKeys.map((key, idx) => (
           <div key={key} className="flex items-center gap-2">
