@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { handleTranslation } from "@/app/i18n/index";
 
 import ShopClient from "./components/shop-client";
+import { Product } from "@/types/data";
 
 type Params = Promise<{ lng: string }>;
 export async function generateMetadata({
@@ -76,7 +77,11 @@ export default async function ShopPage({ params }: { params: Params }) {
 
   // Group categories by product category
   const categories = Array.from(
-    new Set(products.map((product: any) => product.category).filter(Boolean))
+    new Set(
+      products
+        .map((product: Product) => product.productTypeId)
+        .filter((id): id is string => typeof id === "string" && !!id)
+    )
   );
 
   return (

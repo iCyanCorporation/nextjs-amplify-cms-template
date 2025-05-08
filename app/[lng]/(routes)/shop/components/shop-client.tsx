@@ -13,6 +13,15 @@ import {
 } from "@/components/ui/pagination";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import { useTranslation } from "@/app/i18n/client";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Product } from "@/types/data";
+import { Button } from "@/components/ui/button";
 
 type ProductWithVariants = {
   id: string;
@@ -51,7 +60,10 @@ export default function ShopClient({
 
   // Filter by selected category
   let filteredProducts = selectedCategory
-    ? safeProducts.filter((product) => product.category === selectedCategory)
+    ? safeProducts.filter(
+        (product: ProductWithVariants) =>
+          product.productTypeId === selectedCategory
+      )
     : safeProducts;
 
   // Sort products
@@ -116,61 +128,66 @@ export default function ShopClient({
     <>
       <div className="flex flex-col gap-2 mb-8">
         <div className="flex flex-row items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-800 dark:text-white">
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-800 dark:text-white w-full">
             {t("ourProducts", "Our Products")}
           </h1>
           {/* Filter bar */}
           <div className="flex flex-row items-center gap-4">
-            <label className="text-sm text-gray-600 dark:text-gray-300">
-              {t("sortBy", "Sort by:")}
-              <select
-                className="ml-2 border border-gray-300 rounded px-2 py-1 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="default">{t("sort.default", "Default")}</option>
-                <option value="price-asc">
-                  {t("sort.priceAsc", "Price (Low to High)")}
-                </option>
-                <option value="price-desc">
-                  {t("sort.priceDesc", "Price (High to Low)")}
-                </option>
-                <option value="name-asc">
-                  {t("sort.nameAsc", "Name (A-Z)")}
-                </option>
-                <option value="name-desc">
-                  {t("sort.nameDesc", "Name (Z-A)")}
-                </option>
-              </select>
+            <label className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
+              {/* {t("sortBy", "Sort by:")} */}
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px] bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border border-gray-300 rounded focus:outline-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">
+                    {t("sort.default", "Default")}
+                  </SelectItem>
+                  <SelectItem value="price-asc">
+                    {t("sort.priceAsc", "Price (Low to High)")}
+                  </SelectItem>
+                  <SelectItem value="price-desc">
+                    {t("sort.priceDesc", "Price (High to Low)")}
+                  </SelectItem>
+                  <SelectItem value="name-asc">
+                    {t("sort.nameAsc", "Name (A-Z)")}
+                  </SelectItem>
+                  <SelectItem value="name-desc">
+                    {t("sort.nameDesc", "Name (Z-A)")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             {/* Add more filter controls here if needed */}
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mt-2">
-          <button
+          <Button
             onClick={() => setSelectedCategory(null)}
-            className={`border border-gray-300 rounded px-4 py-1 text-sm font-medium transition-colors
+            variant={"outline"}
+            className={`
               ${
                 !selectedCategory
                   ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+                  : ""
               }`}
           >
             {t("all", "All")}
-          </button>
+          </Button>
           {categories.map((category) => (
-            <button
+            <Button
               key={category}
+              variant={"outline"}
               onClick={() => setSelectedCategory(category)}
-              className={`border border-gray-300 rounded px-4 py-1 text-sm font-medium transition-colors
+              className={`
                 ${
                   selectedCategory === category
                     ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-                    : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+                    : ""
                 }`}
             >
-              {category}
-            </button>
+              {getProductTypeName(category) || category}
+            </Button>
           ))}
         </div>
       </div>
@@ -183,7 +200,7 @@ export default function ShopClient({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
             {paginatedProducts.map((product) => {
               const firstVariant =
                 product.variants && product.variants.length > 0

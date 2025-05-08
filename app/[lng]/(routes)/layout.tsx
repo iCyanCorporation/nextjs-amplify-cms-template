@@ -23,9 +23,7 @@ export default async function ContentLayout({
         <AnimatedBackground />
         <div className="relative z-10 m-auto w-full flex flex-col min-h-screen">
           <Header lng={lng} />
-          <main className="flex-1 flex items-center m-auto p-auto w-full">
-            {children}
-          </main>
+          <main className="flex-1 w-full m-auto">{children}</main>
           <Footer />
         </div>
       </div>
