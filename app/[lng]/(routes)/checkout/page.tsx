@@ -16,7 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { useProductContext } from "@/app/contexts/ProductContext";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import orderConfirmationEmailTemplate from "./order-confirmation-email";
 import { useSettingContext } from "@/app/contexts/SettingContext";
 
@@ -36,6 +36,8 @@ interface FormData {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { toast } = useToast();
+
   const cart = useCartContext();
   const { getAttributeName } = useProductContext();
   const { getSetting, formatPrice } = useSettingContext();
@@ -96,7 +98,6 @@ export default function CheckoutPage() {
   );
 
   // Get settings for shipping and tax
-  const freeShippingEnabledRaw = getSetting("free_shipping_enabled");
   const minFreeShippingRaw = getSetting("min_free_shipping");
   const standardShippingRaw = getSetting("standard_shipping");
   const standardShippingEnabledRaw = getSetting("standard_shipping_enabled");
@@ -120,21 +121,7 @@ export default function CheckoutPage() {
   }
 
   // If any required value is missing, do not show this page
-  console.log({
-    freeShippingEnabledRaw,
-    minFreeShippingRaw,
-    standardShippingRaw,
-    standardShippingEnabledRaw,
-    standardShippingNameRaw,
-    expressShippingRaw,
-    expressShippingEnabledRaw,
-    expressShippingNameRaw,
-    taxEnabledRaw,
-    defaultTaxRateRaw,
-    includeTaxRaw,
-  });
   if (
-    freeShippingEnabledRaw == null ||
     minFreeShippingRaw == null ||
     standardShippingRaw == null ||
     standardShippingEnabledRaw == null ||
@@ -155,7 +142,6 @@ export default function CheckoutPage() {
     );
   }
 
-  const freeShippingEnabled = freeShippingEnabledRaw === "1";
   const minFreeShipping = parseFloat(minFreeShippingRaw);
   const standardShipping = parseFloat(standardShippingRaw);
   const standardShippingEnabled = standardShippingEnabledRaw === "1";
@@ -197,7 +183,7 @@ export default function CheckoutPage() {
 
   // Calculate shipping price based on selection and free shipping
   let shippingPrice = 0;
-  if (freeShippingEnabled && totalPrice >= minFreeShipping) {
+  if (minFreeShipping > 0 && totalPrice >= minFreeShipping) {
     shippingPrice = 0;
   } else {
     const selected = availableShippingMethods.find(
@@ -237,10 +223,12 @@ export default function CheckoutPage() {
         paymentMethodValue = paymentSettings["payment_custom_link"] || "";
       }
 
-      if (!paymentMethodValue) {
-        toast.error(
-          "Selected payment method is not available. Please contact the store or choose another method."
-        );
+      if (!formData.email || !paymentMethodValue) {
+        console.error("Missing required fields");
+        toast({
+          title: "Missing required fields",
+          description: "Please fill in all required fields.",
+        });
         setIsLoading(false);
         return;
       }
@@ -287,6 +275,7 @@ export default function CheckoutPage() {
       }
 
       const htmlBody = orderConfirmationEmailTemplate
+        .replace(/{{myEmail}}/g, getSetting("support_email") || "")
         .replace(/{{firstName}}/g, formData.firstName)
         .replace(/{{lastName}}/g, formData.lastName)
         .replace(/{{email}}/g, formData.email)
@@ -311,20 +300,23 @@ export default function CheckoutPage() {
 
       // Send order confirmation email
       // console.log("Sending email with body:", htmlBody);
+      const emailBody = {
+        myEmail: getSetting("support_email"),
+        toEmailAddresses: [formData.email],
+        subject: "Order Confirmation",
+        body: htmlBody,
+        paymentMethod: formData.paymentMethod,
+        paymentMethodValue: paymentMethodValue,
+      };
+      // console.log("emailBody:::", emailBody);
+      // return;
 
       const response = await fetch("/api/send-mail", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          myEmail: getSetting("support_email"),
-          toEmailAddresses: [formData.email],
-          subject: "Order Confirmation",
-          body: htmlBody,
-          paymentMethod: formData.paymentMethod,
-          paymentMethodValue: paymentMethodValue,
-        }),
+        body: JSON.stringify(emailBody),
       });
       // console.log("response:::", response);
 
@@ -344,7 +336,10 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error("Checkout failed:", error);
-      toast.error("Checkout failed.");
+      toast({
+        title: "Checkout failed",
+        description: "An error occurred while processing your order.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -506,6 +501,12 @@ export default function CheckoutPage() {
             {availableShippingMethods.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Shipping Method</h3>
+                {minFreeShipping > 0 && (
+                  <div className="mb-2 text-sm text-muted-foreground">
+                    Minimum Order Amount for Free Shipping:{" "}
+                    {formatPriceWithCurrency(minFreeShipping)}
+                  </div>
+                )}
                 <RadioGroup
                   value={selectedShipping}
                   onValueChange={setSelectedShipping}

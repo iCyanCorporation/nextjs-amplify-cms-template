@@ -173,7 +173,7 @@ const orderConfirmationEmailTemplate = `
 
       <div class="footer">
         If you have any questions, please contact our support team at
-        <a href="mailto:support@example.com">support@example.com</a>.<br />
+        <a href="mailto:{{myEmail}}">{{myEmail}}</a>.<br />
         We appreciate your business!
       </div>
     </div>

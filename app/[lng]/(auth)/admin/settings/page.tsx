@@ -344,7 +344,10 @@ export default function SettingsPage() {
                   <Input
                     id="country"
                     placeholder="United States"
-                    defaultValue="United States"
+                    value={getFieldValue("country")}
+                    onChange={(e) =>
+                      handleInputChange("country", e.target.value)
+                    }
                   />
                 </div>
 
