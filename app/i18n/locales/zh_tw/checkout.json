@@ -49,5 +49,6 @@
   "checkoutFailedDescription": "處理訂單時發生錯誤。",
   "orderConfirmation": "訂單確認",
   "description": "完成購買並檢查您的訂單資訊。",
-  "title": "結帳"
+  "title": "結帳",
+  "thankYouForYourOrder": "感謝您的訂單。我們已收到您的訂單並將儘快處理。確認電子郵件已發送，請查看您的訂單詳情。"
 }

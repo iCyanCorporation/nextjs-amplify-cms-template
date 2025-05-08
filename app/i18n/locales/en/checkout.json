@@ -49,5 +49,6 @@
   "checkoutFailedDescription": "An error occurred while processing your order.",
   "orderConfirmation": "Order Confirmation",
   "description": "Complete your purchase and review your order details.",
-  "title": "Checkout"
+  "title": "Checkout",
+  "thankYouForYourOrder": "Thank you for your purchase. We have received your order and will process it shortly. A confirmation email has been sent with your order details."
 }

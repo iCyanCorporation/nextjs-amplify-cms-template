@@ -49,5 +49,6 @@
   "checkoutFailedDescription": "注文処理中にエラーが発生しました。",
   "orderConfirmation": "注文確認",
   "description": "購入を完了し、注文内容を確認してください。",
-  "title": "レジへ進む"
+  "title": "レジへ進む",
+  "thankYouForYourOrder": "ご購入ありがとうございます。ご注文を受け付けました。注文内容の確認メールをお送りしましたのでご確認ください。"
 }
