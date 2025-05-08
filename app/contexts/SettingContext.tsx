@@ -76,6 +76,7 @@ interface SettingContextType {
   settings: Record<string, Setting>;
   getSetting: (key: string) => string | undefined;
   refreshSettings: () => Promise<void>;
+  formatPrice: (price: number) => string;
 }
 
 const SettingContext = createContext<SettingContextType | undefined>(undefined);
@@ -94,6 +95,39 @@ export const SettingProvider = ({ children }: { children: ReactNode }) => {
         for (const s of data.settings) {
           map[s.key] = s;
         }
+        // If settings_general exists, parse and merge its values
+        if (map["settings_general"]?.value) {
+          try {
+            const general = JSON.parse(map["settings_general"].value);
+            for (const key in general) {
+              map[key] = { key, value: general[key] };
+            }
+          } catch (e) {
+            // Optionally handle JSON parse error
+          }
+        }
+        // If settings_shipping exists, parse and merge its values
+        if (map["settings_shipping"]?.value) {
+          try {
+            const shipping = JSON.parse(map["settings_shipping"].value);
+            for (const key in shipping) {
+              map[key] = { key, value: shipping[key] };
+            }
+          } catch (e) {
+            // Optionally handle JSON parse error
+          }
+        }
+        // If settings_tax exists, parse and merge its values
+        if (map["settings_tax"]?.value) {
+          try {
+            const tax = JSON.parse(map["settings_tax"].value);
+            for (const key in tax) {
+              map[key] = { key, value: tax[key] };
+            }
+          } catch (e) {
+            // Optionally handle JSON parse error
+          }
+        }
         setSettings(map);
       }
     } catch (e) {
@@ -101,6 +135,18 @@ export const SettingProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatPrice = (price: number) => {
+    if (isNaN(price)) {
+      return "";
+    }
+    const currency = getSetting("currency") || "USD";
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(price);
   };
 
   useEffect(() => {
@@ -113,6 +159,7 @@ export const SettingProvider = ({ children }: { children: ReactNode }) => {
     settings,
     getSetting,
     refreshSettings: fetchSettings,
+    formatPrice,
   };
 
   return (

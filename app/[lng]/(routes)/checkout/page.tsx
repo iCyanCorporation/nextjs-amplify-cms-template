@@ -15,11 +15,10 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
-import { formatPrice } from "@/lib/utils";
 import { useProductContext } from "@/app/contexts/ProductContext";
 import { toast } from "sonner";
 import orderConfirmationEmailTemplate from "./order-confirmation-email";
-// import { getAuthToken } from "@/hooks/useAmplifyClient";
+import { useSettingContext } from "@/app/contexts/SettingContext";
 
 // Define type for form data
 interface FormData {
@@ -39,6 +38,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const cart = useCartContext();
   const { getAttributeName } = useProductContext();
+  const { getSetting, formatPrice } = useSettingContext();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -66,7 +66,15 @@ export default function CheckoutPage() {
         if (data.settings) {
           const map: Record<string, string> = {};
           for (const s of data.settings) {
-            map[s.key] = s.value;
+            // If this is a grouped block, parse and merge
+            if (s.key === "settings_general" && s.value) {
+              try {
+                const general = JSON.parse(s.value);
+                Object.assign(map, general);
+              } catch {}
+            } else {
+              map[s.key] = s.value;
+            }
           }
           setPaymentSettings(map);
         }
@@ -87,8 +95,126 @@ export default function CheckoutPage() {
     0
   );
 
-  const shippingPrice = 0; // Free shipping for now
-  const taxPrice = totalPrice * 0.1; // Example tax calculation
+  // Get settings for shipping and tax
+  const freeShippingEnabledRaw = getSetting("free_shipping_enabled");
+  const minFreeShippingRaw = getSetting("min_free_shipping");
+  const standardShippingRaw = getSetting("standard_shipping");
+  const standardShippingEnabledRaw = getSetting("standard_shipping_enabled");
+  const standardShippingNameRaw = getSetting("standard_shipping_name");
+  const expressShippingRaw = getSetting("express_shipping");
+  const expressShippingEnabledRaw = getSetting("express_shipping_enabled");
+  const expressShippingNameRaw = getSetting("express_shipping_name");
+  const taxEnabledRaw = getSetting("tax_enabled");
+  const defaultTaxRateRaw = getSetting("default_tax_rate");
+  const includeTaxRaw = getSetting("include_tax");
+
+  // Get currency from settings
+  const currency = getSetting("currency") || "USD";
+
+  // Use currency in formatPrice
+  function formatPriceWithCurrency(amount: number) {
+    if (isNaN(amount) || currency === "") {
+      return "";
+    }
+    return `${formatPrice(amount)}`;
+  }
+
+  // If any required value is missing, do not show this page
+  console.log({
+    freeShippingEnabledRaw,
+    minFreeShippingRaw,
+    standardShippingRaw,
+    standardShippingEnabledRaw,
+    standardShippingNameRaw,
+    expressShippingRaw,
+    expressShippingEnabledRaw,
+    expressShippingNameRaw,
+    taxEnabledRaw,
+    defaultTaxRateRaw,
+    includeTaxRaw,
+  });
+  if (
+    freeShippingEnabledRaw == null ||
+    minFreeShippingRaw == null ||
+    standardShippingRaw == null ||
+    standardShippingEnabledRaw == null ||
+    standardShippingNameRaw == null ||
+    expressShippingRaw == null ||
+    expressShippingEnabledRaw == null ||
+    expressShippingNameRaw == null ||
+    taxEnabledRaw == null ||
+    defaultTaxRateRaw == null ||
+    includeTaxRaw == null
+  ) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="min-h-[300px] max-w-xl mx-auto text-3xl font-bold mb-8 text-center justify-center flex items-center">
+          Something went wrong. Please contact us for assistance.
+        </h1>
+      </div>
+    );
+  }
+
+  const freeShippingEnabled = freeShippingEnabledRaw === "1";
+  const minFreeShipping = parseFloat(minFreeShippingRaw);
+  const standardShipping = parseFloat(standardShippingRaw);
+  const standardShippingEnabled = standardShippingEnabledRaw === "1";
+  const expressShipping = parseFloat(expressShippingRaw);
+  const expressShippingEnabled = expressShippingEnabledRaw === "1";
+  const taxEnabled = taxEnabledRaw === "1";
+  const defaultTaxRate = parseFloat(defaultTaxRateRaw);
+  const includeTax = includeTaxRaw === "1";
+
+  // Shipping method selection state
+  const [selectedShipping, setSelectedShipping] = useState(
+    standardShippingEnabled
+      ? "standard"
+      : expressShippingEnabled
+        ? "express"
+        : ""
+  );
+
+  // Build available shipping methods
+  const availableShippingMethods = [];
+  if (standardShippingEnabled) {
+    availableShippingMethods.push({
+      key: "standard",
+      name: standardShippingNameRaw?.trim()
+        ? standardShippingNameRaw
+        : "Standard Shipping",
+      price: standardShipping,
+    });
+  }
+  if (expressShippingEnabled) {
+    availableShippingMethods.push({
+      key: "express",
+      name: expressShippingNameRaw?.trim()
+        ? expressShippingNameRaw
+        : "Express Shipping",
+      price: expressShipping,
+    });
+  }
+
+  // Calculate shipping price based on selection and free shipping
+  let shippingPrice = 0;
+  if (freeShippingEnabled && totalPrice >= minFreeShipping) {
+    shippingPrice = 0;
+  } else {
+    const selected = availableShippingMethods.find(
+      (m) => m.key === selectedShipping
+    );
+    shippingPrice = selected ? selected.price : 0;
+  }
+
+  // Calculate tax
+  let taxPrice = 0;
+  if (taxEnabled) {
+    taxPrice = includeTax
+      ? (totalPrice * defaultTaxRate) / (100 + defaultTaxRate)
+      : (totalPrice + shippingPrice) * (defaultTaxRate / 100);
+  }
+
+  // Calculate final total
   const finalTotal = totalPrice + shippingPrice + taxPrice;
 
   const onCheckout = async () => {
@@ -145,9 +271,9 @@ export default function CheckoutPage() {
                       .join("<br/>")
                   : "-"
               }</td>
-              <td>${formatPrice(item.price)}</td>
+              <td>${formatPriceWithCurrency(item.price)}</td>
               <td>${item.quantity}</td>
-              <td>${formatPrice(item.price * item.quantity)}</td>
+              <td>${formatPriceWithCurrency(item.price * item.quantity)}</td>
             </tr>
           `
         )
@@ -178,10 +304,10 @@ export default function CheckoutPage() {
         )
         .replace(/{{paymentMethodValue}}/g, paymentMethodValueHtml)
         .replace(/{{orderItems}}/g, orderItemsHtml)
-        .replace(/{{subtotal}}/g, formatPrice(totalPrice))
-        .replace(/{{shipping}}/g, formatPrice(shippingPrice))
-        .replace(/{{tax}}/g, formatPrice(taxPrice))
-        .replace(/{{total}}/g, formatPrice(finalTotal));
+        .replace(/{{subtotal}}/g, formatPriceWithCurrency(totalPrice))
+        .replace(/{{shipping}}/g, formatPriceWithCurrency(shippingPrice))
+        .replace(/{{tax}}/g, formatPriceWithCurrency(taxPrice))
+        .replace(/{{total}}/g, formatPriceWithCurrency(finalTotal));
 
       // Send order confirmation email
       // console.log("Sending email with body:", htmlBody);
@@ -355,19 +481,19 @@ export default function CheckoutPage() {
                 handleSelectChange("paymentMethod", value)
               }
             >
-              {paymentSettings["payment_bank_transfer_enabled"] && (
+              {paymentSettings["payment_bank_transfer_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="bank" id="bank" />
                   <Label htmlFor="bank">Bank Transfer</Label>
                 </div>
               )}
-              {paymentSettings["payment_qr_code_enabled"] && (
+              {paymentSettings["payment_qr_code_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="qr" id="qr" />
                   <Label htmlFor="qr">QR Code Payment</Label>
                 </div>
               )}
-              {paymentSettings["payment_custom_link_enabled"] && (
+              {paymentSettings["payment_custom_link_enabled"] === "1" && (
                 <div className="flex items-center space-x-2 mb-3">
                   <RadioGroupItem value="custom" id="custom" />
                   <Label htmlFor="custom">Custom Payment Link</Label>
@@ -375,22 +501,26 @@ export default function CheckoutPage() {
               )}
             </RadioGroup>
 
-            {formData.paymentMethod === "credit" && (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <Label htmlFor="cardNumber">Card Number</Label>
-                  <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <Label htmlFor="expiration">Expiration Date</Label>
-                    <Input id="expiration" placeholder="MM/YY" />
-                  </div>
-                  <div>
-                    <Label htmlFor="cvc">CVC</Label>
-                    <Input id="cvc" placeholder="123" />
-                  </div>
-                </div>
+            {/* Shipping Method Selection */}
+            {availableShippingMethods.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-2">Shipping Method</h3>
+                <RadioGroup
+                  value={selectedShipping}
+                  onValueChange={setSelectedShipping}
+                >
+                  {availableShippingMethods.map((method) => (
+                    <div
+                      key={method.key}
+                      className="flex items-center space-x-2 mb-2"
+                    >
+                      <RadioGroupItem value={method.key} id={method.key} />
+                      <Label htmlFor={method.key}>
+                        {method.name} ({formatPriceWithCurrency(method.price)})
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
               </div>
             )}
           </div>
@@ -424,7 +554,7 @@ export default function CheckoutPage() {
                           </h4>
                         </div>
                         <p className="text-sm font-medium">
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPriceWithCurrency(item.price * item.quantity)}
                         </p>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -461,15 +591,15 @@ export default function CheckoutPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <p>Subtotal</p>
-                <p>{formatPrice(totalPrice)}</p>
+                <p>{formatPriceWithCurrency(totalPrice)}</p>
               </div>
               <div className="flex justify-between text-sm">
                 <p>Shipping</p>
-                <p>{formatPrice(shippingPrice)}</p>
+                <p>{formatPriceWithCurrency(shippingPrice)}</p>
               </div>
               <div className="flex justify-between text-sm">
                 <p>Tax</p>
-                <p>{formatPrice(taxPrice)}</p>
+                <p>{formatPriceWithCurrency(taxPrice)}</p>
               </div>
             </div>
 
@@ -477,7 +607,7 @@ export default function CheckoutPage() {
 
             <div className="flex justify-between font-medium">
               <p>Total</p>
-              <p>{formatPrice(finalTotal)}</p>
+              <p>{formatPriceWithCurrency(finalTotal)}</p>
             </div>
 
             <Button

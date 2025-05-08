@@ -6,13 +6,15 @@ import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartContext } from "@/app/contexts/CartContext";
-import { formatPrice } from "@/lib/utils";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { useSettingContext } from "@/app/contexts/SettingContext";
 
 export default function CartPage() {
   const router = useRouter();
   const cart = useCartContext();
   const { getAttributeName } = useProductContext();
+  const { formatPrice } = useSettingContext();
+
   const [isUpdating, setIsUpdating] = useState(false);
 
   const totalPrice = cart.items.reduce(
@@ -72,14 +74,14 @@ export default function CartPage() {
   };
 
   // Function to safely format numbers
-  const safeFormatPrice = (value: number) => {
-    try {
-      return formatPrice(value);
-    } catch (error) {
-      console.error("Error formatting price:", error);
-      return `$${value.toFixed(2)}`;
-    }
-  };
+  // const safeFormatPrice = (value: number) => {
+  //   try {
+  //     return formatPrice(value);
+  //   } catch (error) {
+  //     console.error("Error formatting price:", error);
+  //     return `$${value.toFixed(2)}`;
+  //   }
+  // };
 
   // Calculate total items safely
   const totalItems = () => {
@@ -135,7 +137,7 @@ export default function CartPage() {
                           {item.subtitle}
                         </h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Unit Price: {safeFormatPrice(item.price)}
+                          Unit Price: {formatPrice(item.price)}
                         </p>
                         {item.attributes &&
                           Object.keys(item.attributes).length > 0 && (
@@ -189,7 +191,7 @@ export default function CartPage() {
                         </div>
 
                         <span className="font-medium">
-                          {safeFormatPrice(item.price * item.quantity)}
+                          {formatPrice(item.price * item.quantity)}
                         </span>
 
                         <Button
@@ -231,7 +233,7 @@ export default function CartPage() {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <p>Items ({totalItems()})</p>
-                  <p>{safeFormatPrice(totalPrice)}</p>
+                  <p>{formatPrice(totalPrice)}</p>
                 </div>
                 <div className="flex justify-between text-sm">
                   <p>Shipping</p>
@@ -247,7 +249,7 @@ export default function CartPage() {
 
               <div className="flex justify-between font-medium text-lg mb-6">
                 <p>Subtotal</p>
-                <p>{safeFormatPrice(totalPrice)}</p>
+                <p>{formatPrice(totalPrice)}</p>
               </div>
 
               <Button

@@ -3,7 +3,7 @@
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatPrice } from "@/lib/utils";
+import { useSettingContext } from "@/app/contexts/SettingContext";
 
 import { useCartContext } from "@/app/contexts/CartContext";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ export const Cart = () => {
   const [open, setOpen] = useState(false);
   const cart = useCartContext();
   const { getAttributeName } = useProductContext();
+  const { formatPrice } = useSettingContext();
 
   const totalItems = cart.items.reduce(
     (total, item) => total + item.quantity,

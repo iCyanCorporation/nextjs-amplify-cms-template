@@ -3,9 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { useSettingContext } from "@/app/contexts/SettingContext";
 
 interface Product {
   id: string;
@@ -64,6 +64,7 @@ export function ProductCard({
   const params = useParams();
   const lng = params?.lng || "en";
   const { AttributeList: attributeList } = useProductContext?.() || {};
+  const { formatPrice } = useSettingContext();
 
   // Helper to get attribute type
   const getAttributeType = (key: string) => {

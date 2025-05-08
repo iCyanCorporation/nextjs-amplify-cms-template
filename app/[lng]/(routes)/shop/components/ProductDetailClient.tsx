@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { formatPrice } from "@/lib/utils";
 import AddToCartButton from "@/components/product/AddToCartButton";
 import ProductImageCarousel from "@/components/product/ProductImageCarousel";
 import dynamic from "next/dynamic";
@@ -10,6 +9,7 @@ import SocialShare from "@/components/SocialShare"; // Import SocialShare compon
 import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { useProductContext } from "@/app/contexts/ProductContext";
+import { useSettingContext } from "@/app/contexts/SettingContext";
 import { Badge } from "@/components/ui/badge";
 
 const VariantSelector = dynamic(() => import("./VariantSelector"), {
@@ -23,6 +23,8 @@ export default function ProductDetailClient({
   lng,
 }: any) {
   const { getProductTypeName } = useProductContext();
+  const { formatPrice } = useSettingContext();
+
   // Helper to extract raw selected attributes (first option) from a variant
   const getInitialRawAttrs = (variant: any): Record<string, string> => {
     const attrs = variant?.attributes;
