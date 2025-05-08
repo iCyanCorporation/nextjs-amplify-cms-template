@@ -17,6 +17,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAuthToken } from "@/hooks/useAmplifyClient";
 import { RefreshCwIcon } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 import {
   SETTINGS_KEYS,
@@ -283,20 +290,23 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
-                  <select
-                    id="currency"
+                  <Select
                     value={getFieldValue("currency")}
-                    onChange={(e) =>
-                      handleInputChange("currency", e.target.value)
+                    onValueChange={(value) =>
+                      handleInputChange("currency", value)
                     }
-                    className="w-full border rounded px-3 py-2"
+                    disabled={saving || loading}
                   >
-                    <option value="">Select currency</option>
-                    <option value="TWD">TWD (NT$)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="JPY">JPY (¥)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
+                    <SelectTrigger id="currency">
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TWD">TWD (NT$)</SelectItem>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
