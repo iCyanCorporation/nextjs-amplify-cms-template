@@ -10,4 +10,15 @@ export type Blog = {
   updatedAt: string | null;
 };
 
-export const categoryList = ["tech", "life", "job", "travel", "study", "idea", "talk", "random", "other"] as const;
+export const categoryList = [
+  "news",
+  "tech",
+  "life",
+  "job",
+  "travel",
+  "study",
+  "idea",
+  "talk",
+  "random",
+  "other",
+] as const;

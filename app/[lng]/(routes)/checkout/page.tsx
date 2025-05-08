@@ -19,6 +19,7 @@ import { useProductContext } from "@/app/contexts/ProductContext";
 import { useToast } from "@/hooks/use-toast";
 import orderConfirmationEmailTemplate from "./order-confirmation-email";
 import { useSettingContext } from "@/app/contexts/SettingContext";
+import clsx from "clsx";
 
 // Define type for form data
 interface FormData {
@@ -54,6 +55,7 @@ export default function CheckoutPage() {
     country: "TW",
     paymentMethod: "bank",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Payment methods from settings
   const [paymentSettings, setPaymentSettings] = useState<
@@ -90,6 +92,22 @@ export default function CheckoutPage() {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.phone) newErrors.phone = "Phone number is required";
+    if (!formData.firstName) newErrors.firstName = "First name is required";
+    if (!formData.lastName) newErrors.lastName = "Last name is required";
+    if (!formData.address) newErrors.address = "Address is required";
+    if (!formData.city) newErrors.city = "City is required";
+    if (!formData.state) newErrors.state = "State is required";
+    if (!formData.postalCode) newErrors.postalCode = "Postal code is required";
+    if (!formData.country) newErrors.country = "Country is required";
+    if (!formData.paymentMethod)
+      newErrors.paymentMethod = "Payment method is required";
+    return newErrors;
   };
 
   const totalPrice = cart.items.reduce(
@@ -204,6 +222,12 @@ export default function CheckoutPage() {
   const finalTotal = totalPrice + shippingPrice + taxPrice;
 
   const onCheckout = async () => {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     try {
       setIsLoading(true);
 
@@ -303,7 +327,7 @@ export default function CheckoutPage() {
       const emailBody = {
         myEmail: getSetting("support_email"),
         toEmailAddresses: [formData.email],
-        subject: "Order Confirmation",
+        subject: `[${getSetting("store_name")}] Order Confirmation`,
         body: htmlBody,
         paymentMethod: formData.paymentMethod,
         paymentMethodValue: paymentMethodValue,
@@ -357,7 +381,9 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -366,10 +392,18 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   placeholder="your@email.com"
                   required
+                  className={clsx(
+                    errors.email && "border-red-500 focus-visible:ring-red-500"
+                  )}
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">
+                  Phone Number <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -378,7 +412,13 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   placeholder="e.g. 0900-000-000"
                   required
+                  className={clsx(
+                    errors.phone && "border-red-500 focus-visible:ring-red-500"
+                  )}
                 />
+                {errors.phone && (
+                  <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+                )}
               </div>
             </div>
           </div>
@@ -386,84 +426,159 @@ export default function CheckoutPage() {
           {/* Shipping Address */}
           <div className="bg-card rounded-lg p-6 shadow-sm border border-border">
             <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
+                  <Label htmlFor="country">
+                    Country <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) =>
+                      handleSelectChange("country", value)
+                    }
                     required
-                  />
+                  >
+                    <SelectTrigger
+                      className={clsx(
+                        errors.country &&
+                          "border-red-500 focus-visible:ring-red-500"
+                      )}
+                    >
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TW">Taiwan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.country && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.country}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <Label htmlFor="postalCode">Postal Code</Label>
+                  <Label htmlFor="postalCode">
+                    Postal Code <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     id="postalCode"
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleChange}
                     required
+                    className={clsx(
+                      errors.postalCode &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
                   />
+                  {errors.postalCode && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.postalCode}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="state">
+                    State <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="state"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleChange}
+                    required
+                    className={clsx(
+                      errors.state &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {errors.state && (
+                    <p className="text-red-500 text-xs mt-1">{errors.state}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="city">
+                    City <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="city"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                    className={clsx(
+                      errors.city && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {errors.city && (
+                    <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                  )}
                 </div>
               </div>
-              <div>
-                <Label htmlFor="country">Country</Label>
-                <Select
-                  value={formData.country}
-                  onValueChange={(value) =>
-                    handleSelectChange("country", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TW">Taiwan</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              <div className="col-span-4">
+                <Label htmlFor="address">
+                  Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                  className={clsx(
+                    errors.address &&
+                      "border-red-500 focus-visible:ring-red-500"
+                  )}
+                />
+                {errors.address && (
+                  <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                )}
+              </div>
+              <div className="col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">
+                    First Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                    className={clsx(
+                      errors.firstName &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {errors.firstName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.firstName}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="lastName">
+                    Last Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                    className={clsx(
+                      errors.lastName &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {errors.lastName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

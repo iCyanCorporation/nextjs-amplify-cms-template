@@ -37,7 +37,7 @@ export default function SidebarNav() {
   const navItems = [
     { href: "/admin/image", icon: RiImageLine, label: "Images" },
     { href: "/admin/blog", icon: RiArticleLine, label: "Blog" },
-    { href: "/admin/products", icon: RiShoppingCartLine, label: "Shop" },
+    { href: "/admin/shop", icon: RiShoppingCartLine, label: "Shop" },
     // { href: "/admin/orders", icon: RiFileList2Line, label: "Orders" },
     { href: "/admin/settings", icon: RiSettings3Line, label: "Settings" },
   ];

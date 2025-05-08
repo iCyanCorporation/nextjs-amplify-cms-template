@@ -147,7 +147,7 @@ export default function ProductsPage() {
             />
             Refresh
           </Button>
-          <Link href="/admin/products/new">
+          <Link href="/admin/shop/new">
             <Button className="flex items-center gap-1">
               <PlusIcon className="h-4 w-4" />
               Add Product
@@ -250,7 +250,7 @@ export default function ProductsPage() {
 
                       <TableCell>
                         <div className="flex gap-2">
-                          <Link href={`/admin/products/edit/${product.id}`}>
+                          <Link href={`/admin/shop/edit/${product.id}`}>
                             <Button size="sm" variant="outline">
                               Edit
                             </Button>
