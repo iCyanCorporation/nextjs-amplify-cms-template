@@ -3,13 +3,14 @@ const sesClient = new SESv2Client();
 import { env } from "process";
 
 export const sendSESEmail = async (
+  myEmail: string,
   toEmailAddresses: string[],
   subject: string,
   bodyText: string
 ) => {
   console.log("Sending email...");
 
-  const myEmail = env.FROM_EMAIL_ADDRESS;
+  // const myEmail = env.FROM_EMAIL_ADDRESS;
   if (!myEmail) {
     throw new Error("FROM_EMAIL_ADDRESS environment variable is not set.");
   }

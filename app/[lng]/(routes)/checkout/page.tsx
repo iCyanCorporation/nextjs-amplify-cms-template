@@ -318,6 +318,7 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          myEmail: getSetting("support_email"),
           toEmailAddresses: [formData.email],
           subject: "Order Confirmation",
           body: htmlBody,

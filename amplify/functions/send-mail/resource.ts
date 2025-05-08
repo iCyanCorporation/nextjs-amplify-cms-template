@@ -5,7 +5,4 @@ export const sendEmail = defineFunction({
   name: "send-email",
   // optionally specify a path to your handler (defaults to "./handler.ts")
   entry: "./handler.ts",
-  environment: {
-    FROM_EMAIL_ADDRESS: "icyan.contact@gmail.com",
-  },
 });
