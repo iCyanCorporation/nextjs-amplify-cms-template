@@ -7,14 +7,15 @@ export const handler: Schema["sendEmail"]["functionHandler"] = async (
   try {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
-    const { name, emailAddresses, subject, bodyText } = event.arguments;
-    if (!name || !emailAddresses || !subject || !bodyText) {
+    const { name, myEmail, emailAddresses, subject, bodyText } =
+      event.arguments;
+    if (!name || !myEmail || !emailAddresses || !subject || !bodyText) {
       throw new Error("Missing required parameters");
     }
     const toEmailAddresses = emailAddresses.filter(
       (email): email is string => email !== null
     );
-    await sendSESEmail(toEmailAddresses, subject, bodyText);
+    await sendSESEmail(myEmail, toEmailAddresses, subject, bodyText);
   } catch (error) {
     console.error(error);
     throw new Error("Failed to send email");
