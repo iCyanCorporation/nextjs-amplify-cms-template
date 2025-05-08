@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // POST /api/send-mail - Send an email
 export async function POST(request: Request) {
   const body = await request.json();
-  const { toEmailAddresses, subject, body: bodyText } = body;
+  const { myEmail, toEmailAddresses, subject, body: bodyText } = body;
 
   try {
     if (!toEmailAddresses || !subject || !bodyText) {
@@ -18,7 +18,8 @@ export async function POST(request: Request) {
     // Validate the input
     const result = await amplifyClient.queries.sendEmail(
       {
-        name: "Amplify",
+        name: "Amplify App",
+        myEmail: myEmail,
         emailAddresses: toEmailAddresses,
         subject: subject,
         bodyText: bodyText,
