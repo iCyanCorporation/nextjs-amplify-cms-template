@@ -28,6 +28,12 @@ jobs:
           rsync -av --files-from=.template-sync.txt ./ ./temp-sync/
           rsync -av --delete ./temp-sync/ ./target-repo/
 
+      - name: Debug - Show git status after rsync
+        run: |
+          git status
+          git diff --stat
+        working-directory: target-repo
+
       - name: Commit and Push to Feature Branch
         id: commit_push
         working-directory: target-repo
