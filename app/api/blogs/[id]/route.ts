@@ -58,7 +58,7 @@ export async function PUT(request: Request, { params }: { params: Params }) {
     }
     return NextResponse.json(result.data);
   } catch (error) {
-    console.error("Error updating blog:", error);
+    console.error("Error updating blog::", error);
     return NextResponse.json(
       { error: "Failed to update blog" },
       { status: 500 }

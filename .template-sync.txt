@@ -1,5 +1,4 @@
 amplify/
-amplify/functions/send-mail/helpers/
 
 app/[lng]/(auth)/
 app/api/
