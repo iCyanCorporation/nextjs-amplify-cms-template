@@ -51,19 +51,41 @@ jobs:
         working-directory: target-repo
         run: |
           git config --global --add safe.directory "$PWD"
-          # Commit and push changes if any
+          echo "changes_pushed=false" > $GITHUB_OUTPUT
+          echo "has_new_commits=false" >> $GITHUB_OUTPUT
+
           if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Local changes detected after rsync."
             git checkout -B sync-from-template
             git add .
             git commit -m "chore: sync from template repo"
+            echo "Pushing sync-from-template to origin..."
             git push --force origin sync-from-template
             echo "changes_pushed=true" >> $GITHUB_OUTPUT
+
+            echo "Fetching latest state of dev and sync-from-template from remote..."
+            git fetch origin dev sync-from-template
+
+            echo "Checking for new commits on sync-from-template compared to origin/dev..."
+            # Counts commits in origin/sync-from-template that are not in origin/dev
+            # Need to ensure local sync-from-template is aligned with origin/sync-from-template for this comparison
+            # The push ensures origin/sync-from-template is updated.
+            # The fetch ensures origin/dev is updated.
+            # We compare the pushed sync-from-template against the latest dev.
+            commit_count=$(git rev-list --count origin/dev..origin/sync-from-template)
+            
+            if [[ "$commit_count" -gt 0 ]]; then
+              echo "Found $commit_count new commit(s) on origin/sync-from-template compared to origin/dev."
+              echo "has_new_commits=true" >> $GITHUB_OUTPUT
+            else
+              echo "No new commits found on origin/sync-from-template compared to origin/dev. PR will not be created."
+            fi
           else
-            echo "changes_pushed=false" >> $GITHUB_OUTPUT
+            echo "No local changes to sync after rsync."
           fi
 
       - name: Create Pull Request in Target Repo
-        if: steps.commit_push.outputs.changes_pushed == 'true'
+        if: steps.commit_push.outputs.changes_pushed == 'true' && steps.commit_push.outputs.has_new_commits == 'true'
         working-directory: target-repo
         run: |
           gh pr create \

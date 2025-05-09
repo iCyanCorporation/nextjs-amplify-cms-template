@@ -1,4 +1,4 @@
-# nextjs-amplify-biography-template
+# nextjs-amplify-cms-template
 
 A full-stack web application template built with Next.js and AWS Amplify, featuring a public website, blog system, and admin dashboard.
 
@@ -23,20 +23,24 @@ A full-stack web application template built with Next.js and AWS Amplify, featur
 ## Getting Started
 
 1. Clone the repository
+
 ```bash
-git clone https://github.com/yourusername/nextjs-amplify-biography-template.git
-cd nextjs-amplify-biography-template
+git clone https://github.com/yourusername/nextjs-amplify-cms-template.git
+cd nextjs-amplify-cms-template
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 ```
 
 3. Deploy a fullstack app to AWS and Initialize and deploy backend (Amplify Gen2)
+
 - Follow [Quick Start Guide](https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/)
 
 4. Start the development server
+
 ```bash
 npm run dev
 ```
@@ -44,7 +48,7 @@ npm run dev
 ## Project Structure
 
 ```
-nextjs-amplify-biography-template/
+nextjs-amplify-cms-template/
 ├── app/                # Next.js app router pages
 ├── amplify/           # Amplify Gen2 backend configuration
 │   ├── backend/       # Backend resources definitions
@@ -57,16 +61,19 @@ nextjs-amplify-biography-template/
 ```
 
 ## Backend Development (Amplify Gen2)
+
 note...
 
 ## Testing
 
 Run the test suite:
+
 ```bash
 npm run test
 ```
 
 Watch mode for development:
+
 ```bash
 npm run test:watch
 ```
@@ -74,12 +81,15 @@ npm run test:watch
 ## Deployment
 
 1. Build the application:
+
 ```bash
 npm run build
 ```
 
 2. Deploy to AWS Amplify:
+
 - Deploy cloud sandbox
+
 ```bash
 npx ampx sandbox
 ```
@@ -115,4 +125,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you find this project helpful, please give it a ⭐️ on GitHub!
-
