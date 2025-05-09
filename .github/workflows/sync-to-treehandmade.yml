@@ -44,7 +44,7 @@ jobs:
           if [[ -n "$(git status --porcelain)" ]]; then
             git checkout -B sync-from-template
             git add .
-            git commit -m "chore: sync from template repo"
+            git commit -m "chore sync from template repo"
             git push origin sync-from-template --force
             echo "changes_pushed=true" >> $GITHUB_OUTPUT
           else
