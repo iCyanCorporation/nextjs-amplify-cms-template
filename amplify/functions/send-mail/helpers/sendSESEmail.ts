@@ -8,7 +8,7 @@ export const sendSESEmail = async (
   subject: string,
   bodyText: string
 ) => {
-  console.log("Sending email...");
+  console.log("Sending email....");
 
   // const myEmail = env.FROM_EMAIL_ADDRESS;
   if (!myEmail) {
