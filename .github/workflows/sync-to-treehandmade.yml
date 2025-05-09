@@ -21,19 +21,18 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Clone Target Repo (dev branch)
+        uses: actions/checkout@v4
+        with:
+          repository: iCyanCorporation/treehandmade-homepage
+          ref: dev
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          path: target-repo
+          persist-credentials: true
+
+      - name: Debug remotes in target-repo
         run: |
-          git clone --single-branch --branch dev https://x-access-token:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/iCyanCorporation/treehandmade-homepage.git target-repo
           cd target-repo
-          echo "Checking current branch in target-repo..."
-          current_branch=$(git rev-parse --abbrev-ref HEAD)
-          echo "Current branch is: $current_branch"
-          if [ "$current_branch" != "dev" ]; then
-            echo "Error: Failed to clone or checkout the 'dev' branch from the target repository (iCyanCorporation/treehandmade-homepage)." >&2
-            echo "Please ensure the 'dev' branch exists on that repository and has at least one commit." >&2
-            exit 1
-          fi
-          echo "'dev' branch successfully cloned and checked out in target-repo."
-          cd ..
+          git remote -v
 
       - name: Sync Selected Files
         run: |
@@ -43,57 +42,35 @@ jobs:
 
       - name: Debug - Show git status after rsync
         run: |
+          cd target-repo
           git status
           git diff --stat
-        working-directory: target-repo
 
       - name: Commit and Push to Feature Branch
         id: commit_push
         working-directory: target-repo
         run: |
           git config --global --add safe.directory "$PWD"
-
-          # Debug: Check what remote we're pushing to
-          echo "Checking remote URL..."
-          git remote -v
-
-          # Ensure we're using the correct remote URL
-          git remote set-url origin https://x-access-token:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/iCyanCorporation/treehandmade-homepage.git
-
-          # Create a branch for changes based on current dev branch
+          # Commit and push changes if any
           if [[ -n "$(git status --porcelain)" ]]; then
-            # Create sync branch from current state (which should be dev)
             git checkout -B sync-from-template
             git add .
             git commit -m "chore: sync from template repo"
-            git push origin sync-from-template --force
-            # Verify the branch was pushed and has commits
-            if git ls-remote --heads origin sync-from-template | grep sync-from-template; then
-              echo "Branch sync-from-template was successfully pushed."
-              echo "changes_pushed=true" >> $GITHUB_OUTPUT
-              
-              # Create PR without checking for differences since we've already verified changes with git status
-              echo "has_differences=true" >> $GITHUB_OUTPUT
-            else
-              echo "Failed to push branch sync-from-template."
-              echo "changes_pushed=false" >> $GITHUB_OUTPUT
-            fi
+            git push --force origin sync-from-template
+            echo "changes_pushed=true" >> $GITHUB_OUTPUT
           else
-            echo "No changes to sync."
             echo "changes_pushed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Pull Request in Target Repo
-        if: steps.commit_push.outputs.changes_pushed == 'true' && steps.commit_push.outputs.has_differences == 'true'
+        if: steps.commit_push.outputs.changes_pushed == 'true'
+        working-directory: target-repo
         run: |
-          # Create pull request only if the branches have actual differences
-          echo "Creating pull request from sync-from-template to dev..."
           gh pr create \
             --repo iCyanCorporation/treehandmade-homepage \
             --head sync-from-template \
             --base dev \
             --title "Sync from Template Repo" \
-            --body "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)." || echo "Failed to create PR, likely because there are no changes or a PR already exists."
+            --body "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)."
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-        working-directory: target-repo
