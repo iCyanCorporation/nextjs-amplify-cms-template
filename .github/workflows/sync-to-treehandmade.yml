@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Template Repo
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: master # Ensures we are syncing from the master branch of the template
 
       - name: Set up Git Config
         run: |
@@ -23,6 +23,17 @@ jobs:
       - name: Clone Target Repo (dev branch)
         run: |
           git clone --single-branch --branch dev https://x-access-token:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/iCyanCorporation/treehandmade-homepage.git target-repo
+          cd target-repo
+          echo "Checking current branch in target-repo..."
+          current_branch=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch is: $current_branch"
+          if [ "$current_branch" != "dev" ]; then
+            echo "Error: Failed to clone or checkout the 'dev' branch from the target repository (iCyanCorporation/treehandmade-homepage)." >&2
+            echo "Please ensure the 'dev' branch exists on that repository and has at least one commit." >&2
+            exit 1
+          fi
+          echo "'dev' branch successfully cloned and checked out in target-repo."
+          cd ..
 
       - name: Sync Selected Files
         run: |
