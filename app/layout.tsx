@@ -4,15 +4,6 @@ import { Amplify } from "aws-amplify";
 Amplify.configure(outputs, { ssr: true });
 import outputs from "@/amplify_outputs.json";
 
-// Import the Providers
-import { Providers } from "./providers";
-import UserProvider from "@/app/contexts/UserContext";
-
-// Context
-import ProductProvider from "@/app/contexts/ProductContext";
-import { CartProvider } from "@/app/contexts/CartContext";
-import { SettingProvider } from "@/app/contexts/SettingContext";
-
 // Components
 import { Toaster } from "@/components/ui/toaster";
 
@@ -30,16 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} bg-background`}>
-        <Providers>
-          <UserProvider>
-            <SettingProvider>
-              <ProductProvider>
-                <CartProvider>{children}</CartProvider>
-                <Toaster />
-              </ProductProvider>
-            </SettingProvider>
-          </UserProvider>
-        </Providers>
+        {children}
+        <Toaster />
+
         {/* Google tags */}
         {/* <GoogleTagManager gtmId="GTM-xxx" />
       <GoogleAnalytics gaId="G-xxx" /> */}

@@ -1,6 +1,8 @@
 amplify/
 
+app/[lng]/layout.tsx
 app/[lng]/(auth)/
+
 app/api/
 app/contexts/
 
