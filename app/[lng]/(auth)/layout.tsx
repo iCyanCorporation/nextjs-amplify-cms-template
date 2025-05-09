@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
-import AuthClientWrapper from "@/components/auth/AuthClientWrapper";
+import AuthClientWrapper from "@/components/common/auth/AuthClientWrapper";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/common/Sidebar";
 
 export default async function RootLayout({
   children,

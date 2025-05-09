@@ -1,7 +1,7 @@
 import React from "react";
 import { Attribute } from "@/types/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DynamicAttributeField from "@/components/admin/DynamicAttributeField";
+import DynamicAttributeField from "@/components/common/admin/DynamicAttributeField";
 
 interface TypeAttributesSectionProps {
   attributes: Attribute[];

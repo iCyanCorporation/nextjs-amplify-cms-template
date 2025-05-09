@@ -8,9 +8,11 @@ import {
   useState,
 } from "react";
 import { EditorContent, type Editor } from "@tiptap/react";
-import useTiptapEditor, { type UseTiptapEditorOptions } from "../hooks/useTiptapEditor";
+import useTiptapEditor, {
+  type UseTiptapEditorOptions,
+} from "../hooks/useTiptapEditor";
 import clsx from "clsx";
-import CodeMirrorEditor from "@/components/SourceEditor/Editor";
+import CodeMirrorEditor from "@/components/common/SourceEditor/Editor";
 
 type TiptapContextType = {
   editor: Editor;
@@ -63,13 +65,22 @@ export const TiptapProvider = ({
   };
 
   const editorContent = (
-    <div className={clsx("rte-editor", isFullScreen && "rte-editor--fullscreen")}>
+    <div
+      className={clsx("rte-editor", isFullScreen && "rte-editor--fullscreen")}
+    >
       {slotBefore}
-      <div className="rte-editor__container" onMouseDown={focusEditorViaContainer}>
+      <div
+        className="rte-editor__container"
+        onMouseDown={focusEditorViaContainer}
+      >
         {isSourceMode ? (
           <CodeMirrorEditor initialContent={editor.getHTML() || ""} />
         ) : (
-          <EditorContent ref={contentElement} editor={editor} className="rte-editor__content" />
+          <EditorContent
+            ref={contentElement}
+            editor={editor}
+            className="rte-editor__content"
+          />
         )}
       </div>
       {children}

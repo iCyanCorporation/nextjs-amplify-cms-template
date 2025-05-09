@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { categoryList } from "@/types/blog";
-import EditForm from "@/components/EditorComponent";
+import EditForm from "@/components/common/EditorComponent";
 import {
   ArrowLeftFromLine,
   ArrowRightFromLine,
@@ -33,7 +33,10 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { IoMdClose } from "react-icons/io";
-import { ImagePicker, ImagePickerButton } from "@/components/image/ImagePicker";
+import {
+  ImagePicker,
+  ImagePickerButton,
+} from "@/components/common/image/ImagePicker";
 import {
   Dialog,
   DialogContent,

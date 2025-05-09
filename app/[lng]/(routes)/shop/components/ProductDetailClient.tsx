@@ -2,10 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import AddToCartButton from "@/components/product/AddToCartButton";
-import ProductImageCarousel from "@/components/product/ProductImageCarousel";
+import AddToCartButton from "@/components/common/product/AddToCartButton";
+import ProductImageCarousel from "@/components/common/product/ProductImageCarousel";
 import dynamic from "next/dynamic";
-import SocialShare from "@/components/SocialShare"; // Import SocialShare component
+import SocialShare from "@/components/common/SocialShare"; // Import SocialShare component
 import { Input } from "@/components/ui/input";
 import { useCartContext } from "@/app/contexts/CartContext";
 import { useProductContext } from "@/app/contexts/ProductContext";

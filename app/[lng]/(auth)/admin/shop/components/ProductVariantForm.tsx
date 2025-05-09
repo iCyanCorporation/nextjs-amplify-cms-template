@@ -15,7 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import ProductImagesSection from "./ProductImagesSection";
 import { Attribute } from "@/types/data";
-import { ImagePicker } from "@/components/image/ImagePicker";
+import { ImagePicker } from "@/components/common/image/ImagePicker";
 import { AttributeValue, Variant } from "@/types/data";
 import { getAuthToken } from "@/hooks/useAmplifyClient";
 import { toast } from "@/hooks/use-toast";

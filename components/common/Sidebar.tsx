@@ -11,8 +11,8 @@ import {
   RiSettings3Line,
 } from "react-icons/ri";
 import { FaHome, FaUserCircle } from "react-icons/fa";
-import { useUserContext } from "../app/contexts/UserContext.js";
-import { useSettingContext } from "../app/contexts/SettingContext";
+import { useUserContext } from "../../app/contexts/UserContext.js";
+import { useSettingContext } from "../../app/contexts/SettingContext.jsx";
 import {
   Sidebar,
   SidebarHeader,
@@ -23,10 +23,10 @@ import {
   SidebarMenuButton,
   SidebarSeparator,
   SidebarProvider,
-} from "./ui/sidebar";
-import SignOutButton from "./SignOutButton";
-import ThemeToggle from "./ThemeToggle";
-import LanguageSwitcher from "./LanguageSwitcher";
+} from "../ui/sidebar.jsx";
+import SignOutButton from "./SignOutButton.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
+import LanguageSwitcher from "./LanguageSwitcher.jsx";
 
 export default function SidebarNav() {
   const pathname = usePathname();

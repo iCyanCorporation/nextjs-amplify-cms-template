@@ -3,10 +3,10 @@
 import { usePathname } from "next/navigation";
 import { mainNavigation } from "@/config/navigation";
 import { createPathWithLang } from "@/app/i18n/client-config";
-import ThemeToggle from "./ThemeToggle";
-import LanguageSwitcher from "./LanguageSwitcher";
+import ThemeToggle from "../common/ThemeToggle";
+import LanguageSwitcher from "../common/LanguageSwitcher";
 import Link from "next/link";
-import { Cart } from "./cart/cart";
+import { Cart } from "../common/cart/cart";
 
 export default function Header({ lng }: { lng: string }) {
   const pathname = usePathname() || "/";

@@ -21,7 +21,7 @@ import YoutubeButton from "./controls/YoutubeButton";
 import TextColorButton from "./controls/TextColorButton";
 import TextHighlightButton from "./controls/TextHighlightButton";
 import InsertDropdown from "./controls/InsertDropdown";
-import TableButton from "@/components/TiptapEditor/components/controls/TableButton";
+import TableButton from "@/components/common/TiptapEditor/components/controls/TableButton";
 
 const MenuBar = () => {
   return (

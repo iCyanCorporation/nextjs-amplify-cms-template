@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import TiptapEditor, { type TiptapEditorRef } from "@/components/TiptapEditor";
+import TiptapEditor, {
+  type TiptapEditorRef,
+} from "@/components/common/TiptapEditor";
 
 interface PostForm {
   title: string;

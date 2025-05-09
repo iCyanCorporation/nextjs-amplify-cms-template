@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import Button from "@/components/TiptapEditor/components/ui/Button";
-import { ImagePicker } from "@/components/image/ImagePicker";
+import Button from "@/components/common/TiptapEditor/components/ui/Button";
+import { ImagePicker } from "@/components/common/image/ImagePicker";
 
 import "./style.scss";
 

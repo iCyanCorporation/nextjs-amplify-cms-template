@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Trash2, Upload, Image as ImageIcon } from "lucide-react";
-import { ImagePickerButton } from "@/components/image/ImagePicker";
+import { ImagePickerButton } from "@/components/common/image/ImagePicker";
 import Image from "next/image";
 
 interface ProductImagesSectionProps {

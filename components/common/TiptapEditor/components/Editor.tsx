@@ -18,7 +18,7 @@ import { cssVar } from "../utils/cssVar";
 import { throttle } from "../utils/throttle";
 
 import "../styles/index.scss";
-import TableMenu from "@/components/TiptapEditor/components/menus/TableMenu";
+import TableMenu from "@/components/common/TiptapEditor/components/menus/TableMenu";
 
 export type TiptapEditorRef = {
   getInstance: () => Editor | null;
@@ -74,7 +74,11 @@ const TiptapEditor = forwardRef<TiptapEditorRef, TiptapEditorProps>(
     const handleUpdate = useCallback(
       (editor: Editor) => {
         const content =
-          output === "html" ? (editor.isEmpty ? "" : editor.getHTML()) : editor.getJSON();
+          output === "html"
+            ? editor.isEmpty
+              ? ""
+              : editor.getHTML()
+            : editor.getJSON();
         throttledUpdate(content);
       },
       [throttledUpdate, output]

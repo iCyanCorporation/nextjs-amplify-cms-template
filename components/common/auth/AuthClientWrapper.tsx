@@ -4,11 +4,11 @@ import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import * as Auth from "aws-amplify/auth";
 
-import { CustomSignIn } from "@/components/auth/CustomSignIn";
-import { CustomSignUp } from "@/components/auth/CustomSignUp";
-import { CustomConfirmSignUp } from "@/components/auth/CustomConfirmSignUp";
-import { CustomForgotPassword } from "@/components/auth/CustomForgotPassword";
-import { CustomConfirmResetPassword } from "@/components/auth/CustomConfirmResetPassword";
+import { CustomSignIn } from "@/components/common/auth/CustomSignIn";
+import { CustomSignUp } from "@/components/common/auth/CustomSignUp";
+import { CustomConfirmSignUp } from "@/components/common/auth/CustomConfirmSignUp";
+import { CustomForgotPassword } from "@/components/common/auth/CustomForgotPassword";
+import { CustomConfirmResetPassword } from "@/components/common/auth/CustomConfirmResetPassword";
 
 Amplify.configure(outputs);
 

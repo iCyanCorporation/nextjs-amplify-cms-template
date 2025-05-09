@@ -1,4 +1,4 @@
-import { ScrollToTop } from "@/components/ScrollToTop";
+import { ScrollToTop } from "@/components/common/ScrollToTop";
 
 type Params = Promise<{ lng: string }>;
 export default async function RootLayout({

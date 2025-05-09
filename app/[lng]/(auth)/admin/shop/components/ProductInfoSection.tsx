@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { AlertCircle } from "lucide-react";
-import EditorComponent from "@/components/EditorComponent";
+import EditorComponent from "@/components/common/EditorComponent";
 import {
   Select,
   SelectContent,
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImagePickerButton } from "@/components/image";
+import { ImagePickerButton } from "@/components/common/image";
 import Image from "next/image";
 import { Attribute } from "@/types/data";
 

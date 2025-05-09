@@ -7,9 +7,9 @@ import { Blog } from "@/types/blog";
 import { FaLink } from "react-icons/fa";
 import { FaXTwitter, FaLine, FaLinkedin, FaFacebook } from "react-icons/fa6";
 import { Separator } from "@/components/ui/separator";
-import { TableDialog } from "@/components/TableDialog";
+import { TableDialog } from "@/components/common/TableDialog";
 import { useProcessTables } from "@/hooks/useProcessTables";
-import SocialShare from "@/components/SocialShare";
+import SocialShare from "@/components/common/SocialShare";
 
 interface BlogContentProps {
   blog: Blog;
