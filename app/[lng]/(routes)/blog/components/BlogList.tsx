@@ -117,7 +117,7 @@ export function BlogList({ lng }: { lng?: string }) {
         {categories.map((cat) => (
           <button
             key={cat}
-            className={`px-3 py-1 rounded ${
+            className={`px-3 py-1 rounded uppercase text-sm ${
               selectedCategory === cat
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-700"

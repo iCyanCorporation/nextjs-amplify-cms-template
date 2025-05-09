@@ -160,7 +160,7 @@ export function ImagePicker({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full sm:max-w-7xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full sm:max-w-7xl max-h-[90vh] overflow-y-auto bg-background">
         <DialogHeader>
           <DialogTitle>
             {multiSelect ? "Select Images" : "Select Image"}
@@ -206,11 +206,7 @@ export function ImagePicker({
                     onClick={() => handleSelectImage(image)}
                   >
                     <div
-                      className={
-                        selectedImages.has(image.url)
-                          ? "ring-2 ring-primary rounded-md"
-                          : ""
-                      }
+                      className=""
                       style={{ display: "flex", flexDirection: "column" }}
                     >
                       <img
@@ -224,7 +220,7 @@ export function ImagePicker({
                       </div>
                     </div>
                     {selectedImages.has(image.url) && (
-                      <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1 z-10">
+                      <div className="absolute top-2 right-2 bg-primary text-white dark:text-black rounded-full p-1 z-10">
                         <Check className="h-4 w-4" />
                       </div>
                     )}
