@@ -52,27 +52,47 @@ jobs:
         working-directory: target-repo
         run: |
           git config --global --add safe.directory "$PWD"
-          # Work directly with the already cloned dev branch
+          # Create a branch for changes based on current dev branch
           if [[ -n "$(git status --porcelain)" ]]; then
+            # Create sync branch from current state (which should be dev)
             git checkout -B sync-from-template
             git add .
             git commit -m "chore: sync from template repo"
             git push origin sync-from-template --force
-            echo "changes_pushed=true" >> $GITHUB_OUTPUT
+            # Verify the branch was pushed and has commits
+            if git ls-remote --heads origin sync-from-template | grep sync-from-template; then
+              echo "Branch sync-from-template was successfully pushed."
+              echo "changes_pushed=true" >> $GITHUB_OUTPUT
+              
+              # Check if there are differences between dev and sync-from-template
+              git fetch origin dev
+              if git diff --quiet origin/dev sync-from-template; then
+                echo "No differences between dev and sync-from-template branches."
+                echo "has_differences=false" >> $GITHUB_OUTPUT
+              else
+                echo "Found differences between dev and sync-from-template branches."
+                echo "has_differences=true" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "Failed to push branch sync-from-template."
+              echo "changes_pushed=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "No changes to sync."
             echo "changes_pushed=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Pull Request in Target Repo
-        if: steps.commit_push.outputs.changes_pushed == 'true'
+        if: steps.commit_push.outputs.changes_pushed == 'true' && steps.commit_push.outputs.has_differences == 'true'
         run: |
+          # Create pull request only if the branches have actual differences
+          echo "Creating pull request from sync-from-template to dev..."
           gh pr create \
             --repo iCyanCorporation/treehandmade-homepage \
             --head sync-from-template \
             --base dev \
             --title "Sync from Template Repo" \
-            --body "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)."
+            --body "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)." || echo "Failed to create PR, likely because there are no changes or a PR already exists."
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         working-directory: target-repo
