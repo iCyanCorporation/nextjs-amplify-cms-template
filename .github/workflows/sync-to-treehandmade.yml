@@ -52,6 +52,14 @@ jobs:
         working-directory: target-repo
         run: |
           git config --global --add safe.directory "$PWD"
+
+          # Debug: Check what remote we're pushing to
+          echo "Checking remote URL..."
+          git remote -v
+
+          # Ensure we're using the correct remote URL
+          git remote set-url origin https://x-access-token:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/iCyanCorporation/treehandmade-homepage.git
+
           # Create a branch for changes based on current dev branch
           if [[ -n "$(git status --porcelain)" ]]; then
             # Create sync branch from current state (which should be dev)
@@ -64,15 +72,8 @@ jobs:
               echo "Branch sync-from-template was successfully pushed."
               echo "changes_pushed=true" >> $GITHUB_OUTPUT
               
-              # Check if there are differences between dev and sync-from-template
-              git fetch origin dev
-              if git diff --quiet origin/dev sync-from-template; then
-                echo "No differences between dev and sync-from-template branches."
-                echo "has_differences=false" >> $GITHUB_OUTPUT
-              else
-                echo "Found differences between dev and sync-from-template branches."
-                echo "has_differences=true" >> $GITHUB_OUTPUT
-              fi
+              # Create PR without checking for differences since we've already verified changes with git status
+              echo "has_differences=true" >> $GITHUB_OUTPUT
             else
               echo "Failed to push branch sync-from-template."
               echo "changes_pushed=false" >> $GITHUB_OUTPUT
