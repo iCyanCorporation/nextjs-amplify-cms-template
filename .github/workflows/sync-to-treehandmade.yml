@@ -40,11 +40,14 @@ jobs:
             echo "No changes to sync."
           fi
 
-      - name: Create Pull Request on Dev Branch
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          branch: sync-from-template
-          base: dev
-          title: "Sync from Template Repo"
-          body: "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)."
+      - name: Create Pull Request in Target Repo
+        run: |
+          gh pr create \
+            --repo iCyanCorporation/treehandmade-homepage \
+            --head sync-from-template \
+            --base dev \
+            --title "Sync from Template Repo" \
+            --body "Automated sync from [nextjs-amplify-cms-template](https://github.com/iCyanCorporation/nextjs-amplify-cms-template)."
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+        working-directory: target-repo
