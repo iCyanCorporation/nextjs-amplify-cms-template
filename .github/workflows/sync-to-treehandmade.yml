@@ -52,12 +52,11 @@ jobs:
         working-directory: target-repo
         run: |
           git config --global --add safe.directory "$PWD"
-          git fetch origin dev
-          git checkout dev
+          # Work directly with the already cloned dev branch
           if [[ -n "$(git status --porcelain)" ]]; then
             git checkout -B sync-from-template
             git add .
-            git commit -m "chore sync from template repo"
+            git commit -m "chore: sync from template repo"
             git push origin sync-from-template --force
             echo "changes_pushed=true" >> $GITHUB_OUTPUT
           else
