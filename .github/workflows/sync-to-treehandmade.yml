@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Template Repo
         uses: actions/checkout@v4
+        with:
+          ref: master
 
       - name: Set up Git Config
         run: |
