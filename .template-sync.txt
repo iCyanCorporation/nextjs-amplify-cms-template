@@ -1,4 +1,4 @@
-amplify/*
+amplify
 
-app/[lng]/(auth)/*
-app/api/*
+app/[lng]/(auth)
+app/api
