@@ -1,3 +1,0 @@
-amplify/
-app/[lng]/(auth)
-app/api/
