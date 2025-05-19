@@ -103,9 +103,9 @@ npx ampx sandbox
 3. Customize the components and styles
 4. Update the content and branding
 
-## 🛣️ Roadmap
+## Roadmap
 
-* [ ] Basic website
+* [X] Basic website
 * [ ] Dashboard(Backend CMS)
 * [ ] Marketing features
 * [ ] (COMING SOON)
