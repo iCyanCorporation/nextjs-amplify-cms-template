@@ -48,3 +48,7 @@ export function convertEmail2SafeHtml(email: string): string {
     return "";
   }
 }
+
+export function checkURLisImage(url: string): boolean {
+  return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+}
