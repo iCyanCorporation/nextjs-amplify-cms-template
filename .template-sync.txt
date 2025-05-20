@@ -1,6 +1,5 @@
 amplify/
 
-app/[lng]/layout.tsx
 app/[lng]/(auth)/
 
 app/api/
@@ -13,9 +12,3 @@ hooks/
 lib/
 utils/
 types/
-
-package.json
-package-lock.json
-tsconfig.json
-tailwind.config.js
-postcss.config.js
