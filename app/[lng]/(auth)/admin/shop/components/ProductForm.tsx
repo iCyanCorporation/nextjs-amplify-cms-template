@@ -441,7 +441,7 @@ export default function ProductForm({ mode, productId }: ProductFormProps) {
         // Stay on the current page
       } else {
         // Only redirect for new product creation
-        router.push("/admin/products");
+        router.push("/admin/shop");
       }
     } catch (error) {
       console.error(

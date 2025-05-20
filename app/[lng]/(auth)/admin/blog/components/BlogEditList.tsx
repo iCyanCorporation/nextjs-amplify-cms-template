@@ -142,11 +142,11 @@ export function BlogList() {
               </TableCell>
               <TableCell className="space-x-2">
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   size="sm"
                   onClick={() => startEdit(blog)}
                   disabled={isLoading}
-                  className="hover:opacity-80"
+                  className=""
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -154,7 +154,7 @@ export function BlogList() {
                   variant="destructive"
                   size="sm"
                   onClick={() => handleDelete(blog.id)}
-                  className="hover:opacity-80 text-red-500"
+                  className=""
                   disabled={isLoading}
                 >
                   <Trash2 className="h-4 w-4" />

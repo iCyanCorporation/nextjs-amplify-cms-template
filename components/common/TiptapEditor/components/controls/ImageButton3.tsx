@@ -28,7 +28,7 @@ const ImageButton = () => {
         {...state}
         onClick={handleOpen}
       />
-      <Dialog open={open} onOpenChange={handleClose}>
+      {open && (
         <MediaLibrary
           onClose={handleClose}
           onInsert={(image) => {
@@ -44,7 +44,7 @@ const ImageButton = () => {
             handleClose();
           }}
         />
-      </Dialog>
+      )}
     </>
   );
 };

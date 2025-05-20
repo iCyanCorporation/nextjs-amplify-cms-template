@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { list, getUrl } from "aws-amplify/storage";
+import { list } from "aws-amplify/storage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, Search, Check, X, Image } from "lucide-react";
@@ -97,9 +97,10 @@ export function ImagePicker({
       });
       const imageItems = await Promise.all(
         response.items.map(async (item) => {
+          const urlResult = await getS3PublicUrl(item.path);
           return {
             key: item.path,
-            url: getS3PublicUrl(item.path),
+            url: urlResult,
             lastModified: item.lastModified
               ? new Date(item.lastModified).toISOString()
               : new Date().toISOString(),
@@ -118,18 +119,14 @@ export function ImagePicker({
 
   function handleSelectImage(image: ImageItem) {
     if (multiSelect) {
-      // Create a new Set to ensure state update
       const newSelectedImages = new Set(selectedImages);
-
       if (newSelectedImages.has(image.url)) {
         newSelectedImages.delete(image.url);
       } else {
         newSelectedImages.add(image.url);
       }
-
       setSelectedImages(newSelectedImages);
     } else {
-      // Single selection mode - just replace the current selection
       setSelectedImages(new Set([image.url]));
     }
   }
@@ -137,10 +134,8 @@ export function ImagePicker({
   function handleConfirmSelection() {
     if (selectedImages.size > 0) {
       if (multiSelect) {
-        // Return array of URLs for multi-select mode
         onSelect?.(Array.from(selectedImages));
       } else {
-        // Return single URL for single-select mode
         onSelect?.(Array.from(selectedImages)[0]);
       }
       handleClose();
@@ -153,14 +148,13 @@ export function ImagePicker({
     onClose?.();
   }
 
-  // Filter images based on search query
   const filteredImages = images.filter((image) =>
     image.key.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full sm:max-w-7xl max-h-[90vh] overflow-y-auto bg-background">
+      <DialogContent className="w-full sm:max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {multiSelect ? "Select Images" : "Select Image"}
@@ -170,7 +164,7 @@ export function ImagePicker({
         <div className="space-y-4">
           {/* Search and refresh controls */}
           <div className="flex gap-4 flex-wrap">
-            <div className="relative flex-1">
+            <div className=" flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search images..."
