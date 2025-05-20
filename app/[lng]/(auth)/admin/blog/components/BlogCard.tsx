@@ -5,14 +5,15 @@ import { cn } from "@/lib/utils";
 import { Blog } from "@/types/blog";
 import Image from "next/image";
 import Link from "next/link";
+import { checkURLisImage } from "@/lib/common";
 
 // Add date formatting helper after imports
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };
 
@@ -22,7 +23,11 @@ interface BlogCardProps {
   className?: string;
 }
 
-export function BlogCard({ post, variant = "modern", className }: BlogCardProps) {
+export function BlogCard({
+  post,
+  variant = "modern",
+  className,
+}: BlogCardProps) {
   if (variant === "simple") {
     return (
       <Link href={`/blog/${post.id}`}>
@@ -51,10 +56,6 @@ export function BlogCard({ post, variant = "modern", className }: BlogCardProps)
         </Card>
       </Link>
     );
-  }
-
-  function checkURLisImage(url: string): boolean {
-    return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
   }
 
   return (
@@ -89,7 +90,6 @@ export function BlogCard({ post, variant = "modern", className }: BlogCardProps)
               {post.category}
             </span>
           )}
-
         </div>
         <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 dark:text-white transition-colors duration-300">
           {post.title}
@@ -104,11 +104,8 @@ export function BlogCard({ post, variant = "modern", className }: BlogCardProps)
               {formatDate(post.createdAt)}
             </span>
           )}
-
         </div>
-
       </div>
     </div>
-
   );
 }

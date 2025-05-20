@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import VariantForm from "./ProductVariantForm";
+import { getAuthToken } from "@/hooks/useAmplifyClient";
 
 interface ProductVariantsSectionProps {
   productId: string;
@@ -100,8 +101,20 @@ const ProductVariantsSection: React.FC<ProductVariantsSectionProps> = ({
     };
   };
 
-  const handleDeleteVariant = (id: string) => {
+  const handleDeleteVariant = async (id: string) => {
     if (id) {
+      const res = await fetch(`/api/product-variant/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: await getAuthToken(),
+        },
+      });
+      if (res.status !== 200) {
+        alert("Failed to delete variant");
+        return;
+      }
+      // Remove the variant from the state
       setVariants(variants.filter((v) => v.id !== id));
       setDeleteVariantDialogOpen(false);
     }
